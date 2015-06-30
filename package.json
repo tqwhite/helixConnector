@@ -1,0 +1,22 @@
+{
+  "name": "helixConnector",
+  "version": "1.0.0",
+  "description": "Attaches to the Helix Database",
+  "main": "helixConnector.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tqwhite/helixConnector.git"
+  },
+  "keywords": [
+    "Helix"
+  ],
+  "author": "TQ White II",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tqwhite/helixConnector/issues"
+  },
+  "homepage": "https://github.com/tqwhite/helixConnector"
+}
