@@ -96,6 +96,16 @@ var moduleFunction = function(args) {
 		});
 
 	}
+	
+	/*
+		Test multiple scanner instances
+		Move schema out of config, into dataInterface
+		Add validate schema function to helixInterface
+		figure out how they should install install node 
+		write installation script
+		add script containing port numbers to startup all instances
+	
+	*/
 
 	var makeDataString = function(schema, mapping, inData) {
 		var outString = '',
