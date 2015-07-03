@@ -149,7 +149,7 @@ var moduleFunction = function(args) {
 
 	//INITIALIZATION ====================================
 
-	var script = qtools.fs.readFileSync('/Users/tqwhite/Documents/webdev/lenny/panagon/projects/inventoryScanner/system/node_modules/helixConnector/lib/saveOne.applescript');
+	var script = qtools.fs.readFileSync(process.env.SCANNER_BASE_PATH+'/system/node_modules/helixConnector/lib/saveOne.applescript');
 	// console.log("script="+script);
 
 	var osascript = require('osascript').eval;
