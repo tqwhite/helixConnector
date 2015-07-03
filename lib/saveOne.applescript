@@ -1,4 +1,4 @@
-tell application "Helix RADE"
+tell application "<!applicationName!>"
 	
 	set myCollection to "<!collection!>"
 	set myRelation to "<!relation!>"

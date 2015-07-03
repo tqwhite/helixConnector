@@ -89,6 +89,9 @@ var moduleFunction = function(args) {
 			template: script.toString(),
 			replaceObject: replaceObject
 		});
+console.dir({"finalScript":finalScript});
+
+
 		osascript(finalScript, {
 			type: 'AppleScript'
 		}, function(err, data) {
