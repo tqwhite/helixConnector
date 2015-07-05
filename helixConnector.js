@@ -3,7 +3,7 @@ var qtools = require('qtools'),
 	qtools = new qtools(module),
 	events = require('events'),
 	util = require('util'),
-	dateFormat=require('node-dateformat');
+	moment=require('moment');
 
 //START OF moduleFunction() ============================================================
 
@@ -43,7 +43,7 @@ var moduleFunction = function(args) {
 	var helixDateTime=function(inDate){
 		//helix example: '6/29/15  8:38:39 AM'
 		//var outString = dateFormat(inDate, "dddd, mmmm dS, yyyy, h:MM:ss TT");;
-		var outString = dateFormat(inDate, "mm/dd/yy h:MM:ss TT");;
+		var outString=moment().format("MM/DD/YY hh:mm:ss A");
 		return outString;
 		
 	}
@@ -96,16 +96,6 @@ var moduleFunction = function(args) {
 		});
 
 	}
-	
-	/*
-		Test multiple scanner instances
-		Move schema out of config, into dataInterface
-		Add validate schema function to helixInterface
-		figure out how they should install install node 
-		write installation script
-		add script containing port numbers to startup all instances
-	
-	*/
 
 	var makeDataString = function(schema, mapping, inData) {
 		var outString = '',
