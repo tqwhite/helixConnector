@@ -42,8 +42,7 @@ var moduleFunction = function(args) {
 	
 	var helixDateTime=function(inDate){
 		//helix example: '6/29/15  8:38:39 AM'
-		//var outString = dateFormat(inDate, "dddd, mmmm dS, yyyy, h:MM:ss TT");;
-		var outString=moment().format("MM/DD/YY hh:mm:ss A");
+		var outString=moment(inDate).format("MM/DD/YY hh:mm:ss A");
 		return outString;
 		
 	}
@@ -136,6 +135,10 @@ var moduleFunction = function(args) {
 		executeSave(queryParms, inData, callback);
 
 	}
+
+	//TEST ACCESS ====================================
+	
+	this.helixDateTime=helixDateTime;
 
 	//INITIALIZATION ====================================
 

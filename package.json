@@ -18,5 +18,9 @@
   "bugs": {
     "url": "https://github.com/tqwhite/helixConnector/issues"
   },
-  "homepage": "https://github.com/tqwhite/helixConnector"
+  "homepage": "https://github.com/tqwhite/helixConnector",
+  "dependencies":{
+  	"moment":"latest",
+  	"osascript":"latest"
+  }
 }
