@@ -3,7 +3,7 @@ var qtools = require('qtools'),
 	qtools = new qtools(module),
 	events = require('events'),
 	util = require('util'),
-	moment=require('moment');
+	moment = require('moment');
 
 //START OF moduleFunction() ============================================================
 
@@ -27,6 +27,7 @@ var moduleFunction = function(args) {
 		]
 	});
 
+	this.systemProfile = this.systemProfile || {};
 
 
 	var self = this,
@@ -39,12 +40,12 @@ var moduleFunction = function(args) {
 
 
 	//LOCAL FUNCTIONS ====================================
-	
-	var helixDateTime=function(inDate){
+
+	var helixDateTime = function(inDate) {
 		//helix example: '6/29/15  8:38:39 AM'
-		var outString=moment(inDate).format("MM/DD/YY hh:mm:ss A");
+		var outString = moment(inDate).format("MM/DD/YY hh:mm:ss A");
 		return outString;
-		
+
 	}
 
 	var formatFunctions = {
@@ -88,6 +89,8 @@ var moduleFunction = function(args) {
 			template: script.toString(),
 			replaceObject: replaceObject
 		});
+
+
 		osascript(finalScript, {
 			type: 'AppleScript'
 		}, function(err, data) {
@@ -137,12 +140,15 @@ var moduleFunction = function(args) {
 	}
 
 	//TEST ACCESS ====================================
-	
-	this.helixDateTime=helixDateTime;
+
+	if (global.systemProfile.exposeTests) {
+		this.formatFunctions = formatFunctions;
+		this.makeDataString = makeDataString;
+	}
 
 	//INITIALIZATION ====================================
 
-	var script = qtools.fs.readFileSync(process.env.SCANNER_BASE_PATH+'/system/node_modules/helixConnector/lib/saveOne.applescript');
+	var script = qtools.fs.readFileSync('./lib/saveOne.applescript');
 	// console.log("script="+script);
 
 	var osascript = require('osascript').eval;
@@ -156,6 +162,7 @@ var moduleFunction = function(args) {
 
 util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
+
 
 
 
