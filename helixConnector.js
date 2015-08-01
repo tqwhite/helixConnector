@@ -41,6 +41,7 @@ var moduleFunction = function(args) {
 
 	//LOCAL FUNCTIONS ====================================
 
+
 	var helixDateTime = function(inDate) {
 		//helix example: '6/29/15  8:38:39 AM'
 		var outString = moment(inDate).format("MM/DD/YY hh:mm:ss A");
@@ -79,8 +80,13 @@ var moduleFunction = function(args) {
 	}
 	//demoJs();
 
-	var executeSave = function(queryParms, inData, callback) {
-		var replaceObject = qtools.extend(inData, self.helixAccessParms);
+	var compileScript = function() {}
+
+	var executeSave = function(processName, queryParms, inData, callback) {
+		var replaceObject = qtools.extend(inData, self.helixAccessParms),
+			scriptElement = getScript(processName),
+			script=scriptElement.script;
+
 		replaceObject = qtools.extend(inData, queryParms);
 
 		replaceObject.dataString = makeDataString(queryParms.fieldSequenceList, queryParms.mapping, inData);
@@ -92,7 +98,7 @@ var moduleFunction = function(args) {
 
 
 		osascript(finalScript, {
-			type: 'AppleScript'
+			type: (scriptElement.language.toLowerCase()=='javascript')?'':scriptElement.language //turns out that osascript won't let you specify, JS is the default
 		}, function(err, data) {
 			callback(err, data);
 		});
@@ -100,8 +106,12 @@ var moduleFunction = function(args) {
 	}
 
 	var makeDataString = function(schema, mapping, inData) {
+
+		schema=schema || [];
+		
 		var outString = '',
 			finalFunction;
+
 		for (var i = 0, len = schema.length; i < len; i++) {
 			var element = schema[i],
 				mappingEntry = mapping[element],
@@ -124,7 +134,6 @@ var moduleFunction = function(args) {
 			}
 
 			var result = finalFunction(inData[element]);
-
 			outString += result + '\t';
 		}
 		outString = outString.replace(/\t$/, '');
@@ -135,9 +144,49 @@ var moduleFunction = function(args) {
 
 	this.save = function(queryParms, inData, callback) {
 
-		executeSave(queryParms, inData, callback);
+		executeSave('save', queryParms, inData, callback);
 
 	}
+
+
+	//DISPATCH ====================================
+
+
+	var getScript = function(functionName) {
+		var scriptList = {
+			save: {
+				path: './lib/saveOne.applescript',
+				language: 'AppleScript'
+			},
+			startDb: {
+				path: './lib/openTestDb.jax',
+				language: 'Javascript'
+			}
+		}
+		
+		var scriptElement = scriptList[functionName];
+		scriptElement.script = qtools.fs.readFileSync(scriptElement.path).toString();
+
+		return scriptElement;
+
+	}
+
+	this.process = function(control, parameters) {
+
+		switch (control) {
+			case 'save':
+				executeSave('save', parameters.queryParms, parameters.inData, parameters.callback);
+				break;
+			case 'startDb':
+				executeSave('startDb', parameters.queryParms, parameters.inData, parameters.callback);
+
+				break;
+
+		}
+
+	}
+
+	var startDatabase = function(queryParms, inData, callback) {}
 
 	//TEST ACCESS ====================================
 
@@ -147,9 +196,6 @@ var moduleFunction = function(args) {
 	}
 
 	//INITIALIZATION ====================================
-
-	var script = qtools.fs.readFileSync('./lib/saveOne.applescript');
-	// console.log("script="+script);
 
 	var osascript = require('osascript').eval;
 
@@ -162,6 +208,7 @@ var moduleFunction = function(args) {
 
 util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
+
 
 
 

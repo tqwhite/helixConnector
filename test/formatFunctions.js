@@ -11,7 +11,7 @@ helixConnector = new helixConnector({
 
 //new Date(year, month[, day[, hour[, minutes[, seconds[, milliseconds]]]]]);		
 
-describe('Formats', function() {
+describe('Format functions', function() {
 	describe('Helix Date', function() {
 		var testDate = new Date(
 
