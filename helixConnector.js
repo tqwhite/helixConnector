@@ -5,6 +5,9 @@ var qtools = require('qtools'),
 	util = require('util'),
 	moment = require('moment');
 
+console.dir({"qtools.ping()":qtools.ping()});
+
+
 //START OF moduleFunction() ============================================================
 
 var moduleFunction = function(args) {
@@ -82,7 +85,12 @@ var moduleFunction = function(args) {
 
 	var compileScript = function() {}
 
-	var executeSave = function(processName, queryParms, inData, callback) {
+	var executeHelixOperation = function(processName, queryParms, inData, callback) {
+		
+		queryParms=queryParms || {};
+		inData=inData || {};
+		callback=callback || function(){};
+		
 		var replaceObject = qtools.extend(inData, self.helixAccessParms),
 			scriptElement = getScript(processName),
 			script=scriptElement.script;
@@ -95,6 +103,9 @@ var moduleFunction = function(args) {
 			template: script.toString(),
 			replaceObject: replaceObject
 		});
+
+
+console.log("finalScript="+finalScript);
 
 
 		osascript(finalScript, {
@@ -144,7 +155,7 @@ var moduleFunction = function(args) {
 
 	this.save = function(queryParms, inData, callback) {
 
-		executeSave('save', queryParms, inData, callback);
+		executeHelixOperation('save', queryParms, inData, callback);
 
 	}
 
@@ -158,6 +169,10 @@ var moduleFunction = function(args) {
 				path: './lib/saveOne.applescript',
 				language: 'AppleScript'
 			},
+			kill: {
+				path: './lib/quitHelixNoSave.applescript',
+				language: 'AppleScript'
+			},
 			startDb: {
 				path: './lib/openTestDb.jax',
 				language: 'Javascript'
@@ -165,6 +180,17 @@ var moduleFunction = function(args) {
 		}
 		
 		var scriptElement = scriptList[functionName];
+		
+		if (!scriptElement){
+			
+				var path='./lib/'+functionName+'.applescript';
+				var scriptElement = {
+				path: './lib/'+functionName+'.applescript',
+				language: 'AppleScript'
+			}
+			
+		}
+	
 		scriptElement.script = qtools.fs.readFileSync(scriptElement.path).toString();
 
 		return scriptElement;
@@ -173,14 +199,17 @@ var moduleFunction = function(args) {
 
 	this.process = function(control, parameters) {
 
+		//executeHelixOperation = function(processName, queryParms, inData, callback)
 		switch (control) {
 			case 'save':
-				executeSave('save', parameters.queryParms, parameters.inData, parameters.callback);
+				executeHelixOperation('save', parameters.queryParms, parameters.inData, parameters.callback);
 				break;
 			case 'startDb':
-				executeSave('startDb', parameters.queryParms, parameters.inData, parameters.callback);
-
+				executeHelixOperation('startDb', parameters.queryParms, parameters.inData, parameters.callback);
 				break;
+			default:
+				executeHelixOperation(control, parameters.queryParms, parameters.inData, parameters.callback);
+			break;
 
 		}
 
