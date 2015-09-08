@@ -5,9 +5,6 @@ var qtools = require('qtools'),
 	util = require('util'),
 	moment = require('moment');
 
-console.dir({"qtools.ping()":qtools.ping()});
-
-
 //START OF moduleFunction() ============================================================
 
 var moduleFunction = function(args) {
@@ -86,14 +83,14 @@ var moduleFunction = function(args) {
 	var compileScript = function() {}
 
 	var executeHelixOperation = function(processName, queryParms, inData, callback) {
-		
-		queryParms=queryParms || {};
-		inData=inData || {};
-		callback=callback || function(){};
-		
+
+		queryParms = queryParms || {};
+		inData = inData || {};
+		callback = callback || function() {};
+
 		var replaceObject = qtools.extend(inData, self.helixAccessParms),
 			scriptElement = getScript(processName),
-			script=scriptElement.script;
+			script = scriptElement.script;
 
 		replaceObject = qtools.extend(inData, queryParms);
 
@@ -104,22 +101,23 @@ var moduleFunction = function(args) {
 			replaceObject: replaceObject
 		});
 
-
-console.log("finalScript="+finalScript);
-
+		if (self.parameters.inData.debug) {
+			console.log("finalScript=" + finalScript);
+		}
 
 		osascript(finalScript, {
-			type: (scriptElement.language.toLowerCase()=='javascript')?'':scriptElement.language //turns out that osascript won't let you specify, JS is the default
+			type: (scriptElement.language.toLowerCase() == 'javascript') ? '' : scriptElement.language //turns out that osascript won't let you specify, JS is the default
 		}, function(err, data) {
-			callback(err, data);
+			callback(err, data, {
+				finalScript: finalScript
+			});
 		});
-
 	}
 
 	var makeDataString = function(schema, mapping, inData) {
 
-		schema=schema || [];
-		
+		schema = schema || [];
+
 		var outString = '',
 			finalFunction;
 
@@ -162,35 +160,45 @@ console.log("finalScript="+finalScript);
 
 	//DISPATCH ====================================
 
-
 	var getScript = function(functionName) {
+		var libDir = __dirname + '/lib/';
+
 		var scriptList = {
 			save: {
-				path: './lib/saveOne.applescript',
+				path: libDir + 'saveOne.applescript',
 				language: 'AppleScript'
 			},
 			kill: {
-				path: './lib/quitHelixNoSave.applescript',
+				path: libDir + 'quitHelixNoSave.applescript',
 				language: 'AppleScript'
 			},
 			startDb: {
-				path: './lib/openTestDb.jax',
+				path: libDir + 'openTestDb.jax',
 				language: 'Javascript'
 			}
 		}
-		
+
 		var scriptElement = scriptList[functionName];
-		
-		if (!scriptElement){
-			
-				var path='./lib/'+functionName+'.applescript';
-				var scriptElement = {
-				path: './lib/'+functionName+'.applescript',
-				language: 'AppleScript'
+
+		if (!scriptElement) {
+
+			var path = libDir + functionName + '.applescript';
+
+			if (qtools.realPath(path)) {
+				var language = 'AppleScript';
+			} else {
+				var path = libDir + functionName + '.jax';
+				var language = 'Javascript';
 			}
-			
+
+			var scriptElement = {
+				path: path,
+				language: language
+			}
+
 		}
-	
+
+
 		scriptElement.script = qtools.fs.readFileSync(scriptElement.path).toString();
 
 		return scriptElement;
@@ -198,6 +206,8 @@ console.log("finalScript="+finalScript);
 	}
 
 	this.process = function(control, parameters) {
+
+		self.parameters = parameters;
 
 		//executeHelixOperation = function(processName, queryParms, inData, callback)
 		switch (control) {
@@ -209,7 +219,7 @@ console.log("finalScript="+finalScript);
 				break;
 			default:
 				executeHelixOperation(control, parameters.queryParms, parameters.inData, parameters.callback);
-			break;
+				break;
 
 		}
 
@@ -237,6 +247,7 @@ console.log("finalScript="+finalScript);
 
 util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
+
 
 
 

@@ -14,21 +14,21 @@ helixConnector = new helixConnector({
 
 /* HAS BEEN CONVERTED TO MOCHA BUT DOESNT WORK */
 
-describe('connector formatFunctions', function() {
+describe('Connector Internal Data Manipulation', function() {
   	var testDescription;
 	var testDate = new Date('2015', '5', '29', '8', '38', '39'); //I don't understand why I have to type '5' to get June in the date(), however, when I don't specify the date, as in new Date(), it works correctly.
 
-	testDescription="conversion to Helix date"
+	testDescription="should correctly reformat a JS time into Helix time stamp"
     it(testDescription, function () {
 	assert.equal('06/29/15 08:38:39 AM', helixConnector.formatFunctions.helixDateTime(testDate));
     });
 
-	testDescription="date stamp Helix format"
+	testDescription="should correctly generate a Helix time stamp for now"
     it(testDescription, function () {
 	assert.ok(helixConnector.formatFunctions.helixDateTimeNow().match(/^\d\d\/\d\d\/\d\d \d\d:\d\d:\d\d (A|P)M$/));
     });
 
-	testDescription="refId length"
+	testDescription="should generate a refId of the correct length"
     it(testDescription, function () {
 	assert.equal(36, helixConnector.formatFunctions.refId().length);
     });
