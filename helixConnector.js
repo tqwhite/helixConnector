@@ -84,8 +84,8 @@ var moduleFunction = function(args) {
 
 	var executeHelixOperation = function(processName, queryParms, inData, callback) {
 
-		queryParms = queryParms || {};
-		inData = inData || {};
+		queryParms = qtools.clone(queryParms) || {};
+		inData = qtools.clone(inData) || {};
 		callback = callback || function() {};
 
 		var replaceObject = qtools.extend(inData, self.helixAccessParms),
@@ -101,13 +101,14 @@ var moduleFunction = function(args) {
 			replaceObject: replaceObject
 		});
 
-		if (self.parameters.inData.debug) {
+		if (self.parameters.debug) {
 			console.log("finalScript=" + finalScript);
 		}
 
 		osascript(finalScript, {
 			type: (scriptElement.language.toLowerCase() == 'javascript') ? '' : scriptElement.language //turns out that osascript won't let you specify, JS is the default
 		}, function(err, data) {
+			data=helixStringToRecordList(queryParms.fieldSequenceList, queryParms.mapping, data);
 			callback(err, data, {
 				finalScript: finalScript
 			});
@@ -148,6 +149,32 @@ var moduleFunction = function(args) {
 		outString = outString.replace(/\t$/, '');
 		return outString;
 	};
+	
+	var helixStringToRecordList=function(schema, mapping, resultData){
+	if (!resultData){return resultData; }
+	
+		resultData=resultData.replace(/\n$/, '');
+		var inSchema=[].concat(['helixId'], schema),
+			resultDataArray=resultData.split(/record id:/);
+			
+			if (!resultDataArray[0]){
+				resultDataArray=resultDataArray.slice(1);
+			}
+			
+	var outArray=[];
+	for (var i=0, len=resultDataArray.length; i<len; i++){
+		var elementList=resultDataArray[i].replace(/helix record:/, '').replace(/, $/, '').split(/, /),
+			newElementObject={};
+		for (var j=0, len2=inSchema.length; j<len2; j++){
+			newElementObject[inSchema[j]]=elementList[j]
+		}
+		outArray.push(newElementObject);
+	}
+
+
+
+		return outArray;
+	}
 
 	//METHODS AND PROPERTIES ====================================
 
@@ -206,7 +233,6 @@ var moduleFunction = function(args) {
 	}
 
 	this.process = function(control, parameters) {
-
 		self.parameters = parameters;
 
 		//executeHelixOperation = function(processName, queryParms, inData, callback)

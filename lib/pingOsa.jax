@@ -1,0 +1,20 @@
+var helix= Application('Helix RADE');
+path = Path ("/Users/tqwhite/Documents/webdev/helixConnector/project//testData//helixConnectTest02")
+
+//<!comment!>
+
+try{
+helix.open(path);
+}
+catch(e){
+switch (e.errorNumber.toString()){
+case '-1731':
+e.message='\n\nFATAL: Helix RADE is ALREADY OPEN. Must be closed for testing.\n\n'
+break;
+case '-43':
+e.message='\n\nFATAL: FILE NOT FOUND: /Users/tqwhite/Documents/webdev/helixConnector/project//testData//helixConnectTest02\n\n'
+break;
+}
+
+throw e;
+}

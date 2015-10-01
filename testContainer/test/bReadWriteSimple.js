@@ -1,5 +1,6 @@
 var commonTest = require('../commonTest.js');
 var assert = require("assert");
+var isMatch = require('lodash.ismatch');
 
 var helixConnector = require(commonTest.helixConnectorPath);
 var config = require(commonTest.configPath);
@@ -12,32 +13,75 @@ helixConnector = new helixConnector({
 
 describe.only('Connector Simple Write', function() {
 
-this.timeout(15000);
-before(commonTest.startTestDatabase(helixConnector));
+	this.timeout(15000);
 
-after(commonTest.killHelix(helixConnector));
+	before(commonTest.startTestDatabase(helixConnector));
+	after(commonTest.killHelix(helixConnector));
+
+
+	var helixSchema = {
+		relation: 'simpleTest',
+		view: 'simpleOne',
+		fieldSequenceList: [
+			'textFieldOne',
+			'textFieldTwo'
+		],
+		mapping: {
+			terminalId: function() {
+				return 'saveOne.js';
+			},
+			refId: 'refId',
+			createDateTime: 'helixDateTimeNow'
+		}
+	};
+	var testRecordData = {
+		textFieldOne: 'orange',
+		textFieldTwo: 'blue'
+	}
+
 
 	testDescription = "should write data with no errors"
 	it(testDescription, function(done) {
-// 		helixConnector.process('startEmptyHelix', {
-// 			inData: {
-// 				testDataDir: commonTest.testDataDir,
-// 				debug: false
-// 			},
-// 			callback: commonTest.simpleCallback(done)
-// 		});
-done();
+		helixConnector.process('saveOne', {
+			queryParms: helixSchema,
+			inData: testRecordData,
+			callback: commonTest.simpleCallback(done, 'from test')
+		});
+
 	});
+
+	var ignoreHelixId = function(leftParmValue, rightParmValue, inx) {
+		if (inx === 'helixId') {
+			return true;
+		}
+	}
 	
-		testDescription = "should get the correct data from Helix"
+	
+	testDescription = "should get the correct data from Helix";
 	it(testDescription, function(done) {
-// 		helixConnector.process('kill', {
-// 			inData: {
-// 				debug: false
-// 			},
-// 			callback: commonTest.simpleCallback(done)
-// 		});
-done();
+		var enhancedtestRecordData = testRecordData;
+		enhancedtestRecordData.helixId = 0; //this comes from Helix always, can't control value
+		helixConnector.process('retrieveRecords', {
+			queryParms: helixSchema,
+			debug: false,
+			inData: {},
+			callback: function(err, result, misc) {
+				if (err) {
+					done(err);
+				}
+
+				var first = isMatch(enhancedtestRecordData, result[0], ignoreHelixId); //isMatch() ignores extra values in rightParm
+				var second = isMatch(result[0], enhancedtestRecordData, ignoreHelixId); //evaluate both directions means no extras
+
+				if (first && second) {
+					done()
+				} else {
+					done(new Error("Retrieved record does not match test record"));
+				}
+			}
+		});
+
 	});
 
 });
+
