@@ -82,19 +82,18 @@ var moduleFunction = function(args) {
 
 	var compileScript = function() {}
 
-	var executeHelixOperation = function(processName, queryParms, inData, callback) {
+	var executeHelixOperation = function(processName, parameters) {
 
-		queryParms = qtools.clone(queryParms) || {};
-		inData = qtools.clone(inData) || {};
-		callback = callback || function() {};
+		var helixSchema = qtools.clone(parameters.helixSchema) || {};
+		var inData = qtools.clone(parameters.inData) || {};
+		var otherParms = parameters.otherParms || {};
+		var callback = parameters.callback || function() {};
 
-		var replaceObject = qtools.extend(inData, self.helixAccessParms),
+		var replaceObject = qtools.extend({}, self.helixAccessParms, helixSchema, otherParms),
 			scriptElement = getScript(processName),
 			script = scriptElement.script;
 
-		replaceObject = qtools.extend(inData, queryParms);
-
-		replaceObject.dataString = makeDataString(queryParms.fieldSequenceList, queryParms.mapping, inData);
+		replaceObject.dataString = makeDataString(helixSchema.fieldSequenceList, helixSchema.mapping, otherParms, inData);
 
 		var finalScript = qtools.templateReplace({
 			template: script.toString(),
@@ -108,14 +107,42 @@ var moduleFunction = function(args) {
 		osascript(finalScript, {
 			type: (scriptElement.language.toLowerCase() == 'javascript') ? '' : scriptElement.language //turns out that osascript won't let you specify, JS is the default
 		}, function(err, data) {
-			data=helixStringToRecordList(queryParms.fieldSequenceList, queryParms.mapping, data);
+
+			data = helixStringToRecordList(helixSchema.fieldSequenceList, helixSchema.mapping, data);
 			callback(err, data, {
 				finalScript: finalScript
 			});
 		});
 	}
 
-	var makeDataString = function(schema, mapping, inData) {
+	var makeDataString = function(schema, mapping, otherParms, inData) {
+		var recordSeparator=', ';
+		switch (qtools.toType(inData)) {
+
+			case 'array':
+				var outString = '';
+				for (var i = 0, len = inData.length; i < len; i++) {
+					var element = inData[i];
+					var replaceObject = qtools.extend(element, otherParms);
+					outString += '"' + stringifyObject(schema, mapping, replaceObject)+ '"' + recordSeparator;
+				}
+				return outString.replace(new RegExp(recordSeparator+'$'), '');
+				break;
+
+			case 'object':
+				var replaceObject = qtools.extend(inData, otherParms);
+				outString=stringifyObject(schema, mapping, replaceObject);
+
+				return outString;
+				
+				break;
+			default:
+				throw 'inData is not a valid type for conversion to a helix record, ie, object or array';
+				break;
+		}
+	};
+
+	var stringifyObject = function(schema, mapping, inData) {
 
 		schema = schema || [];
 
@@ -144,32 +171,34 @@ var moduleFunction = function(args) {
 			}
 
 			var result = finalFunction(inData[element]);
-			outString += result + '\t';
+			outString += result + String.fromCharCode(9);
 		}
-		outString = outString.replace(/\t$/, '');
+		outString = outString.replace(new RegExp(String.fromCharCode(9) + '$'), '');
 		return outString;
 	};
-	
-	var helixStringToRecordList=function(schema, mapping, resultData){
-	if (!resultData){return resultData; }
-	
-		resultData=resultData.replace(/\n$/, '');
-		var inSchema=[].concat(['helixId'], schema),
-			resultDataArray=resultData.split(/record id:/);
-			
-			if (!resultDataArray[0]){
-				resultDataArray=resultDataArray.slice(1);
-			}
-			
-	var outArray=[];
-	for (var i=0, len=resultDataArray.length; i<len; i++){
-		var elementList=resultDataArray[i].replace(/helix record:/, '').replace(/, $/, '').split(/, /),
-			newElementObject={};
-		for (var j=0, len2=inSchema.length; j<len2; j++){
-			newElementObject[inSchema[j]]=elementList[j]
+
+	var helixStringToRecordList = function(schema, mapping, resultData) {
+		if (!resultData) {
+			return resultData;
 		}
-		outArray.push(newElementObject);
-	}
+
+		resultData = resultData.replace(/\n$/, '');
+		var inSchema = [].concat(['helixId'], schema),
+			resultDataArray = resultData.split(/record id:/);
+
+		if (!resultDataArray[0]) {
+			resultDataArray = resultDataArray.slice(1);
+		}
+
+		var outArray = [];
+		for (var i = 0, len = resultDataArray.length; i < len; i++) {
+			var elementList = resultDataArray[i].replace(/helix record:/, '').replace(/, $/, '').split(/, /),
+				newElementObject = {};
+			for (var j = 0, len2 = inSchema.length; j < len2; j++) {
+				newElementObject[inSchema[j]] = elementList[j]
+			}
+			outArray.push(newElementObject);
+		}
 
 
 
@@ -178,11 +207,11 @@ var moduleFunction = function(args) {
 
 	//METHODS AND PROPERTIES ====================================
 
-	this.save = function(queryParms, inData, callback) {
-
-		executeHelixOperation('save', queryParms, inData, callback);
-
-	}
+	// 	this.save = function(queryParms, inData, callback) {
+	// 
+	// 		executeHelixOperation('save', queryParms, inData, callback);
+	// 
+	// 	}
 
 
 	//DISPATCH ====================================
@@ -238,13 +267,13 @@ var moduleFunction = function(args) {
 		//executeHelixOperation = function(processName, queryParms, inData, callback)
 		switch (control) {
 			case 'save':
-				executeHelixOperation('save', parameters.queryParms, parameters.inData, parameters.callback);
+				executeHelixOperation('save', parameters);
 				break;
 			case 'startDb':
-				executeHelixOperation('startDb', parameters.queryParms, parameters.inData, parameters.callback);
+				executeHelixOperation('startDb', parameters);
 				break;
 			default:
-				executeHelixOperation(control, parameters.queryParms, parameters.inData, parameters.callback);
+				executeHelixOperation(control, parameters);
 				break;
 
 		}
@@ -273,6 +302,8 @@ var moduleFunction = function(args) {
 
 util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
+
+
 
 
 

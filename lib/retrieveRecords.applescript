@@ -5,7 +5,6 @@ tell application "<!applicationName!>"
 	set myView to "<!view!>"
 	set myUser to "<!user!>"
 	set myPassword to "<!password!>"
-	set myData to ("<!dataString!>")
 	
 	
 	
@@ -14,7 +13,7 @@ tell application "<!applicationName!>"
 		--log (myProcessID)
 		--set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to get view summary
 		
-		set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView, myData} to retrieve records as list
+		set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as list
 		
 	end tell
 	

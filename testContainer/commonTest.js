@@ -29,12 +29,12 @@ var simpleCallback = function(done) {
 var startTestDatabase = function(helixConnector) {
 	return function(done) {
 		helixConnector.process('openTestDb', {
-			inData: {
+			otherParms: {
 				testDataDir: projectDir + "/testData/",
-				testCollectionFileName: "helixConnectTest02",
-				debug: false
+				testCollectionFileName: "helixConnectTest02"
 			},
-			callback: simpleCallback(done)
+			callback: simpleCallback(done),
+			debug: false
 		});
 	};
 };

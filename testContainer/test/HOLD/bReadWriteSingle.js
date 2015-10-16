@@ -11,7 +11,7 @@ helixConnector = new helixConnector({
 	helixAccessParms: config.getHelixParms()
 });
 
-describe.only('Connector Simple Write', function() {
+describe('Connector Write Single', function() {
 
 	this.timeout(15000);
 
@@ -43,7 +43,8 @@ describe.only('Connector Simple Write', function() {
 	testDescription = "should write data with no errors"
 	it(testDescription, function(done) {
 		helixConnector.process('saveOne', {
-			queryParms: helixSchema,
+			helixSchema: helixSchema,
+			debug:false,
 			inData: testRecordData,
 			callback: commonTest.simpleCallback(done, 'from test')
 		});
@@ -57,12 +58,12 @@ describe.only('Connector Simple Write', function() {
 	}
 	
 	
-	testDescription = "should get the correct data from Helix";
+	testDescription = "should read matching data from Helix";
 	it(testDescription, function(done) {
 		var enhancedtestRecordData = testRecordData;
 		enhancedtestRecordData.helixId = 0; //this comes from Helix always, can't control value
 		helixConnector.process('retrieveRecords', {
-			queryParms: helixSchema,
+			helixSchema: helixSchema,
 			debug: false,
 			inData: {},
 			callback: function(err, result, misc) {
