@@ -1,16 +1,9 @@
 var commonTest = require('../commonTest.js');
 var assert = require("assert");
 var isMatch = require('lodash.ismatch');
-var qtools = require('qtools'),
-	qtools = new qtools(module);
 
-var helixConnector = require(commonTest.helixConnectorPath);
-var config = require(commonTest.configPath);
-
-global.systemProfile = config.getSystemProfile();
-
-helixConnector = new helixConnector({
-	helixAccessParms: config.getHelixParms()
+helixConnector = new commonTest.helixConnector({
+	helixAccessParms: commonTest.config.getHelixParms()
 });
 
 describe('Connector Write Multiple', function() {
@@ -94,5 +87,6 @@ describe('Connector Write Multiple', function() {
 	});
 
 });
+
 
 

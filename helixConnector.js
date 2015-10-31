@@ -3,7 +3,8 @@ var qtools = require('qtools'),
 	qtools = new qtools(module),
 	events = require('events'),
 	util = require('util'),
-	moment = require('moment');
+	helixData = require('helixdata'),
+	helixData = new helixData();
 
 //START OF moduleFunction() ============================================================
 
@@ -40,34 +41,23 @@ var moduleFunction = function(args) {
 
 
 	//LOCAL FUNCTIONS ====================================
-
-
-	var helixDateTime = function(inDate) {
-		//helix example: '6/29/15  8:38:39 AM'
-		var outString = moment(inDate).format("MM/DD/YY hh:mm:ss A");
-		return outString;
-
-	}
-
-	var formatFunctions = {
-		refId: function() {
-			return qtools.newGuid();
-		},
-
-		helixDateTimeNow: function() {
-			return helixDateTime(new Date());
-		},
-
-		helixDateTime: function(inDate) {
-			return helixDateTime(inDate);
-		}
-	}
-
-	var helixDateTimeFormat = function() {
-
-		//date time is like this: 6/29/15  8:38:39 AM
-
-	}
+	
+// 	var isUserPoolSituation=function(){
+// 	qtools.validateProperties({
+// 		subject: args || {},
+// 		targetScope: this, //will add listed items to targetScope
+// 		propList: [
+// 			{
+// 				name: 'helixAccessParms',
+// 				optional: false
+// 			}
+// 		]
+// 	});
+// 			userPoolLeaseRelation:'_userPoolGlobal',
+// 			userPoolLeaseView:'leasePoolUser',
+// 			userPoolReleaseRelation:'_inertProcess',
+// 			userPoolReleaseView:'releasePoolUser'
+// 	}
 
 	var demoJs = function() {
 		var osa = require('osa');
@@ -80,25 +70,31 @@ var moduleFunction = function(args) {
 	}
 	//demoJs();
 
-	var compileScript = function() {}
+	var compileScript = function(scriptElement, processName, parameters, helixSchema) {
 
-	var executeHelixOperation = function(processName, parameters) {
 
-		var helixSchema = qtools.clone(parameters.helixSchema) || {};
 		var inData = qtools.clone(parameters.inData) || {};
 		var otherParms = parameters.otherParms || {};
-		var callback = parameters.callback || function() {};
 
 		var replaceObject = qtools.extend({}, self.helixAccessParms, helixSchema, otherParms),
-			scriptElement = getScript(processName),
 			script = scriptElement.script;
 
-		replaceObject.dataString = makeDataString(helixSchema.fieldSequenceList, helixSchema.mapping, otherParms, inData);
+		replaceObject.dataString = helixData.makeApplescriptDataString(helixSchema.fieldSequenceList, helixSchema.mapping, otherParms, inData);
 
 		var finalScript = qtools.templateReplace({
 			template: script.toString(),
 			replaceObject: replaceObject
 		});
+
+		return finalScript;
+	}
+
+	var executeHelixOperation = function(processName, parameters) {
+
+		var helixSchema = qtools.clone(parameters.helixSchema) || {},
+			scriptElement = getScript(processName),
+			finalScript = compileScript(scriptElement, processName, parameters, helixSchema),
+			callback = parameters.callback || function() {};
 
 		if (self.parameters.debug) {
 			console.log("finalScript=" + finalScript);
@@ -107,119 +103,23 @@ var moduleFunction = function(args) {
 		osascript(finalScript, {
 			type: (scriptElement.language.toLowerCase() == 'javascript') ? '' : scriptElement.language //turns out that osascript won't let you specify, JS is the default
 		}, function(err, data) {
-
-			data = helixStringToRecordList(helixSchema.fieldSequenceList, helixSchema.mapping, data);
+			data = helixData.helixStringToRecordList(helixSchema.fieldSequenceList, helixSchema.mapping, data);
 			callback(err, data, {
 				finalScript: finalScript
 			});
 		});
 	}
 
-	var makeDataString = function(schema, mapping, otherParms, inData) {
-		var recordSeparator=', ';
-		switch (qtools.toType(inData)) {
-
-			case 'array':
-				var outString = '';
-				for (var i = 0, len = inData.length; i < len; i++) {
-					var element = inData[i];
-					var replaceObject = qtools.extend(element, otherParms);
-					outString += '"' + stringifyObject(schema, mapping, replaceObject)+ '"' + recordSeparator;
-				}
-				return outString.replace(new RegExp(recordSeparator+'$'), '');
-				break;
-
-			case 'object':
-				var replaceObject = qtools.extend(inData, otherParms);
-				outString=stringifyObject(schema, mapping, replaceObject);
-
-				return outString;
-				
-				break;
-			default:
-				throw 'inData is not a valid type for conversion to a helix record, ie, object or array';
-				break;
-		}
-	};
-
-	var stringifyObject = function(schema, mapping, inData) {
-
-		schema = schema || [];
-
-		var outString = '',
-			finalFunction;
-
-		for (var i = 0, len = schema.length; i < len; i++) {
-			var element = schema[i],
-				mappingEntry = mapping[element],
-				finalFunction;
-
-			if (typeof (mappingEntry) == 'function') {
-				finalFunction = mappingEntry;
-			} else if (typeof (mappingEntry) == 'string') {
-				if (typeof (formatFunctions[mappingEntry]) == 'function') {
-					finalFunction = formatFunctions[mappingEntry];
-				} else {
-					finalFunction = function() {
-						return mappingEntry;
-					}
-				}
-			} else {
-				finalFunction = function(a) {
-					return a
-				};
-			}
-
-			var result = finalFunction(inData[element]);
-			outString += result + String.fromCharCode(9);
-		}
-		outString = outString.replace(new RegExp(String.fromCharCode(9) + '$'), '');
-		return outString;
-	};
-
-	var helixStringToRecordList = function(schema, mapping, resultData) {
-		if (!resultData) {
-			return resultData;
-		}
-
-		resultData = resultData.replace(/\n$/, '');
-		var inSchema = [].concat(['helixId'], schema),
-			resultDataArray = resultData.split(/record id:/);
-
-		if (!resultDataArray[0]) {
-			resultDataArray = resultDataArray.slice(1);
-		}
-
-		var outArray = [];
-		for (var i = 0, len = resultDataArray.length; i < len; i++) {
-			var elementList = resultDataArray[i].replace(/helix record:/, '').replace(/, $/, '').split(/, /),
-				newElementObject = {};
-			for (var j = 0, len2 = inSchema.length; j < len2; j++) {
-				newElementObject[inSchema[j]] = elementList[j]
-			}
-			outArray.push(newElementObject);
-		}
-
-
-
-		return outArray;
-	}
-
 	//METHODS AND PROPERTIES ====================================
-
-	// 	this.save = function(queryParms, inData, callback) {
-	// 
-	// 		executeHelixOperation('save', queryParms, inData, callback);
-	// 
-	// 	}
 
 
 	//DISPATCH ====================================
-
-	var getScript = function(functionName) {
+	
+	var getScriptPathParameters=function(functionName){
+	
 		var libDir = __dirname + '/lib/';
 
-		var scriptList = {
+		var scriptNameMap = {
 			save: {
 				path: libDir + 'saveOne.applescript',
 				language: 'AppleScript'
@@ -234,7 +134,7 @@ var moduleFunction = function(args) {
 			}
 		}
 
-		var scriptElement = scriptList[functionName];
+		var scriptElement = scriptNameMap[functionName];
 
 		if (!scriptElement) {
 
@@ -253,7 +153,12 @@ var moduleFunction = function(args) {
 			}
 
 		}
+		
+		return scriptElement;
+	}
 
+	var getScript = function(functionName) {
+		var scriptElement=getScriptPathParameters(functionName);
 
 		scriptElement.script = qtools.fs.readFileSync(scriptElement.path).toString();
 
@@ -264,13 +169,37 @@ var moduleFunction = function(args) {
 	this.process = function(control, parameters) {
 		self.parameters = parameters;
 
-		//executeHelixOperation = function(processName, queryParms, inData, callback)
+		qtools.validateProperties({
+			subject: parameters || {},
+			propList: [
+				{
+					name: 'helixSchema',
+					optional: false
+				},
+				{
+					name: 'callback',
+					optional: false
+				},
+				{
+					name: 'otherParms',
+					optional: true
+				},
+				{
+					name: 'inData',
+					optional: true
+				},
+				{
+					name: 'debug',
+					optional: true
+				}
+			]
+		});
+
+
+		//this allows mapping of user friendly names to file names
 		switch (control) {
-			case 'save':
-				executeHelixOperation('save', parameters);
-				break;
-			case 'startDb':
-				executeHelixOperation('startDb', parameters);
+			case 'xxx':
+				executeHelixOperation('yyy', parameters);
 				break;
 			default:
 				executeHelixOperation(control, parameters);
@@ -280,14 +209,25 @@ var moduleFunction = function(args) {
 
 	}
 
-	var startDatabase = function(queryParms, inData, callback) {}
 
-	//TEST ACCESS ====================================
 
-	if (global.systemProfile.exposeTests) {
-		this.formatFunctions = formatFunctions;
-		this.makeDataString = makeDataString;
-	}
+
+
+
+	//process.stdin.resume();//so the program will not close instantly
+	//do something when app is closing
+	process.on('exit', function() {
+		console.log('on exit function: set this thing to check for a userPool lease and cancel it');
+	}.bind(this));
+
+	//catches ctrl+c event
+	//process.on('SIGINT', exitHandler.bind(null, {exit:true}));
+
+	//catches uncaught exceptions
+	//process.on('uncaughtException', exitHandler.bind(null, {exit:true}));
+
+
+
 
 	//INITIALIZATION ====================================
 
@@ -302,6 +242,7 @@ var moduleFunction = function(args) {
 
 util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
+
 
 
 

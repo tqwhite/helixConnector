@@ -2,13 +2,8 @@ var commonTest = require('../commonTest.js');
 var assert = require("assert");
 var isMatch = require('lodash.ismatch');
 
-var helixConnector = require(commonTest.helixConnectorPath);
-var config = require(commonTest.configPath);
-
-global.systemProfile = config.getSystemProfile();
-
-helixConnector = new helixConnector({
-	helixAccessParms: config.getHelixParms()
+helixConnector = new commonTest.helixConnector({
+	helixAccessParms: commonTest.config.getHelixParms()
 });
 
 describe('Connector Write Single', function() {
@@ -44,7 +39,7 @@ describe('Connector Write Single', function() {
 	it(testDescription, function(done) {
 		helixConnector.process('saveOne', {
 			helixSchema: helixSchema,
-			debug:false,
+			debug: false,
 			inData: testRecordData,
 			callback: commonTest.simpleCallback(done, 'from test')
 		});
@@ -56,8 +51,7 @@ describe('Connector Write Single', function() {
 			return true;
 		}
 	}
-	
-	
+
 	testDescription = "should read matching data from Helix";
 	it(testDescription, function(done) {
 		var enhancedtestRecordData = testRecordData;
@@ -85,4 +79,5 @@ describe('Connector Write Single', function() {
 	});
 
 });
+
 

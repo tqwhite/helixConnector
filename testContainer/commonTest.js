@@ -1,5 +1,6 @@
 var fs = require('fs');
 
+
 var realpath = function(filePath) {
 	var result;
 	try {
@@ -29,10 +30,12 @@ var simpleCallback = function(done) {
 var startTestDatabase = function(helixConnector) {
 	return function(done) {
 		helixConnector.process('openTestDb', {
+			helixSchema:{},
 			otherParms: {
 				testDataDir: projectDir + "/testData/",
 				testCollectionFileName: "helixConnectTest02"
 			},
+			inData: {},
 			callback: simpleCallback(done),
 			debug: false
 		});
@@ -42,17 +45,24 @@ var startTestDatabase = function(helixConnector) {
 var killHelix = function(helixConnector) {
 	return function(done) {
 		helixConnector.process('kill', {
-			inData: {
-				debug: false
-			},
+			helixSchema:{},
+			otherParms: {},
+			inData: {},
+			debug: false,
 			callback: simpleCallback(done)
 		});
 	};
 };
 
+
+var helixConnector = require(codeDir + 'helixConnector.js');
+var config = require(codeDir + '/../config/qbook.js');
+global.systemProfile = config.getSystemProfile();
+
 module.exports = {
-	helixConnectorPath: codeDir + 'helixConnector.js',
-	configPath: codeDir + '/../config/qbook.js',
+helixConnector:helixConnector,
+config:config,
+	
 	testDataDir: projectDir + "/testData/",
 	simpleCallback: simpleCallback,
 	testDbName: "helixConnectTest02",
