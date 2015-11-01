@@ -2,12 +2,6 @@ var commonTest = require('../commonTest.js');
 var assert = require("assert");
 var isMatch = require('lodash.ismatch');
 
-
-
-
-helixConnector = new commonTest.helixConnector({
-	helixAccessParms: commonTest.config.getHelixParms()
-});
 var helixSchema = {
 	relation: 'simpleTest',
 	view: 'simpleOne',
@@ -19,6 +13,9 @@ var helixSchema = {
 };
 
 describe('Examine helix configuration', function() {
+	helixConnector = new commonTest.helixConnector({
+		helixAccessParms: commonTest.config.getHelixParms()
+	});
 
 	this.timeout(15000);
 
@@ -48,5 +45,6 @@ describe('Examine helix configuration', function() {
 	});
 
 });
+
 
 

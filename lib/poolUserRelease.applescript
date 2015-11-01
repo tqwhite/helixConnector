@@ -6,10 +6,9 @@ tell application "<!applicationName!>"
 	set myView to "<!userPoolReleaseView!>"
 	set myUser to "<!user!>"
 	set myPassword to "<!password!>"
-	set myLeasedUser to "<!poolUserId!>"
+	set myLeasedUser to "<!leaseUserName!>"
 	
-	set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for store
-	set theResult to utilize {theProcessID, myLeasedUser} to store record
-	set theClose to utilize theProcessID to close process
+	set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView, myLeasedUser} to store one record
+
 			
 end tell

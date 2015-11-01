@@ -3,15 +3,16 @@ var assert = require("assert");
 var isMatch = require('lodash.ismatch');
 
 helixConnector = new commonTest.helixConnector({
-	helixAccessParms: commonTest.config.getHelixParms()
+	helixAccessParms: commonTest.config.getHelixParms(),
+	processIdentifier:'b_ReadWriteSingle'
 });
 
-describe('Connector Write Single', function() {
+describe.only('Connector Write Single', function() {
 
 	this.timeout(15000);
 
-	before(commonTest.startTestDatabase(helixConnector));
-	after(commonTest.killHelix(helixConnector));
+		before(commonTest.startTestDatabase(helixConnector));
+		after(commonTest.killHelix(helixConnector));
 
 
 	var helixSchema = {
@@ -78,6 +79,7 @@ describe('Connector Write Single', function() {
 
 	});
 
-});
+}
+);
 
 

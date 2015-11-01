@@ -7,6 +7,7 @@ tell application "<!applicationName!>"
 	set myPassword to "<!password!>"
 	
 	
+--<!leaseUserName!>	
 	
 	tell collection 1
 		--set myProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve

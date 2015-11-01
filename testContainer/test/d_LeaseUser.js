@@ -6,7 +6,7 @@ helixConnector = new commonTest.helixConnector({
 	helixAccessParms: commonTest.config.getHelixParms()
 });
 
-describe('Lease Pool User', function() {
+describe('Lease Pool User base function', function() {
 
 	this.timeout(15000);
 
@@ -15,23 +15,13 @@ describe('Lease Pool User', function() {
 
 
 	var helixSchema = {
-		relation: 'simpleTest',
-		view: 'simpleOne',
+		relation: '',
+		view: '',
 		fieldSequenceList: [
 			'leaseUserName'
 		],
-		mapping: {
-			terminalId: function() {
-				return 'saveOne.js';
-			},
-			refId: 'refId',
-			createDateTime: 'helixDateTimeNow'
-		}
+		mapping: {}
 	};
-	var testRecordData = {
-		textFieldOne: 'orange',
-		textFieldTwo: 'blue'
-	}
 
 
 	testDescription = "should return a pool user name"
@@ -40,7 +30,7 @@ describe('Lease Pool User', function() {
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,
-			inData: testRecordData,
+			inData: {},
 			callback: function(err, result, misc) {
 				if (err) {
 					done(err);
