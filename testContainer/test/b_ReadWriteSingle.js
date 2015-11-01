@@ -7,7 +7,7 @@ helixConnector = new commonTest.helixConnector({
 	processIdentifier:'b_ReadWriteSingle'
 });
 
-describe.only('Connector Write Single', function() {
+describe('Connector Write Single', function() {
 
 	this.timeout(15000);
 

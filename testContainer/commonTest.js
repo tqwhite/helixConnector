@@ -48,7 +48,7 @@ var killHelix = function(helixConnector) {
 			helixSchema:{},
 			otherParms: {},
 			inData: {},
-			debug: true,
+			debug: false,
 			callback: simpleCallback(done)
 		});
 	};

@@ -34,7 +34,6 @@ var moduleFunction = function(args) {
 
 	this.systemProfile = this.systemProfile || {};
 
-
 	var self = this,
 		forceEvent = function(eventName, outData) {
 			this.emit(eventName, {
@@ -44,26 +43,29 @@ var moduleFunction = function(args) {
 		};
 
 	self.leasePoolUserFieldName = 'leaseUserName';
-	self.helixRelationList=[];
+	self.helixRelationList = [];
+	self.openDatabaseFunctionNames = ['openTestDb']
 
 	//LOCAL FUNCTIONS ====================================
 
-	var getRelationList = function(callback) {
-	
-		if (self.helixRelationList.length!==0){
+	var getRelationList = function(control, callback) {
+		var relationFieldName = 'relationName';
+		if (self.helixRelationList.length !== 0 || qtools.in(control, self.openDatabaseFunctionNames)) {
 			callback('', '');
+			return;
 		}
-		
+
 		var helixSchema = {
 			relation: '',
 			view: '',
 			fieldSequenceList: [
-				'relationName'
+				relationFieldName
 			],
 			mapping: {
 			}
 		};
-		helixConnector.process('listRelations', {
+
+		executeHelixOperation('listRelations', {
 			helixSchema: helixSchema,
 			debug: false,
 			inData: {},
@@ -75,14 +77,30 @@ var moduleFunction = function(args) {
 				if (result.length < 1) {
 					throw (new Error("Helix not available or is broken: No relations were retrieved"))
 				} else {
-					self.helixRelationList=result;
+					result.map(function(item) {
+						self.helixRelationList.push(item[relationFieldName]);
+					});
 					callback(err, result);
 				}
 			}
 		});
 	}
 
-	var isUserPoolSituation = function(control) {
+	var initUserPoolIfNeeded = function(control, callback) {
+		switch (control) {
+			case 'openTestDb':
+				callback();
+				return false;
+				break;
+			case 'kill':
+			case 'quitHelixNoSave':
+				self.userPoolOk = false;
+				break;
+			default:
+				self.userPoolOk = true;
+				break;
+
+		}
 
 		var allPresent = (
 			self.helixAccessParms.userPoolLeaseRelation &&
@@ -97,30 +115,36 @@ var moduleFunction = function(args) {
 			self.helixAccessParms.userPoolReleaseView
 			) ? true : false;
 
+		var missingTables = '';		
+		missingTables += !qtools.in(self.helixAccessParms.userPoolLeaseRelation, self.helixRelationList) ? self.helixAccessParms.userPoolLeaseRelation + " " : '';
+		missingTables += !qtools.in(self.helixAccessParms.userPoolReleaseRelation, self.helixRelationList) ? self.helixAccessParms.userPoolReleaseRelation + " " : '';
+
+		if (allPresent && missingTables) {
+			throw (new Error("One or more of the User Pool Lease relations is missing: " + missingTables));
+		}
+
 		if (anyPresent && !allPresent) {
 			throw (new Error("One of the User Pool Lease parameters is missing (userPoolLeaseRelation, userPoolLeaseView, userPoolReleaseRelation, userPoolReleaseView)"));
 		}
 
-		switch (control) {
-			case 'kill':
-			case 'quitHelixNoSave':
-			case 'openTestDb':
-				self.userPoolOk = false;
-				break;
-			default:
-				self.userPoolOk = true;
-				break;
+		if (allPresent && self.userPoolOk && !self.leaseUserName) {
+			getPoolUser(function(err, result) {
+				self.leaseUserName = result[0][self.leasePoolUserFieldName];
+				initExitPoolUser();
+				callback();
+			});
+			return;
 
 		}
 
-		return allPresent && self.userPoolOk && !self.leaseUserName;
+		callback();
+		return;
 
 	};
 
 	var getPoolUser = function(callback) {
 		var localCallback = function(err, result) {
 			callback(err, result);
-
 
 		}
 		var helixSchema = {
@@ -131,7 +155,7 @@ var moduleFunction = function(args) {
 			],
 			mapping: {}
 		};
-		prepareProcess('poolUserLease', {
+		executeHelixOperation('poolUserLease', {
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,
@@ -151,7 +175,7 @@ var moduleFunction = function(args) {
 			fieldSequenceList: [],
 			mapping: {}
 		};
-		prepareProcess('poolUserRelease', {
+		executeHelixOperation('poolUserRelease', {
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,
@@ -190,7 +214,6 @@ var moduleFunction = function(args) {
 
 	var compileScript = function(scriptElement, processName, parameters, helixSchema) {
 
-
 		var inData = qtools.clone(parameters.inData) || {};
 		var otherParms = parameters.otherParms || {};
 		var systemParms = {
@@ -217,7 +240,7 @@ var moduleFunction = function(args) {
 			finalScript = compileScript(scriptElement, processName, parameters, helixSchema),
 			callback = parameters.callback || function() {};
 
-		if (self.parameters.debug) {
+		if (parameters.debug) {
 			console.log("finalScript=" + finalScript);
 		}
 
@@ -232,7 +255,6 @@ var moduleFunction = function(args) {
 	}
 
 	//METHODS AND PROPERTIES ====================================
-
 
 	//DISPATCH ====================================
 
@@ -288,7 +310,6 @@ var moduleFunction = function(args) {
 	}
 
 	var prepareProcess = function(control, parameters) {
-		self.parameters = parameters;
 
 		qtools.validateProperties({
 			subject: parameters || {},
@@ -315,12 +336,6 @@ var moduleFunction = function(args) {
 				}
 			]
 		});
-		
-		
-// 		getRelationList(function(err, result){
-// 			prepareProcess(control, parameters);
-// 		});
-
 
 		//this allows mapping of user friendly names to file names
 		switch (control) {
@@ -337,27 +352,17 @@ var moduleFunction = function(args) {
 	}
 
 	this.process = function(control, parameters) {
-		self.control = control;
-		if (isUserPoolSituation(control)) {
-			getPoolUser(function(err, result) {
-				self.leaseUserName = result[0][self.leasePoolUserFieldName];
-				initExitPoolUser();
+		getRelationList(control, function(err, result) {
+			initUserPoolIfNeeded(control, function() {
 				prepareProcess(control, parameters);
-			});
-		} else {
-			prepareProcess(control, parameters);
-		}
+			})
+		});
+
 	}
-
-
-
-
 
 	//INITIALIZATION ====================================
 
 	var osascript = require('osascript').eval;
-
-
 
 	return this;
 };
@@ -366,23 +371,4 @@ var moduleFunction = function(args) {
 
 util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
