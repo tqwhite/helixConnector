@@ -7,14 +7,7 @@ tell application "<!applicationName!>"
 	set myPassword to "<!password!>"
 	set myData to {<!dataString!>}
 	
---OBVIOUSLY, THIS IS REALLY A TEST SCRIPT. BUT, IT DOES SAVE DATA CORRECTLY	
-	
 	tell collection 1
-		--set myProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve
-		--log (myProcessID)
-		--set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to get view summary
-		
-		--set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView, myData} to retrieve records as list
 		
 		set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve
 		set viewSummary to utilize {theProcessID} to get view summary --gets us {record count, field delimiter, record delimiter}

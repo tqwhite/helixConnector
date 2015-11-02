@@ -33,7 +33,7 @@ var startTestDatabase = function(helixConnector) {
 			helixSchema:{},
 			otherParms: {
 				testDataDir: projectDir + "/testData/",
-				testCollectionFileName: "helixConnectTest02"
+				testCollectionFileName: "helixConnectTest03"
 			},
 			inData: {},
 			callback: simpleCallback(done),
@@ -65,7 +65,7 @@ config:config,
 	
 	testDataDir: projectDir + "/testData/",
 	simpleCallback: simpleCallback,
-	testDbName: "helixConnectTest02",
+	testDbName: "helixConnectTest03",
 	startTestDatabase: startTestDatabase,
 	killHelix: killHelix
 };

@@ -1,6 +1,6 @@
 tell application "Helix RADE"
 	
-	set myCollection to "helixConnectTest02"
+	set myCollection to "helixConnectTest03"
 	set myRelation to "simpleTest"
 	set myView to "simpleOne"
 	set myUser to "hxConnectAdmin"
