@@ -261,6 +261,10 @@ var moduleFunction = function(args) {
 			script = scriptElement.script;
 
 		replaceObject.dataString = helixData.makeApplescriptDataString(helixSchema.fieldSequenceList, helixSchema.mapping, otherParms, inData);
+		
+		if (helixSchema.criterion && parameters.criterion && parameters.criterion.data){
+			replaceObject.criterion.dataString = helixData.makeApplescriptDataString(helixSchema.criterion.fieldSequenceList, helixSchema.mapping, otherParms, parameters.criterion.data);
+		}
 
 		var finalScript = qtools.templateReplace({
 			template: script.toString(),
@@ -372,6 +376,10 @@ var moduleFunction = function(args) {
 				},
 				{
 					name: 'inData',
+					optional: true
+				},
+				{
+					name: 'criterion',
 					optional: true
 				},
 				{

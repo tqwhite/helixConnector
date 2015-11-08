@@ -127,7 +127,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 
 	//GET RESULT AND COMPARE =====================================
 
-	testDescription = "get correct data for user number one ";
+	testDescription = "get correct data according to the criterion for user number one ";
 	it(testDescription, function(done) {
 		var helixSchema = {
 			relation: 'upTest1',
@@ -166,7 +166,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 
 	//GET RESULT AND COMPARE =====================================
 
-	testDescription = "get correct data for user number two ";
+	testDescription = "get correct data according to the criterion for user number two ";
 	it(testDescription, function(done) {
 
 		var helixSchema = {
