@@ -33,6 +33,7 @@ var moduleFunction = function(args) {
 	});
 
 	this.systemProfile = this.systemProfile || {};
+	this.immutableHelixAccessParms=qtools.clone(this.helixAccessParms);
 
 	var self = this,
 		forceEvent = function(eventName, outData) {
@@ -42,13 +43,30 @@ var moduleFunction = function(args) {
 			});
 		};
 
-	self.leasePoolUserFieldName = 'leaseUserName';
-	self.leasePoolPasswordFieldName='leasePasswordEncrypted'
-	self.helixRelationList = [];
-	self.openDatabaseFunctionNames = ['openTestDb'];
-	self.systemParms={};
+
 
 	//LOCAL FUNCTIONS ====================================
+	
+	var initializeProperties=function(){
+		self.leasePoolUserFieldName = 'leaseUserName';
+		self.leasePoolPasswordFieldName='leasePasswordEncrypted'
+		self.helixRelationList = [];
+		self.openDatabaseFunctionNames = ['openTestDb'];
+		self.systemParms={};
+		self.userPoolOk
+		self.helixAccessParms.userPoolLeaseRelation='';
+		self.helixAccessParms.userPoolLeaseView='';
+		self.helixAccessParms.userPoolReleaseRelation='';
+		self.helixAccessParms.userPoolReleaseView='';
+		self.leaseUserName='';
+		self.helixAccessParms.userPoolPasswordDecryptionKey='';
+		self.helixAccessParms=qtools.clone(self.immutableHelixAccessParms);
+	}
+	
+	var resetConnector=function(){
+		initializeProperties();
+		cancelExitPoolUser();
+	};
 
 	var getRelationList = function(control, callback) {
 		var relationFieldName = 'relationName';
@@ -73,7 +91,7 @@ var moduleFunction = function(args) {
 			inData: {},
 			callback: function(err, result, misc) {
 				if (err) {
-					throw (new Error(err))
+					throw (new Error("Helix not available or is broken."))
 				}
 
 				if (result.length < 1) {
@@ -177,6 +195,7 @@ var moduleFunction = function(args) {
 	}
 
 	var releasePoolUser = function(callback) {
+		callback=callback?callback:function(){};
 		var localCallback = function(err, result) {
 			//note: tests kill Helix before they close so this is not triggered, it works if Helix stays up
 			callback(err, result);
@@ -195,21 +214,28 @@ var moduleFunction = function(args) {
 			callback: localCallback
 		});
 	};
+	
+	var exitEventHandler=function(){
+		console.log('hello exit');
+		releasePoolUser();
+	};
 
 	var initExitPoolUser = function() {
 		//process.stdin.resume();//so the program will not close instantly
 		//do something when app is closing
-		process.on('exit', function(err, result) {
-			releasePoolUser(function() {
-				qtools.writeSurePath('/Users/tqwhite/Documents/webdev/helixConnector/project/helixConnector/tmpTest', 'hell0');
-			});
-		});
+		process.on('exit', exitEventHandler);
+
 
 		//catches ctrl+c event
 		//process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 
 		//catches uncaught exceptions
 		//process.on('uncaughtException', exitHandler.bind(null, {exit:true}));
+
+	}
+
+	var cancelExitPoolUser = function() {
+		process.removeListener('exit', exitEventHandler);
 
 	}
 
@@ -359,6 +385,7 @@ var moduleFunction = function(args) {
 			case 'kill':
 			case 'quitHelixNoSave':
 				executeHelixOperation('quitHelixNoSave', parameters);
+				resetConnector();
 				break;
 			default:
 				executeHelixOperation(control, parameters);
@@ -380,6 +407,8 @@ var moduleFunction = function(args) {
 	//INITIALIZATION ====================================
 
 	var osascript = require('osascript').eval;
+	
+	initializeProperties();
 
 	return this;
 };
