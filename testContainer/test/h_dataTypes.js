@@ -6,7 +6,7 @@ var moduleFileName=module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
 
 var testDescription;
 
-helixConnector = new commonTest.helixConnector({
+var helixConnector = new commonTest.helixConnector({
 	helixAccessParms: commonTest.config.getHelixParms()
 });
 

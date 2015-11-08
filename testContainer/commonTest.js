@@ -1,3 +1,5 @@
+(function(){
+
 var fs = require('fs');
 var qtools = require('qtools'),
 	qtools = new qtools(module);
@@ -21,12 +23,12 @@ var projectDir = realpath(process.env.helixConnectorProjectPath) + '/',
 
 var simpleCallback = function(done) {
 	return function(err, result, misc) {
-// 		if (err) {
-// 			console.log("\n======= FAILED SCRIPT =======\n\n");
-// 			qtools.dump({"err":err});
-// 			qtools.dump({"misc":misc});
-// 			console.log("\n======= FAILED SCRIPT =======\n\n");
-// 		}
+		// 		if (err) {
+		// 			console.log("\n======= FAILED SCRIPT =======\n\n");
+		// 			qtools.dump({"err":err});
+		// 			qtools.dump({"misc":misc});
+		// 			console.log("\n======= FAILED SCRIPT =======\n\n");
+		// 		}
 		done(err)
 	}
 };
@@ -34,7 +36,7 @@ var simpleCallback = function(done) {
 var startTestDatabase = function(helixConnector) {
 	return function(done) {
 		helixConnector.process('openTestDb', {
-			helixSchema:{},
+			helixSchema: {},
 			otherParms: {
 				testDataDir: projectDir + "/testData/",
 				testCollectionFileName: "helixConnectTest06"
@@ -49,7 +51,7 @@ var startTestDatabase = function(helixConnector) {
 var killHelix = function(helixConnector) {
 	return function(done) {
 		helixConnector.process('kill', {
-			helixSchema:{},
+			helixSchema: {},
 			otherParms: {},
 			inData: {},
 			debug: false,
@@ -63,16 +65,20 @@ var helixConnector = require(codeDir + 'helixConnector.js');
 var config = require(codeDir + '/../config/qbook.js');
 global.systemProfile = config.getSystemProfile();
 
+
+
 module.exports = {
-helixConnector:helixConnector,
-config:config,
-	
+	helixConnector: helixConnector,
+	config: config,
+
 	testDataDir: projectDir + "/testData/",
 	simpleCallback: simpleCallback,
 	testDbName: "helixConnectTest06",
 	startTestDatabase: startTestDatabase,
 	killHelix: killHelix,
-	qtools:qtools
+	qtools: qtools
 };
+})();
+
 
 

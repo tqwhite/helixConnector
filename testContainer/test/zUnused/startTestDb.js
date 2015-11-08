@@ -6,7 +6,7 @@ var config = require(commonTest.configPath);
 
 global.systemProfile = config.getSystemProfile();
 
-helixConnector = new helixConnector({
+var helixConnector = new helixConnector({
 	helixAccessParms: config.getHelixParms()
 });
 

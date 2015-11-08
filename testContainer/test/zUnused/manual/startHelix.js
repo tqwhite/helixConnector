@@ -2,12 +2,12 @@ var helixConnector = require('../../helixConnector.js');
 var config = require('../../../config/qbook.js');
 global.systemProfile = config.getSystemProfile();
 
-helixConnector = new helixConnector({
+var helixConnector = new helixConnector({
 	helixAccessParms: config.getHelixParms()
 });
 
 
-helixConnector.process('startHelix',
+var helixConnector.process('startHelix',
 {
 	callback: function(err, data) {
 
