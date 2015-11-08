@@ -6,6 +6,27 @@ var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
 
 var testDescription;
 
+var setCriterion=function(done) {
+		var helixSchema = {
+			relation: '_inertProcess',
+			view: 'upTest1_setCriterion_MatchTextField01',
+			fieldSequenceList: [
+				'textField01'
+			],
+			mapping: {}
+		};
+		helixConnector.process('saveOne', {
+			helixSchema: helixSchema,
+			otherParms: {},
+			debug: false,
+			inData: {
+				textField01: keyDataValue
+			},
+			callback: commonTest.simpleCallback(done, 'from test')
+		});
+
+	};
+
 var qtools = commonTest.qtools;
 
 var keyDataValue = 'oregano';
@@ -37,14 +58,14 @@ var helixConnector = new commonTest.helixConnector({
 	helixAccessParms: commonTest.config.getHelixParms()
 });
 
-describe('Data type conversion and storage (' + moduleFileName + ')', function() {
+describe.only('Data type conversion and storage (' + moduleFileName + ')', function() {
 
 	this.timeout(15000);
 
 	before(commonTest.startTestDatabase(helixConnector));
 	after(commonTest.killHelix(helixConnector));
 
-	var testDescription = "should write to _inertProcess/upTest1_Enter_AllFields"
+	var testDescription = "should write teset records with no errors"
 	it(testDescription, function(done) {
 
 		var helixSchema = {
@@ -66,26 +87,7 @@ describe('Data type conversion and storage (' + moduleFileName + ')', function()
 	//SET CRITERION ==============================================
 
 	var testDescription = "set the criterion without errors"
-	it(testDescription, function(done) {
-		var helixSchema = {
-			relation: '_inertProcess',
-			view: 'upTest1_setCriterion_MatchTextField01',
-			fieldSequenceList: [
-				'textField01'
-			],
-			mapping: {}
-		};
-		helixConnector.process('saveOne', {
-			helixSchema: helixSchema,
-			otherParms: {},
-			debug: false,
-			inData: {
-				textField01: keyDataValue
-			},
-			callback: commonTest.simpleCallback(done, 'from test')
-		});
-
-	});
+	it(testDescription, setCriterion());
 
 	//GET RESULT AND COMPARE =====================================
 
