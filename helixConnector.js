@@ -53,13 +53,10 @@ var moduleFunction = function(args) {
 		self.helixRelationList = [];
 		self.openDatabaseFunctionNames = ['openTestDb'];
 		self.systemParms={};
-		self.userPoolOk
-		self.helixAccessParms.userPoolLeaseRelation='';
-		self.helixAccessParms.userPoolLeaseView='';
-		self.helixAccessParms.userPoolReleaseRelation='';
-		self.helixAccessParms.userPoolReleaseView='';
+		self.userPoolOk='';
 		self.leaseUserName='';
 		self.helixAccessParms.userPoolPasswordDecryptionKey='';
+		
 		self.helixAccessParms=qtools.clone(self.immutableHelixAccessParms);
 	}
 	
