@@ -12,7 +12,7 @@ helixConnector = new helixConnector({
 
 
 
-describe.skip('start helix test database', function() {
+describe.skip('start helix test database ('+moduleFileName+')', function() {
 	this.timeout(15000);
 	testDescription = "opening file: "+commonTest.testDbName
 	it(testDescription, function(done) {

@@ -1,6 +1,9 @@
 var commonTest = require('../commonTest.js');
 var assert = require("assert");
 var isMatch = require('lodash.ismatch');
+
+var moduleFileName=module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
+
 var testDescription;
 
 helixConnector = new commonTest.helixConnector({
@@ -34,7 +37,7 @@ testRecordData.push([{
 	}
 ]);
 
-describe('User Pool System', function() {
+describe('User Pool System ('+moduleFileName+')', function() {
 
 	this.timeout(15000);
 

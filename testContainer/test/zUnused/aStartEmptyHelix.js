@@ -12,7 +12,7 @@ helixConnector = new helixConnector({
 
 
 
-describe.skip('Helix installation', function() {
+describe.skip('Helix installation ('+moduleFileName+')', function() {
 this.timeout(5000);
 	testDescription = "should start with no errors"
 	it(testDescription, function(done) {

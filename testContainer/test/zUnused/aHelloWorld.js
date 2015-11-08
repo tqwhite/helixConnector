@@ -1,5 +1,5 @@
 var assert = require("assert");
-describe('Testing System', function() {
+describe('Testing System ('+moduleFileName+')', function() {
   describe('Demonstration', function () {
     it('should return -1 since the value is not present', function () {
       assert.equal(-1, [1,2,3].indexOf(5));

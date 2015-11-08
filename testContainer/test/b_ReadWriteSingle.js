@@ -1,6 +1,9 @@
 var commonTest = require('../commonTest.js');
 var assert = require("assert");
 var isMatch = require('lodash.ismatch');
+
+var moduleFileName=module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
+
 var testDescription;
 
 helixConnector = new commonTest.helixConnector({
@@ -8,7 +11,7 @@ helixConnector = new commonTest.helixConnector({
 	processIdentifier:'b_ReadWriteSingle'
 });
 
-describe('Connector Write Single', function() {
+describe('Connector Write Single ('+moduleFileName+')', function() {
 
 	this.timeout(15000);
 

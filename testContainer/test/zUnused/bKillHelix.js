@@ -12,7 +12,7 @@ helixConnector = new helixConnector({
 
 
 
-describe.skip('Quit Helix', function() {
+describe.skip('Quit Helix ('+moduleFileName+')', function() {
 
 	testDescription = "quit with no errors"
 	it(testDescription, function(done) {
