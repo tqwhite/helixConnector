@@ -25,7 +25,7 @@ var fieldSequenceList = [
 	'textField03'
 ];
 
-describe.only('Multiple Pool Users', function() {
+describe('Multiple Pool Users', function() {
 
 	this.timeout(15000);
 

@@ -23,7 +23,7 @@ describe('Examine helix configuration', function() {
 	before(commonTest.startTestDatabase(helixConnector));
 	after(commonTest.killHelix(helixConnector));
 
-	testDescription = "get some relation names";
+	testDescription = "should get some relation names";
 	it(testDescription, function(done) {
 
 		helixConnector.process('listRelations', {

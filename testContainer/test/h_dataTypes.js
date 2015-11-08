@@ -34,7 +34,7 @@ testRecordData.push([{
 	}
 ]);
 
-describe('User Pool System', function() {
+describe('Data type conversion and storage', function() {
 
 	this.timeout(15000);
 
@@ -62,7 +62,7 @@ describe('User Pool System', function() {
 
 	//SET CRITERION ==============================================
 
-	var testDescription = "should set the criterion without errors"
+	var testDescription = "set the criterion without errors"
 	it(testDescription, function(done) {
 		var helixSchema = {
 			relation: '_inertProcess',
