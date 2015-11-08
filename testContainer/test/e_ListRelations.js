@@ -2,7 +2,7 @@ var commonTest = require('../commonTest.js');
 var assert = require("assert");
 var isMatch = require('lodash.ismatch');
 
-var moduleFileName=module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
+var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
 
 var testDescription;
 
@@ -16,7 +16,7 @@ var helixSchema = {
 	}
 };
 
-describe('Examine helix configuration ('+moduleFileName+')', function() {
+describe('Examine helix configuration (' + moduleFileName + ')', function() {
 	helixConnector = new commonTest.helixConnector({
 		helixAccessParms: commonTest.config.getHelixParms()
 	});
@@ -49,6 +49,7 @@ describe('Examine helix configuration ('+moduleFileName+')', function() {
 	});
 
 });
+
 
 
 

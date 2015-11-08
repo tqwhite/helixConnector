@@ -3,18 +3,9 @@ var assert = require("assert");
 var isMatch = require('lodash.ismatch');
 var qtools = commonTest.qtools;
 
-
-var moduleFileName=module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
+var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
 
 var testDescription;
-
-var helixConnector1 = new commonTest.helixConnector({
-	helixAccessParms: commonTest.config.getHelixParms()
-});
-
-var helixConnector2 = new commonTest.helixConnector({
-	helixAccessParms: commonTest.config.getHelixParms()
-});
 
 var ignoreHelixId = function(leftParmValue, rightParmValue, inx) {
 	if (inx === 'helixId') {
@@ -28,7 +19,15 @@ var fieldSequenceList = [
 	'textField03'
 ];
 
-describe('Multiple Pool Users ('+moduleFileName+')', function() {
+var helixConnector1 = new commonTest.helixConnector({
+	helixAccessParms: commonTest.config.getHelixParms()
+});
+
+var helixConnector2 = new commonTest.helixConnector({
+	helixAccessParms: commonTest.config.getHelixParms()
+});
+
+describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 
 	this.timeout(15000);
 
@@ -206,4 +205,5 @@ describe('Multiple Pool Users ('+moduleFileName+')', function() {
 	});
 
 });
+
 

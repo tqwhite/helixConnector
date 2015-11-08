@@ -2,7 +2,7 @@ var commonTest = require('../commonTest.js');
 var assert = require("assert");
 var isMatch = require('lodash.ismatch');
 
-var moduleFileName=module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
+var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
 
 var testDescription;
 
@@ -10,7 +10,7 @@ var helixConnector = new commonTest.helixConnector({
 	helixAccessParms: commonTest.config.getHelixParms()
 });
 
-describe('Connector Write Multiple ('+moduleFileName+')', function() {
+describe('Connector Write Multiple (' + moduleFileName + ')', function() {
 
 	this.timeout(15000);
 
@@ -91,6 +91,7 @@ describe('Connector Write Multiple ('+moduleFileName+')', function() {
 	});
 
 });
+
 
 
 

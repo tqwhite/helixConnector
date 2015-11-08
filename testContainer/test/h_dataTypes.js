@@ -2,13 +2,9 @@ var commonTest = require('../commonTest.js');
 var assert = require("assert");
 var isMatch = require('lodash.ismatch');
 
-var moduleFileName=module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
+var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
 
 var testDescription;
-
-var helixConnector = new commonTest.helixConnector({
-	helixAccessParms: commonTest.config.getHelixParms()
-});
 
 var qtools = commonTest.qtools;
 
@@ -37,7 +33,11 @@ testRecordData.push([{
 	}
 ]);
 
-describe('Data type conversion and storage ('+moduleFileName+')', function() {
+var helixConnector = new commonTest.helixConnector({
+	helixAccessParms: commonTest.config.getHelixParms()
+});
+
+describe('Data type conversion and storage (' + moduleFileName + ')', function() {
 
 	this.timeout(15000);
 
@@ -136,4 +136,6 @@ describe('Data type conversion and storage ('+moduleFileName+')', function() {
 	});
 
 });
+
+
 

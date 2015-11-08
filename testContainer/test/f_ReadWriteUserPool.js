@@ -2,7 +2,7 @@ var commonTest = require('../commonTest.js');
 var assert = require("assert");
 var isMatch = require('lodash.ismatch');
 
-var moduleFileName=module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
+var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
 
 var testDescription;
 
@@ -37,7 +37,7 @@ testRecordData.push([{
 	}
 ]);
 
-describe('User Pool System ('+moduleFileName+')', function() {
+describe('User Pool System (' + moduleFileName + ')', function() {
 
 	this.timeout(15000);
 
@@ -136,4 +136,5 @@ describe('User Pool System ('+moduleFileName+')', function() {
 	});
 
 });
+
 
