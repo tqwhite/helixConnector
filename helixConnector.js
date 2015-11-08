@@ -55,7 +55,6 @@ var moduleFunction = function(args) {
 		self.systemParms={};
 		self.userPoolOk='';
 		self.leaseUserName='';
-		self.helixAccessParms.userPoolPasswordDecryptionKey='';
 		
 		self.helixAccessParms=qtools.clone(self.immutableHelixAccessParms);
 	}
