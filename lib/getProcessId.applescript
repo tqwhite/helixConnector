@@ -1,13 +1,13 @@
 tell application "Helix RADE"
 	
-	set myCollection to "helixConnectTest03"
+	set myCollection to "helixConnectTest06"
 	set myRelation to "simpleTest"
 	set myView to "simpleOne"
 	set myUser to "hxConnectAdmin"
 	set myPassword to "1234"
 	set myData to ("undefined")
 	
-	
+--<!processName!> - <!callingProcess!>
 	
 	tell collection 1
 		--set myProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve

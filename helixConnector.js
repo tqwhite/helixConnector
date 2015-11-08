@@ -43,8 +43,10 @@ var moduleFunction = function(args) {
 		};
 
 	self.leasePoolUserFieldName = 'leaseUserName';
+	self.leasePoolPasswordFieldName='leasePasswordEncrypted'
 	self.helixRelationList = [];
-	self.openDatabaseFunctionNames = ['openTestDb']
+	self.openDatabaseFunctionNames = ['openTestDb'];
+	self.systemParms={};
 
 	//LOCAL FUNCTIONS ====================================
 
@@ -71,7 +73,7 @@ var moduleFunction = function(args) {
 			inData: {},
 			callback: function(err, result, misc) {
 				if (err) {
-					throw (new Error("Helix not available or is broken."))
+					throw (new Error(err))
 				}
 
 				if (result.length < 1) {
@@ -115,7 +117,7 @@ var moduleFunction = function(args) {
 			self.helixAccessParms.userPoolReleaseView
 			) ? true : false;
 
-		var missingTables = '';		
+		var missingTables = '';
 		missingTables += !qtools.in(self.helixAccessParms.userPoolLeaseRelation, self.helixRelationList) ? self.helixAccessParms.userPoolLeaseRelation + " " : '';
 		missingTables += !qtools.in(self.helixAccessParms.userPoolReleaseRelation, self.helixRelationList) ? self.helixAccessParms.userPoolReleaseRelation + " " : '';
 
@@ -130,6 +132,10 @@ var moduleFunction = function(args) {
 		if (allPresent && self.userPoolOk && !self.leaseUserName) {
 			getPoolUser(function(err, result) {
 				self.leaseUserName = result[0][self.leasePoolUserFieldName];
+
+				self.systemParms.user=result[0][self.leasePoolUserFieldName];
+				self.systemParms.password=decryptLeasePassword(result[0][self.leasePoolPasswordFieldName]);
+
 				initExitPoolUser();
 				callback();
 			});
@@ -145,13 +151,13 @@ var moduleFunction = function(args) {
 	var getPoolUser = function(callback) {
 		var localCallback = function(err, result) {
 			callback(err, result);
-
 		}
 		var helixSchema = {
 			relation: '',
 			view: '',
 			fieldSequenceList: [
-				self.leasePoolUserFieldName
+				self.leasePoolUserFieldName,
+				self.leasePoolPasswordFieldName
 			],
 			mapping: {}
 		};
@@ -163,6 +169,12 @@ var moduleFunction = function(args) {
 			callback: localCallback
 		});
 	};
+	
+	var decryptLeasePassword=function(leasePasswordEncrypted){
+		var userPoolPasswordDecryptionKey=self.helixAccessParms.userPoolPasswordDecryptionKey;
+		var userPoolPassword=/*decrypt*/leasePasswordEncrypted;
+		return leasePasswordEncrypted;
+	}
 
 	var releasePoolUser = function(callback) {
 		var localCallback = function(err, result) {
@@ -216,11 +228,9 @@ var moduleFunction = function(args) {
 
 		var inData = qtools.clone(parameters.inData) || {};
 		var otherParms = parameters.otherParms || {};
-		var systemParms = {
-			leaseUserName: self.leaseUserName
-		}
+		var systemParms = self.systemParms;
 
-		var replaceObject = qtools.extend({}, self.helixAccessParms, helixSchema, otherParms, systemParms),
+		var replaceObject = qtools.extend({}, self.helixAccessParms, helixSchema, otherParms, systemParms, {processName:processName}),
 			script = scriptElement.script;
 
 		replaceObject.dataString = helixData.makeApplescriptDataString(helixSchema.fieldSequenceList, helixSchema.mapping, otherParms, inData);
@@ -249,10 +259,17 @@ var moduleFunction = function(args) {
 		}, function(err, data) {
 			data = helixData.helixStringToRecordList(helixSchema.fieldSequenceList, helixSchema.mapping, data);
 			callback(err, data, {
-				finalScript: finalScript
+				user:self.systemParms.user
 			});
 		});
 	}
+	
+	/*
+	NEXT
+	
+	make it so that the log in user is changed to the user pool user
+	
+	*/
 
 	//METHODS AND PROPERTIES ====================================
 
@@ -371,4 +388,5 @@ var moduleFunction = function(args) {
 
 util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
+
 

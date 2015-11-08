@@ -7,6 +7,8 @@ tell application "<!applicationName!>"
 	set myPassword to "<!password!>"
 	set myData to {<!dataString!>}
 	
+--<!processName!> - <!processIndicator!>
+	
 	tell collection 1
 		
 		set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve

@@ -1,6 +1,7 @@
 var commonTest = require('../commonTest.js');
 var assert = require("assert");
 var isMatch = require('lodash.ismatch');
+var testDescription;
 
 var helixSchema = {
 	relation: 'simpleTest',

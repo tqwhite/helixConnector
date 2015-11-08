@@ -6,6 +6,8 @@ tell application "<!applicationName!>"
 	set myUser to "<!user!>"
 	set myPassword to "<!password!>"
 	
+--<!processName!> - <!callingProcess!>
+	
 	tell collection myCollection
 		set appendedText to ""
 		
