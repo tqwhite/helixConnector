@@ -33,7 +33,7 @@ var moduleFunction = function(args) {
 	});
 
 	this.systemProfile = this.systemProfile || {};
-	this.immutableHelixAccessParms=qtools.clone(this.helixAccessParms);
+	this.immutableHelixAccessParms = qtools.clone(this.helixAccessParms);
 
 	var self = this,
 		forceEvent = function(eventName, outData) {
@@ -46,20 +46,20 @@ var moduleFunction = function(args) {
 
 
 	//LOCAL FUNCTIONS ====================================
-	
-	var initializeProperties=function(){
+
+	var initializeProperties = function() {
 		self.leasePoolUserFieldName = 'leaseUserName';
-		self.leasePoolPasswordFieldName='leasePasswordEncrypted'
+		self.leasePoolPasswordFieldName = 'leasePasswordEncrypted'
 		self.helixRelationList = [];
 		self.openDatabaseFunctionNames = ['openTestDb'];
-		self.systemParms={};
-		self.userPoolOk='';
-		self.leaseUserName='';
-		
-		self.helixAccessParms=qtools.clone(self.immutableHelixAccessParms);
+		self.systemParms = {};
+		self.userPoolOk = '';
+		self.leaseUserName = '';
+
+		self.helixAccessParms = qtools.clone(self.immutableHelixAccessParms);
 	}
-	
-	var resetConnector=function(){
+
+	var resetConnector = function() {
 		initializeProperties();
 		cancelExitPoolUser();
 	};
@@ -100,6 +100,11 @@ var moduleFunction = function(args) {
 				}
 			}
 		});
+	}
+
+	var switchToPoolUser = function(user, password) {
+		self.systemParms.user = user;
+		self.systemParms.password = password;
 	}
 
 	var initUserPoolIfNeeded = function(control, callback) {
@@ -147,8 +152,7 @@ var moduleFunction = function(args) {
 			getPoolUser(function(err, result) {
 				self.leaseUserName = result[0][self.leasePoolUserFieldName];
 
-				self.systemParms.user=result[0][self.leasePoolUserFieldName];
-				self.systemParms.password=decryptLeasePassword(result[0][self.leasePoolPasswordFieldName]);
+				switchToPoolUser(result[0][self.leasePoolUserFieldName], decryptLeasePassword(result[0][self.leasePoolPasswordFieldName]))
 
 				initExitPoolUser();
 				callback();
@@ -183,15 +187,15 @@ var moduleFunction = function(args) {
 			callback: localCallback
 		});
 	};
-	
-	var decryptLeasePassword=function(leasePasswordEncrypted){
-		var userPoolPasswordDecryptionKey=self.helixAccessParms.userPoolPasswordDecryptionKey;
-		var userPoolPassword=/*decrypt*/leasePasswordEncrypted;
+
+	var decryptLeasePassword = function(leasePasswordEncrypted) {
+		var userPoolPasswordDecryptionKey = self.helixAccessParms.userPoolPasswordDecryptionKey;
+		var userPoolPassword = /*decrypt*/ leasePasswordEncrypted;
 		return leasePasswordEncrypted;
 	}
 
 	var releasePoolUser = function(callback) {
-		callback=callback?callback:function(){};
+		callback = callback ? callback : function() {};
 		var localCallback = function(err, result) {
 			//note: tests kill Helix before they close so this is not triggered, it works if Helix stays up
 			callback(err, result);
@@ -210,9 +214,8 @@ var moduleFunction = function(args) {
 			callback: localCallback
 		});
 	};
-	
-	var exitEventHandler=function(){
-		console.log('hello exit');
+
+	var exitEventHandler = function() {
 		releasePoolUser();
 	};
 
@@ -252,7 +255,9 @@ var moduleFunction = function(args) {
 		var otherParms = parameters.otherParms || {};
 		var systemParms = self.systemParms;
 
-		var replaceObject = qtools.extend({}, self.helixAccessParms, helixSchema, otherParms, systemParms, {processName:processName}),
+		var replaceObject = qtools.extend({}, self.helixAccessParms, helixSchema, otherParms, systemParms, {
+				processName: processName
+			}),
 			script = scriptElement.script;
 
 		replaceObject.dataString = helixData.makeApplescriptDataString(helixSchema.fieldSequenceList, helixSchema.mapping, otherParms, inData);
@@ -281,11 +286,11 @@ var moduleFunction = function(args) {
 		}, function(err, data) {
 			data = helixData.helixStringToRecordList(helixSchema.fieldSequenceList, helixSchema.mapping, data);
 			callback(err, data, {
-				user:self.systemParms.user
+				user: self.systemParms.user
 			});
 		});
 	}
-	
+
 	/*
 	NEXT
 	
@@ -403,7 +408,7 @@ var moduleFunction = function(args) {
 	//INITIALIZATION ====================================
 
 	var osascript = require('osascript').eval;
-	
+
 	initializeProperties();
 
 	return this;
@@ -413,5 +418,6 @@ var moduleFunction = function(args) {
 
 util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
+
 
 
