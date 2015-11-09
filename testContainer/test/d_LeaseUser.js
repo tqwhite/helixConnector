@@ -12,11 +12,7 @@ var helixConnector = new commonTest.helixConnector({
 
 describe('Lease Pool User base function (' + moduleFileName + ')', function() {
 
-	this.timeout(15000);
-
-	before(commonTest.startTestDatabase(helixConnector));
-	after(commonTest.killHelix(helixConnector));
-
+	commonTest.standardInit(helixConnector, before, after, this);
 
 	var helixSchema = {
 		relation: '',
@@ -26,7 +22,6 @@ describe('Lease Pool User base function (' + moduleFileName + ')', function() {
 		],
 		mapping: {}
 	};
-
 
 	testDescription = "should return a pool user name"
 	it(testDescription, function(done) {
@@ -50,6 +45,4 @@ describe('Lease Pool User base function (' + moduleFileName + ')', function() {
 	});
 
 });
-
-
 

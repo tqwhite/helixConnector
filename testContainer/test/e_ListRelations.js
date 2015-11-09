@@ -21,10 +21,7 @@ describe('Examine helix configuration (' + moduleFileName + ')', function() {
 		helixAccessParms: commonTest.config.getHelixParms()
 	});
 
-	this.timeout(15000);
-
-	before(commonTest.startTestDatabase(helixConnector));
-	after(commonTest.killHelix(helixConnector));
+	commonTest.standardInit(helixConnector, before, after, this);
 
 	testDescription = "should get some relation names";
 	it(testDescription, function(done) {
@@ -49,7 +46,4 @@ describe('Examine helix configuration (' + moduleFileName + ')', function() {
 	});
 
 });
-
-
-
 

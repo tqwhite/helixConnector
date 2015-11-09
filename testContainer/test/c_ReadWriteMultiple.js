@@ -12,11 +12,7 @@ var helixConnector = new commonTest.helixConnector({
 
 describe('Connector Write Multiple (' + moduleFileName + ')', function() {
 
-	this.timeout(15000);
-
-	before(commonTest.startTestDatabase(helixConnector));
-	after(commonTest.killHelix(helixConnector));
-
+	commonTest.standardInit(helixConnector, before, after, this);
 
 	var helixSchema = {
 		relation: 'simpleTest',
@@ -42,8 +38,6 @@ describe('Connector Write Multiple (' + moduleFileName + ')', function() {
 			textFieldTwo: 'lake'
 		}];
 
-
-
 	testDescription = "should write data with no errors"
 	it(testDescription, function(done) {
 		helixConnector.process('saveDirect', {
@@ -53,14 +47,7 @@ describe('Connector Write Multiple (' + moduleFileName + ')', function() {
 			callback: commonTest.simpleCallback(done, 'from test')
 		});
 
-
 	});
-
-	var ignoreHelixId = function(leftParmValue, rightParmValue, inx) {
-		if (inx === 'helixId') {
-			return true;
-		}
-	}
 
 	testDescription = "should read matching data from Helix";
 	it(testDescription, function(done) {
@@ -77,8 +64,8 @@ describe('Connector Write Multiple (' + moduleFileName + ')', function() {
 				if (err) {
 					done(err);
 				}
-				var first = isMatch(enhancedtestRecordData, result, ignoreHelixId); //isMatch() ignores extra values in rightParm
-				var second = isMatch(result, enhancedtestRecordData, ignoreHelixId); //evaluate both directions means no extras
+				var first = isMatch(enhancedtestRecordData, result, commonTest.ignoreHelixId); //isMatch() ignores extra values in rightParm
+				var second = isMatch(result, enhancedtestRecordData, commonTest.ignoreHelixId); //evaluate both directions means no extras
 
 				if (first && second) {
 					done()
@@ -91,7 +78,4 @@ describe('Connector Write Multiple (' + moduleFileName + ')', function() {
 	});
 
 });
-
-
-
 

@@ -7,12 +7,6 @@ var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
 
 var testDescription;
 
-var ignoreHelixId = function(leftParmValue, rightParmValue, inx) {
-	if (inx === 'helixId') {
-		return true;
-	}
-}
-
 var fieldSequenceList = [
 	'textField01',
 	'textField02',
@@ -29,10 +23,7 @@ var helixConnector2 = new commonTest.helixConnector({
 
 describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 
-	this.timeout(15000);
-
-	before(commonTest.startTestDatabase(helixConnector1));
-	after(commonTest.killHelix(helixConnector1));
+	commonTest.standardInit(helixConnector, before, after, this);
 
 	var keyDataValue1 = 'hat';
 	var keyDataValue2 = 'transistor';
@@ -92,7 +83,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 		helixConnector1.process('saveOne', {
 			helixSchema: helixSchema,
 			otherParms: {},
-			debug: false,
+			debug: true,
 			inData: {
 				textField01: keyDataValue1
 			},
@@ -151,8 +142,8 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 					done(err);
 				}
 
-				var first = isMatch(enhancedtestRecordData, result, ignoreHelixId); //isMatch() ignores extra values in rightParm
-				var second = isMatch(result, enhancedtestRecordData, ignoreHelixId); //evaluate both directions means no extras
+				var first = isMatch(enhancedtestRecordData, result, commonTest.ignoreHelixId); //isMatch() ignores extra values in rightParm
+				var second = isMatch(result, enhancedtestRecordData, commonTest.ignoreHelixId); //evaluate both directions means no extras
 
 				if (first && second) {
 					done()
@@ -191,8 +182,8 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 					done(err);
 				}
 
-				var first = isMatch(enhancedtestRecordData, result, ignoreHelixId); //isMatch() ignores extra values in rightParm
-				var second = isMatch(result, enhancedtestRecordData, ignoreHelixId); //evaluate both directions means no extras
+				var first = isMatch(enhancedtestRecordData, result, commonTest.ignoreHelixId); //isMatch() ignores extra values in rightParm
+				var second = isMatch(result, enhancedtestRecordData, commonTest.ignoreHelixId); //evaluate both directions means no extras
 
 				if (first && second) {
 					done()
@@ -205,5 +196,4 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 	});
 
 });
-
 

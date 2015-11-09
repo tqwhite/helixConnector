@@ -12,181 +12,185 @@ var helixConnector = new commonTest.helixConnector({
 
 var qtools = commonTest.qtools;
 
-var setCriterion = function(viewName, criterion) {
-
-	return function(done) {
-		var helixSchema = {
-			relation: '_inertProcess',
-			view: viewName,
-			fieldSequenceList: [
-				'textField01'
-			],
-			mapping: {}
-		};
-		helixConnector.process('saveOne', {
-			helixSchema: helixSchema,
-			otherParms: {},
-			debug: false,
-			inData: {
-				textField01: criterion
-			},
-			callback: commonTest.simpleCallback(done, 'from test')
-		});
-
-	};
-};
-
-var keyDataValue = 'oregano';
-var fieldSequenceList = [
+var generalFieldSequence = [
 	'textField01',
 	'textField02',
-	'textField03'
+	'textField03',
+	'dateField01',
+	'numField01',
+	'fixedPointField01',
+	'flagField01',
 ];
 
-var matchRecordData = [{
-		textField01: keyDataValue,
-		textField02: 'cat',
-		textField03: 'lemur'
-	}, {
-		textField01: keyDataValue,
-		textField02: 'garlic',
-		textField03: 'marjoram'
-	}];
+var schemaMap = {
+	upTest1_Enter_AllFields: {
+		relation: '_inertProcess',
+		view: 'upTest1_Enter_SevenFields',
+		fieldSequenceList: generalFieldSequence,
+		mapping: {}
+	},
+	upTest1_RetrieveAll: {
+		relation: 'upTest1',
+		view: 'upTest1_RetrieveAll',
+		fieldSequenceList: generalFieldSequence,
+		mapping: {}
+	},
+	upTest1_RetrieveOnTextfield01: {
+		relation: 'upTest1',
+		view: 'upTest1_RetrieveOnTextfield01',
+		fieldSequenceList: generalFieldSequence,
+		mapping: {},
+		criterionSchemaName: 'upTest1_setCriterion_MatchTextField01'
+	},
+	upTest1_setCriterion_MatchTextField01: {
+		relation: '_inertProcess',
+		view: 'upTest1_setCriterion_MatchTextField01',
+		fieldSequenceList: [
+			'textField01'
+		],
+		mapping: {},
+		retrievalSchemaName: 'upTest1_RetrieveOnTextfield01'
+	}
+};
 
-var testRecordData = qtools.clone(matchRecordData);
-testRecordData.push({
-	textField01: 'marjoram',
-	textField02: 'garlic',
-	textField03: 'marjoram'
-}
-);
+var saveRecords = function(testRecordData) {
 
-describe('Retrieve with single pass criterion (' + moduleFileName + ')', function() {
+	return function(done) {
 
-	this.timeout(15000);
-
-	before(commonTest.startTestDatabase(helixConnector));
-	after(commonTest.killHelix(helixConnector));
-
-	var testDescription = "should write to _inertProcess/upTest1_Enter_AllFields"
-	it(testDescription, function(done) {
-
-		var savingSchema = {
-			relation: '_inertProcess',
-			view: 'upTest1_Enter_AllFields',
-			fieldSequenceList: fieldSequenceList,
-			mapping: {}
-		};
 		helixConnector.process('saveDirect', {
-			helixSchema: savingSchema,
+			helixSchema: schemaMap.upTest1_Enter_AllFields,
 			otherParms: {},
 			debug: false,
 			inData: testRecordData,
-			callback: commonTest.simpleCallback(done, 'from test')
+			callback: commonTest.simpleCallback(done, 'from ' + moduleFileName)
 		});
 
-	});
+	}
+};
 
-	//GET RESULT AND COMPARE =====================================
+var retrieveRecords = function(callback, schemaName, criterion) {
 
+	return function(done) {
 
-	var ignoreHelixId = function(leftParmValue, rightParmValue, inx) {
-		if (inx === 'helixId') {
-			return true;
+		var schema = schemaMap[schemaName];
+
+		var helixParms = {
+			helixSchema: qtools.clone(schema),
+			otherParms: {},
+			debug: false,
+			inData: {},
+			callback: callback(done)
+		};
+
+		if (schema.criterionSchemaName) {
+			var criterionSchema = schemaMap[schema.criterionSchemaName];
+			helixParms.helixSchema.criterion = criterionSchema;
+			helixParms.criterion = {};
+			helixParms.criterion.data = criterion;
 		}
+
+		helixConnector.process('retrieveRecords', helixParms);
+
+	};
+}
+
+
+
+var testDataBatchList = [];
+
+testDataBatchList.push({
+	criterionKeyValue: 'oregano',
+	recordGroup: [{
+			textField01: 'oregano',
+			textField02: 'cat',
+			textField03: 'lemur'
+		}, {
+			textField01: 'oregano',
+			textField02: 'garlic',
+			textField03: 'marjoram'
+		}],
+	criterion: {
+		textField01: 'oregano'
+	}
+});
+testDataBatchList.push({
+	criterionKeyValue: 'lemon',
+	recordGroup: [{
+			textField01: 'lemon',
+			textField02: 'orange',
+			textField03: 'peach'
+		}, {
+			textField01: 'lemon',
+			textField02: 'plum',
+			textField03: 'grape'
+		}],
+	criterion: {
+		textField01: 'lemon'
+	}
+});
+
+var testRecordData = [];
+testDataBatchList.map(function(item) {
+	item.recordGroup.map(function(item) {
+		testRecordData.push(item);
+	});
+});
+
+
+var matchReferenceRecords = function(referenceData) {
+	return function(done) {
+
+		return function(err, result, misc) {
+			var enhancedReferenceData = referenceData;
+			enhancedReferenceData.map(function(item) {
+				item.helixId = 0; //this comes from Helix always, can't control value
+			});
+
+			if (err) {
+				done(err);
+			}
+			var first = isMatch(enhancedReferenceData, result, commonTest.ignoreHelixId); //isMatch() ignores extra values in rightParm
+			var second = isMatch(result, enhancedReferenceData, commonTest.ignoreHelixId); //evaluate both directions means no extras
+
+			if (first && second) {
+				done()
+			} else {
+				done(new Error("Retrieved record does not match test record"));
+			}
+		}
+
+	}
+}
+
+
+describe('Multiple criteria functions (' + moduleFileName + ')', function() {
+
+
+	commonTest.standardInit(helixConnector, before, after, this);
+
+	it("should write data with no errors", saveRecords(testRecordData));
+
+
+	for (var i = 0, len = testDataBatchList.length; i < len; i++) {
+		var element = testDataBatchList[i];
+		it("should retrieve correct data based on the criterion " + element.criterionKeyValue, retrieveRecords(matchReferenceRecords(element.recordGroup), 'upTest1_RetrieveOnTextfield01', element.criterion));
 	}
 
-	testDescription = "should retrieve all of the data sent";
-	it(testDescription, function(done) {
-		var referenceData = testRecordData
-
-		var retrievalSchema = {
-			relation: 'upTest1',
-			view: 'upTest1_RetrieveAll',
-			fieldSequenceList: fieldSequenceList,
-			mapping: {}
-		};
-
-		var enhancedtestRecordData = referenceData;
-		enhancedtestRecordData.map(function(item) {
-			item.helixId = 0; //this comes from Helix always, can't control value
-		});
-
-		helixConnector.process('retrieveRecords', {
-			helixSchema: retrievalSchema,
-			otherParms: {},
-			debug: false,
-			inData: {},
-			callback: function(err, result, misc) {
-				if (err) {
-					done(err);
-				}
-				var first = isMatch(enhancedtestRecordData, result, ignoreHelixId); //isMatch() ignores extra values in rightParm
-				var second = isMatch(result, enhancedtestRecordData, ignoreHelixId); //evaluate both directions means no extras
-
-				if (first && second) {
-					done()
-				} else {
-					done(new Error("Retrieved record does not match test record"));
-				}
-			}
-		});
-
-	});
 
 
-	testDescription = "should get only data restricted by the criterion";
-	it(testDescription, function(done) {
-		var referenceData = matchRecordData
+	it("should retrieve all the data correctly", retrieveRecords(matchReferenceRecords(testRecordData), 'upTest1_RetrieveAll'));
 
-		var criterionFieldSequenceList = ['textField01'];
-		var criterion = {
-			textField01: keyDataValue
-		};
 
-		var retrievalSchema = {
-			relation: 'upTest1',
-			view: 'upTest1_RetrieveOnTextfield01',
-			fieldSequenceList: fieldSequenceList,
-			mapping: {},
-			criterion: {
-				relation: '_inertProcess',
-				view: 'upTest1_setCriterion_MatchTextField01',
-				fieldSequenceList: criterionFieldSequenceList
-			}
-		};
-
-		var enhancedtestRecordData = referenceData;
-		enhancedtestRecordData.map(function(item) {
-			item.helixId = 0; //this comes from Helix always, can't control value
-		});
-
-		helixConnector.process('retrieveRecords', {
-			helixSchema: retrievalSchema,
-			otherParms: {},
-			debug: false,
-			inData: {},
-			criterion: {
-				data: criterion
-			},
-			callback: function(err, result, misc) {
-				if (err) {
-					done(err);
-				}
-				var first = isMatch(enhancedtestRecordData, result, ignoreHelixId); //isMatch() ignores extra values in rightParm
-				var second = isMatch(result, enhancedtestRecordData, ignoreHelixId); //evaluate both directions means no extras
-
-				if (first && second) {
-					done()
-				} else {
-					done(new Error("Retrieved record does not match test record"));
-				}
-			}
-		});
-
-	});
 
 });
+
+
+
+
+
+
+
+
 
 
 

@@ -39,10 +39,7 @@ testRecordData.push([{
 
 describe('User Pool System (' + moduleFileName + ')', function() {
 
-	this.timeout(15000);
-
-	before(commonTest.startTestDatabase(helixConnector));
-	after(commonTest.killHelix(helixConnector));
+	commonTest.standardInit(helixConnector, before, after, this);
 
 	var testDescription = "should write to _inertProcess/upTest1_Enter_AllFields"
 	it(testDescription, function(done) {
@@ -89,14 +86,8 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 
 	//GET RESULT AND COMPARE =====================================
 
-	var referenceData = matchRecordData
-
-	var ignoreHelixId = function(leftParmValue, rightParmValue, inx) {
-		if (inx === 'helixId') {
-			return true;
-		}
-	}
-
+	var referenceData = matchRecordData;
+	
 	testDescription = "should get matching data from corresponding table (upTest1/upTest1_RetrieveOnTextfield01)";
 	it(testDescription, function(done) {
 
@@ -122,8 +113,8 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 					done(err);
 				}
 
-				var first = isMatch(enhancedtestRecordData, result, ignoreHelixId); //isMatch() ignores extra values in rightParm
-				var second = isMatch(result, enhancedtestRecordData, ignoreHelixId); //evaluate both directions means no extras
+				var first = isMatch(enhancedtestRecordData, result, commonTest.ignoreHelixId); //isMatch() ignores extra values in rightParm
+				var second = isMatch(result, enhancedtestRecordData, commonTest.ignoreHelixId); //evaluate both directions means no extras
 
 				if (first && second) {
 					done()
@@ -136,5 +127,4 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 	});
 
 });
-
 
