@@ -83,7 +83,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 		helixConnector1.process('saveOne', {
 			helixSchema: helixSchema,
 			otherParms: {},
-			debug: true,
+			debug: false,
 			inData: {
 				textField01: keyDataValue1
 			},
