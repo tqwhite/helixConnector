@@ -222,7 +222,7 @@ var matchReferenceRecords = function(referenceData) {
 }
 
 
-describe.only('Data formatting save functions (' + moduleFileName + ')', function() {
+describe('Data formatting save functions (' + moduleFileName + ')', function() {
 
 
 	commonTest.standardInit(helixConnector, before, after, this);

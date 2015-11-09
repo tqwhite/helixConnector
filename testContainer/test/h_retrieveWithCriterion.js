@@ -15,11 +15,7 @@ var qtools = commonTest.qtools;
 var generalFieldSequence = [
 	'textField01',
 	'textField02',
-	'textField03',
-	'dateField01',
-	'numField01',
-	'fixedPointField01',
-	'flagField01',
+	'textField03'
 ];
 
 var schemaMap = {
