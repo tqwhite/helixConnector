@@ -4,6 +4,10 @@
 	var qtools = require('qtools'),
 		qtools = new qtools(module);
 
+
+
+	var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
+
 	var realpath = function(filePath) {
 		var result;
 		try {
@@ -66,6 +70,45 @@
 	global.systemProfile = config.getSystemProfile();
 
 
+	//refactored common utility functions =====================
+
+	var standardInit = function(helixConnector, before, after, scope) {
+		scope.timeout(15000);
+		before(startTestDatabase(helixConnector));
+		after(killHelix(helixConnector));
+	}
+
+	var ignoreHelixId = function(leftParmValue, rightParmValue, inx) {
+
+		if (inx === 'helixId') {
+			return true;
+		}
+
+		if (leftParmValue === '' && rightParmValue === '') {
+			return true;
+		}
+	}
+
+	var booleanMapping = function(item) {
+		if (item === '' || typeof(item)=='undefined') {
+			return '';
+		}
+		
+		switch (item) {
+			case 'true':
+			case 'Yes':
+				return 'true';
+				break;
+			case 'false':
+			case 'No':
+				return 'false';
+				break;
+			default:
+				throw (new Error("no such boolean mapping for "+item+", says " + moduleFileName));
+				break;
+		}
+
+	};
 
 	module.exports = {
 		helixConnector: helixConnector,
@@ -76,9 +119,13 @@
 		testDbName: "helixConnectTest06",
 		startTestDatabase: startTestDatabase,
 		killHelix: killHelix,
-		qtools: qtools
+		qtools: qtools,
+		standardInit: standardInit,
+		ignoreHelixId: ignoreHelixId,
+		booleanMapping: booleanMapping
 	};
 })();
+
 
 
 
