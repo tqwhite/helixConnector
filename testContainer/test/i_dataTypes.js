@@ -170,9 +170,6 @@ testDataBatchList.push({
 		textField01: 'fixedPoint'
 	}
 });
-
-var testDate = new Date('2015', '5', '29', '8', '38', '39'); //I don't understand why I have to type '5' to get June in the date(), however, when I don't specify the date, as in new Date(), it works correctly.
-
 testDataBatchList.push({
 	criterionKeyValue: 'date',
 	recordGroup: [
@@ -180,7 +177,7 @@ testDataBatchList.push({
 			textField01: 'date',
 			textField02: 'orange',
 			textField03: 'peach',
-			dateField01: testDate,
+			dateField01: new Date('2015', '5', '29', '8', '38', '39'),
 			numField01: '',
 			fixedPointField01: '',
 			flagField01: '',
@@ -232,7 +229,7 @@ var matchReferenceRecords = function(referenceData) {
 }
 
 
-describe('Data formatting save functions (' + moduleFileName + ')', function() {
+describe.only('Data formatting save functions (' + moduleFileName + ')', function() {
 
 
 	commonTest.standardInit(helixConnector, before, after, this);
