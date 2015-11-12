@@ -60,7 +60,7 @@ var schemaMap = {
 	}
 };
 
-var saveRecords = function(testRecordData, schemaName) {
+var saveRecords = function(schemaName, testRecordData, callback) {
 
 	return function(done) {
 
@@ -69,13 +69,13 @@ var saveRecords = function(testRecordData, schemaName) {
 			otherParms: {},
 			debug: false,
 			inData: testRecordData,
-			callback: commonTest.simpleCallback(done, 'from ' + moduleFileName)
+			callback: commonTest.simpleCallback(done, 'from ' + moduleFileName) //needs closure for done()
 		});
 
 	}
 };
 
-var retrieveRecords = function(callback, schemaName, criterion) {
+var retrieveRecords = function(schemaName, callback, criterion) {
 
 	return function(done) {
 
@@ -234,17 +234,17 @@ describe.only('Data formatting save functions (' + moduleFileName + ')', functio
 
 	commonTest.standardInit(helixConnector, before, after, this);
 
-	it("should write data with no errors", saveRecords(testRecordData, 'upTest1_Enter_AllFields'));
+	it("should write data with no errors", saveRecords('upTest1_Enter_AllFields', testRecordData));
 
 
 	for (var i = 0, len = testDataBatchList.length; i < len; i++) {
 		var element = testDataBatchList[i];
-		it("should retrieve correct data based on the criterion " + element.criterionKeyValue, retrieveRecords(matchReferenceRecords(element.recordGroup), 'upTest1_RetrieveOnTextfield01', element.criterion));
+		it("should retrieve correct data based on the criterion " + element.criterionKeyValue, retrieveRecords('upTest1_RetrieveOnTextfield01', matchReferenceRecords(element.recordGroup), element.criterion));
 	}
 
 
 
-	it("should retrieve all the data correctly", retrieveRecords(matchReferenceRecords(testRecordData), 'upTest1_RetrieveAll'));
+	it("should retrieve all the data correctly", retrieveRecords('upTest1_RetrieveAll', matchReferenceRecords(testRecordData)));
 
 
 
