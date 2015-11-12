@@ -60,12 +60,12 @@ var schemaMap = {
 	}
 };
 
-var saveRecords = function(testRecordData) {
+var saveRecords = function(testRecordData, schemaName) {
 
 	return function(done) {
 
 		helixConnector.process('saveDirect', {
-			helixSchema: schemaMap.upTest1_Enter_AllFields,
+			helixSchema: schemaMap[schemaName],
 			otherParms: {},
 			debug: false,
 			inData: testRecordData,
@@ -234,7 +234,7 @@ describe.only('Data formatting save functions (' + moduleFileName + ')', functio
 
 	commonTest.standardInit(helixConnector, before, after, this);
 
-	it("should write data with no errors", saveRecords(testRecordData));
+	it("should write data with no errors", saveRecords(testRecordData, 'upTest1_Enter_AllFields'));
 
 
 	for (var i = 0, len = testDataBatchList.length; i < len; i++) {
