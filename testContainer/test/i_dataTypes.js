@@ -26,7 +26,7 @@ var generalFieldSequence = [
 
 var generalMapping={
 			flagField01:commonTest.booleanMapping,
-	//		dateField01:'helixDateTime'
+			dateField01:'helixDateTime'
 };
 
 var schemaMap = {
@@ -103,90 +103,93 @@ var retrieveRecords = function(callback, schemaName, criterion) {
 
 var testDataBatchList = [];
 
-testDataBatchList.push({
-	criterionKeyValue: 'booleanTrue',
-	recordGroup: [{
-			textField01: 'booleanTrue',
-			textField02: 'cat',
-			textField03: 'lemur',
-			dateField01: '',
-			numField01: '',
-			fixedPointField01: '',
-			flagField01: 'true',
-			}
-		],
-	criterion: {
-		textField01: 'booleanTrue'
-	}
-});
-testDataBatchList.push({
-	criterionKeyValue: 'booleanFalse',
-	recordGroup: [
-	{
-			textField01: 'booleanFalse',
-			textField02: 'orange',
-			textField03: 'peach',
-			dateField01: '',
-			numField01: '',
-			fixedPointField01: '',
-			flagField01: 'false',
-		}
-		],
-	criterion: {
-		textField01: 'booleanFalse'
-	}
-});
-testDataBatchList.push({
-	criterionKeyValue: 'integer',
-	recordGroup: [
-	{
-			textField01: 'integer',
-			textField02: 'orange',
-			textField03: 'peach',
-			dateField01: '',
-			numField01: '999',
-			fixedPointField01: '',
-			flagField01: '',
-		}
-		],
-	criterion: {
-		textField01: 'integer'
-	}
-});
-testDataBatchList.push({
-	criterionKeyValue: 'fixedPoint',
-	recordGroup: [
-	{
-			textField01: 'fixedPoint',
-			textField02: 'orange',
-			textField03: 'peach',
-			dateField01: '',
-			numField01: '',
-			fixedPointField01: '3.14',
-			flagField01: '',
-		}
-		],
-	criterion: {
-		textField01: 'fixedPoint'
-	}
-});
 // testDataBatchList.push({
-// 	criterionKeyValue: 'date',
+// 	criterionKeyValue: 'booleanTrue',
+// 	recordGroup: [{
+// 			textField01: 'booleanTrue',
+// 			textField02: 'cat',
+// 			textField03: 'lemur',
+// 			dateField01: '',
+// 			numField01: '',
+// 			fixedPointField01: '',
+// 			flagField01: 'true',
+// 			}
+// 		],
+// 	criterion: {
+// 		textField01: 'booleanTrue'
+// 	}
+// });
+// testDataBatchList.push({
+// 	criterionKeyValue: 'booleanFalse',
 // 	recordGroup: [
 // 	{
-// 			textField01: 'date',
+// 			textField01: 'booleanFalse',
 // 			textField02: 'orange',
 // 			textField03: 'peach',
-// 			dateField01: '06/29/15 08:38:39 AM',
+// 			dateField01: '',
 // 			numField01: '',
+// 			fixedPointField01: '',
+// 			flagField01: 'false',
+// 		}
+// 		],
+// 	criterion: {
+// 		textField01: 'booleanFalse'
+// 	}
+// });
+// testDataBatchList.push({
+// 	criterionKeyValue: 'integer',
+// 	recordGroup: [
+// 	{
+// 			textField01: 'integer',
+// 			textField02: 'orange',
+// 			textField03: 'peach',
+// 			dateField01: '',
+// 			numField01: '999',
 // 			fixedPointField01: '',
 // 			flagField01: '',
 // 		}
 // 		],
 // 	criterion: {
-// 		textField01: 'date'
+// 		textField01: 'integer'
 // 	}
 // });
+// testDataBatchList.push({
+// 	criterionKeyValue: 'fixedPoint',
+// 	recordGroup: [
+// 	{
+// 			textField01: 'fixedPoint',
+// 			textField02: 'orange',
+// 			textField03: 'peach',
+// 			dateField01: '',
+// 			numField01: '',
+// 			fixedPointField01: '3.14',
+// 			flagField01: '',
+// 		}
+// 		],
+// 	criterion: {
+// 		textField01: 'fixedPoint'
+// 	}
+// });
+
+var testDate = new Date('2015', '5', '29', '8', '38', '39'); //I don't understand why I have to type '5' to get June in the date(), however, when I don't specify the date, as in new Date(), it works correctly.
+
+testDataBatchList.push({
+	criterionKeyValue: 'date',
+	recordGroup: [
+	{
+			textField01: 'date',
+			textField02: 'orange',
+			textField03: 'peach',
+			dateField01: testDate,
+			numField01: '',
+			fixedPointField01: '',
+			flagField01: '',
+		}
+		],
+	criterion: {
+		textField01: 'date'
+	}
+});
 
 var testRecordData = [];
 testDataBatchList.map(function(item) {
@@ -200,7 +203,10 @@ var matchReferenceRecords = function(referenceData) {
 	return function(done) {
 
 		return function(err, result, misc) {
+
 			var enhancedReferenceData = referenceData;
+
+
 			enhancedReferenceData.map(function(item) {
 				item.helixId = 0; //this comes from Helix always, can't control value
 			});
@@ -208,6 +214,10 @@ var matchReferenceRecords = function(referenceData) {
 			if (err) {
 				done(err);
 			}
+			
+
+			
+			
 			var first = isMatch(enhancedReferenceData, result, commonTest.ignoreHelixId, {hello:result}); //isMatch() ignores extra values in rightParm
 			var second = isMatch(result, enhancedReferenceData, commonTest.ignoreHelixId, {orange:result}); //evaluate both directions means no extras
 
