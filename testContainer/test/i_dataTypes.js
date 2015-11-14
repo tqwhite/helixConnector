@@ -12,8 +12,6 @@ var helixConnector = new commonTest.helixConnector({
 
 var qtools = commonTest.qtools;
 
-
-
 var generalFieldSequence = [
 	'textField01',
 	'textField02',
@@ -25,7 +23,7 @@ var generalFieldSequence = [
 ];
 
 var generalMapping={
-			flagField01:commonTest.booleanMapping,
+			flagField01:'helixBoolean',
 			dateField01:'helixDateTime'
 };
 

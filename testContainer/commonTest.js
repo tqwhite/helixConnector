@@ -89,27 +89,6 @@
 		}
 	}
 
-	var booleanMapping = function(item) {
-		if (item === '' || typeof(item)=='undefined') {
-			return '';
-		}
-		
-		switch (item) {
-			case 'true':
-			case 'Yes':
-				return 'true';
-				break;
-			case 'false':
-			case 'No':
-				return 'false';
-				break;
-			default:
-				throw (new Error("no such boolean mapping for "+item+", says " + moduleFileName));
-				break;
-		}
-
-	};
-
 	module.exports = {
 		helixConnector: helixConnector,
 		config: config,
@@ -121,8 +100,7 @@
 		killHelix: killHelix,
 		qtools: qtools,
 		standardInit: standardInit,
-		ignoreHelixId: ignoreHelixId,
-		booleanMapping: booleanMapping
+		ignoreHelixId: ignoreHelixId
 	};
 })();
 
