@@ -37,15 +37,15 @@ var moduleFunction = function(args) {
 			});
 		};
 
-//LOCAL FUNCTIONS ====================================
+	//LOCAL FUNCTIONS ====================================
 
 	var projectDir = qtools.realPath(process.env.helixProjectPath) + '/',
-		helixConnectorPath=process.env.helixConnectorPath,
+		helixConnectorPath = process.env.helixConnectorPath,
 		helixConnectorGenerator = require(helixConnectorPath + 'helixConnector.js'),
-		config = require(projectDir+'/config/qbook.js'),
+		config = require(projectDir + '/config/qbook.js'),
 		systemProfile = config.getSystemProfile();
 
-	var helixParms=config.getHelixParms();
+	var helixParms = config.getHelixParms();
 
 
 
@@ -104,7 +104,7 @@ var moduleFunction = function(args) {
 	};
 
 
-	var retrieveRecords=function(helixConnector, schema, criterion, callback) {
+	var retrieveRecords = function(helixConnector, schema, criterion, callback) {
 
 		var retrievalParms = {
 			helixSchema: qtools.clone(schema),
@@ -124,8 +124,8 @@ var moduleFunction = function(args) {
 		helixConnector.process('retrieveRecords', retrievalParms);
 
 	};
-	
-	var saveRecords=function(helixConnector, schema, testRecordData, callback) {
+
+	var saveRecords = function(helixConnector, schema, testRecordData, callback) {
 
 		helixConnector.process('saveDirect', {
 			helixSchema: schema,
@@ -136,142 +136,147 @@ var moduleFunction = function(args) {
 		});
 
 	};
-	
-	var sendTestInputPage=function(req, res, next){
-		var testPage=require('./testInput.js');
-			testPage=new testPage();
+
+	var sendTestInputPage = function(req, res, next) {
+		var testPage = require('./testInput.js');
+		testPage = new testPage();
 		res.send(testPage.html);
 	};
 
-//METHODS AND PROPERTIES ====================================
+	//METHODS AND PROPERTIES ====================================
 
-//INITIALIZATION ====================================
+	//INITIALIZATION ====================================
 
-//SET UP SERVER =======================================================
+	//SET UP SERVER =======================================================
 
-var router = express.Router();
-var bodyParser = require('body-parser');
+	var router = express.Router();
+	var bodyParser = require('body-parser');
 
-app.use(function(req, res, next){console.log('before');next();})
-app.use(bodyParser.urlencoded({ extended: true }))
- 
-app.use('/', router);
-// parse application/json 
-//app.use(bodyParser.json({type:'application/x-www-form-urlencoded'}))
-//app.use(bodyParser.raw())
- 
+	app.use(function(req, res, next) {
+		console.log('before');next();
+	})
+	app.use(bodyParser.urlencoded({
+		extended: true
+	}))
+
+	app.use('/', router);
+	// parse application/json 
+	//app.use(bodyParser.json({type:'application/x-www-form-urlencoded'}))
+	//app.use(bodyParser.raw())
 
 
-var config={port:'9000'};
 
-//START SERVER AUTHENTICATION =======================================================
+	var config = {
+		port: '9000'
+	};
 
-//router.use(function(req, res, next) {});
+	//START SERVER AUTHENTICATION =======================================================
 
-//START SERVER ROUTING FUNCTION =======================================================
+	//router.use(function(req, res, next) {});
 
-router.get(/.*/, function(req, res, next) {
-var tmp=req.path.match(/\/(\w+)/),
-	schemaName=tmp?tmp[1]:'',
-	schema=helixParms.schemaMap[schemaName];
-var helixConnector = new helixConnectorGenerator({
-	helixAccessParms: helixParms
-});
-	
-	if (schemaName=='input'){
-		sendTestInputPage(req, res, next);
-		return;
+	//START SERVER ROUTING FUNCTION =======================================================
 
-	}
+	router.get(/.*/, function(req, res, next) {
+		var tmp = req.path.match(/\/(\w+)/),
+			schemaName = tmp ? tmp[1] : '',
+			schema = helixParms.schemaMap[schemaName];
+		var helixConnector = new helixConnectorGenerator({
+			helixAccessParms: helixParms
+		});
 
-	if (!schema || schema.private){
-		res.status('404');
-		res.send();
-		return;
-	}
-	
-	retrieveRecords(helixConnector, schema, req.query, function(err, result){
+		if (schemaName == 'input') {
+			sendTestInputPage(req, res, next);
+			return;
 
-		if (err){
-			res.status(400).send('Bad Request');
+		}
+
+		if (!schema || schema.private) {
+			res.status('404');
+			res.send();
 			return;
 		}
 
-		res.status('200');
-		res.set({
-			'content-type': 'application/json;charset=ISO-8859-1',
-			 messageid: qtools.newGuid(),
-			 messagetype: 'RESPONSE',
-// 			 navigationcount: '100',
-// 			 navigationpage: '1',
-// 			 navigationpagesize: '10',
-			 responsesource: 'helixConnector',
-			 connection: 'Close'
+		retrieveRecords(helixConnector, schema, req.query, function(err, result) {
+
+			if (err) {
+				res.status(400).send(err.toString());
+				helixConnector.close();
+				return;
+			}
+
+			res.status('200');
+			res.set({
+				'content-type': 'application/json;charset=ISO-8859-1',
+				messageid: qtools.newGuid(),
+				messagetype: 'RESPONSE',
+				// 			 navigationcount: '100',
+				// 			 navigationpage: '1',
+				// 			 navigationpagesize: '10',
+				responsesource: 'helixConnector',
+				connection: 'Close'
+			});
+			res.json(result);
+			helixConnector.close();
 		});
-		res.json(result);
-		helixConnector.close();
+
 	});
-	
-});
 
-router.post(/.*/, function(req, res, next) {
-var tmp=req.path.match(/\/(\w+)/),
-	schemaName=tmp?tmp[1]:'',
-	schema=helixParms.schemaMap[schemaName];
-	if (!schema || schema.private){
-		res.status('404');
-		res.send();
-		return;
-	}
-var helixConnector = new helixConnectorGenerator({
-	helixAccessParms: helixParms
-});
-var tmp=
-	{
-			textField01: 'booleanFalse',
-			textField02: 'orange',
-			textField03: 'fish',
-			dateField01: '',
-			numField01: '',
-			fixedPointField01: '',
-			flagField01: 'false',
-		}
-		;
-tmp=qtools.extend(tmp, req.body);
-tmp=[tmp];
-console.log('fix save so it works with partial data list');
-
-	saveRecords(helixConnector, schema, tmp, function(err, result){
-		if (err){
-			res.status(400).send(err);
+	router.post(/.*/, function(req, res, next) {
+		var tmp = req.path.match(/\/(\w+)/),
+			schemaName = tmp ? tmp[1] : '',
+			schema = helixParms.schemaMap[schemaName],
+			outData;
+		if (!schema || schema.private) {
+			res.status('404');
+			res.send();
 			return;
 		}
-		result=result?result:{};
-		result.dataReceived=req.body;
-		result.message="wrote data to helix";
-		res.status('200');
-		res.set({
-			'content-type': 'application/json;charset=ISO-8859-1',
-			 messageid: qtools.newGuid(),
-			 messagetype: 'RESPONSE',
-// 			 navigationcount: '100',
-// 			 navigationpage: '1',
-// 			 navigationpagesize: '10',
-			 responsesource: 'helixConnector',
-			 connection: 'Close'
+		var helixConnector = new helixConnectorGenerator({
+			helixAccessParms: helixParms
 		});
-		res.json(result);
-		helixConnector.close();
+
+		if (qtools.toType(req.body) == 'array') {
+			outData = req.body;
+		} else if (qtools.toType(req.body) == 'object' && req.body != null) {
+			outData = [req.body];
+		} else {
+			res.status(400).send('Validation error: submitted data must be an array or object');
+			helixConnector.close();
+			return;
+		}
+
+		saveRecords(helixConnector, schema, outData, function(err, result) {
+			if (err) {
+				res.status(400).send(err.toString());
+				helixConnector.close();
+				return;
+			}
+			result = result ? result : {};
+			result.dataReceived = req.body;
+			result.message = "wrote data to helix";
+			res.status('200');
+			res.set({
+				'content-type': 'application/json;charset=ISO-8859-1',
+				messageid: qtools.newGuid(),
+				messagetype: 'RESPONSE',
+				// 			 navigationcount: '100',
+				// 			 navigationpage: '1',
+				// 			 navigationpagesize: '10',
+				responsesource: 'helixConnector',
+				connection: 'Close'
+			});
+			res.json(result);
+			helixConnector.close();
+		});
+
 	});
-	
-});
 
 
-//START SERVER =======================================================
+	//START SERVER =======================================================
 
-app.listen(config.port);
+	app.listen(config.port);
 
-qtools.message('Magic happens on port ' + config.port);
+	qtools.message('Magic happens on port ' + config.port);
 
 	return this;
 };
@@ -282,4 +287,5 @@ util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
 
 new moduleFunction();
+
 

@@ -415,9 +415,6 @@ var moduleFunction = function(args) {
 	},
 
 	this.close = function() {
-		console.log("\n=-=============   this.close  =========================\n");
-
-
 		releasePoolUser(resetConnector);
 	}
 
