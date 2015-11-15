@@ -256,13 +256,14 @@ var moduleFunction = function(args) {
 		var systemParms = self.systemParms;
 
 		var replaceObject = qtools.extend({}, self.helixAccessParms, helixSchema, otherParms, systemParms, {
-				processName: processName
+				processName: processName,
+				leaseUserName: self.leaseUserName
 			}),
 			script = scriptElement.script;
 
 		replaceObject.dataString = helixData.makeApplescriptDataString(helixSchema.fieldSequenceList, helixSchema.mapping, otherParms, inData);
-		
-		if (helixSchema.criterion && parameters.criterion && parameters.criterion.data){
+
+		if (helixSchema.criterion && parameters.criterion && parameters.criterion.data) {
 			replaceObject.criterion.dataString = helixData.makeApplescriptDataString(helixSchema.criterion.fieldSequenceList, helixSchema.mapping, otherParms, parameters.criterion.data);
 		}
 
@@ -411,6 +412,13 @@ var moduleFunction = function(args) {
 			})
 		});
 
+	},
+
+	this.close = function() {
+		console.log("\n=-=============   this.close  =========================\n");
+
+
+		releasePoolUser(resetConnector);
 	}
 
 	//INITIALIZATION ====================================
@@ -426,6 +434,7 @@ var moduleFunction = function(args) {
 
 util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
+
 
 
 

@@ -41,14 +41,12 @@ var moduleFunction = function(args) {
 
 	var projectDir = qtools.realPath(process.env.helixProjectPath) + '/',
 		helixConnectorPath=process.env.helixConnectorPath,
-		helixConnector = require(helixConnectorPath + 'helixConnector.js'),
+		helixConnectorGenerator = require(helixConnectorPath + 'helixConnector.js'),
 		config = require(projectDir+'/config/qbook.js'),
 		systemProfile = config.getSystemProfile();
 
 	var helixParms=config.getHelixParms();
-	helixConnector = new helixConnector({
-		helixAccessParms: helixParms
-	});
+
 
 
 	var simpleCallback = function(err, result, misc) {
@@ -106,7 +104,7 @@ var moduleFunction = function(args) {
 	};
 
 
-	var retrieveRecords=function(schema, criterion, callback) {
+	var retrieveRecords=function(helixConnector, schema, criterion, callback) {
 
 		var retrievalParms = {
 			helixSchema: qtools.clone(schema),
@@ -127,7 +125,7 @@ var moduleFunction = function(args) {
 
 	};
 	
-	var saveRecords=function(schema, testRecordData, callback) {
+	var saveRecords=function(helixConnector, schema, testRecordData, callback) {
 
 		helixConnector.process('saveDirect', {
 			helixSchema: schema,
@@ -176,6 +174,9 @@ router.get(/.*/, function(req, res, next) {
 var tmp=req.path.match(/\/(\w+)/),
 	schemaName=tmp?tmp[1]:'',
 	schema=helixParms.schemaMap[schemaName];
+var helixConnector = new helixConnectorGenerator({
+	helixAccessParms: helixParms
+});
 	
 	if (schemaName=='input'){
 		sendTestInputPage(req, res, next);
@@ -189,7 +190,7 @@ var tmp=req.path.match(/\/(\w+)/),
 		return;
 	}
 	
-	retrieveRecords(schema, req.query, function(err, result){
+	retrieveRecords(helixConnector, schema, req.query, function(err, result){
 
 		if (err){
 			res.status(400).send('Bad Request');
@@ -208,7 +209,7 @@ var tmp=req.path.match(/\/(\w+)/),
 			 connection: 'Close'
 		});
 		res.json(result);
-	
+		helixConnector.close();
 	});
 	
 });
@@ -222,7 +223,9 @@ var tmp=req.path.match(/\/(\w+)/),
 		res.send();
 		return;
 	}
-
+var helixConnector = new helixConnectorGenerator({
+	helixAccessParms: helixParms
+});
 var tmp=
 	{
 			textField01: 'booleanFalse',
@@ -234,18 +237,11 @@ var tmp=
 			flagField01: 'false',
 		}
 		;
-
-qtools.listProperties(req.header);
-
-qtools.dump({"req.body":req.body});
-
-
 tmp=qtools.extend(tmp, req.body);
-tmp=[tmp]
-qtools.dump({"tmp":tmp});
+tmp=[tmp];
+console.log('fix save so it works with partial data list');
 
-
-	saveRecords(schema, tmp, function(err, result){
+	saveRecords(helixConnector, schema, tmp, function(err, result){
 		if (err){
 			res.status(400).send(err);
 			return;
@@ -265,7 +261,7 @@ qtools.dump({"tmp":tmp});
 			 connection: 'Close'
 		});
 		res.json(result);
-	
+		helixConnector.close();
 	});
 	
 });
