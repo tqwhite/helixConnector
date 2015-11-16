@@ -87,11 +87,12 @@ var moduleFunction = function(args) {
 			inData: {},
 			callback: function(err, result, misc) {
 				if (err) {
-					throw (new Error("Helix not available or is broken."))
+					callback(err, result);
+					return;
 				}
 
 				if (result.length < 1) {
-					throw (new Error("Helix not available or is broken: No relations were retrieved"))
+					callback(new Error("Helix not available or is broken: No relations were retrieved"))
 				} else {
 					result.map(function(item) {
 						self.helixRelationList.push(item[relationFieldName]);
@@ -141,11 +142,13 @@ var moduleFunction = function(args) {
 		missingTables += !qtools.in(self.helixAccessParms.userPoolReleaseRelation, self.helixRelationList) ? self.helixAccessParms.userPoolReleaseRelation + " " : '';
 
 		if (allPresent && missingTables) {
-			throw (new Error("One or more of the User Pool Lease relations is missing: " + missingTables));
+			callback(new Error("One or more of the User Pool Lease relations is missing: " + missingTables));
+			return;
 		}
 
 		if (anyPresent && !allPresent) {
-			throw (new Error("One of the User Pool Lease parameters is missing (userPoolLeaseRelation, userPoolLeaseView, userPoolReleaseRelation, userPoolReleaseView)"));
+			callback(new Error("One of the User Pool Lease parameters is missing (userPoolLeaseRelation, userPoolLeaseView, userPoolReleaseRelation, userPoolReleaseView)"));
+			return;
 		}
 
 		if (allPresent && self.userPoolOk && !self.leaseUserName) {
@@ -407,7 +410,15 @@ var moduleFunction = function(args) {
 
 	this.process = function(control, parameters) {
 		getRelationList(control, function(err, result) {
-			initUserPoolIfNeeded(control, function() {
+				if (err){
+					parameters.callback(err);
+					return;
+				}
+			initUserPoolIfNeeded(control, function(err) {
+				if (err){
+					parameters.callback(err);
+					return;
+				}
 				prepareProcess(control, parameters);
 			})
 		});

@@ -41,6 +41,7 @@ var moduleFunction = function(args) {
 
 	var projectDir = qtools.realPath(process.env.helixProjectPath) + '/',
 		helixConnectorPath = process.env.helixConnectorPath,
+		helixAjaxPath = process.env.helixAjaxPath,
 		helixConnectorGenerator = require(helixConnectorPath + 'helixConnector.js'),
 		config = require(projectDir + '/config/qbook.js'),
 		systemProfile = config.getSystemProfile();
@@ -137,10 +138,8 @@ var moduleFunction = function(args) {
 
 	};
 
-	var sendTestInputPage = function(req, res, next) {
-		var testPage = require('./testInput.js');
-		testPage = new testPage();
-		res.send(testPage.html);
+	var sendTestInputPage = function(req, res, next, fileName) {
+		res.status('200').sendFile(helixAjaxPath+'/'+fileName+'.html');
 	};
 
 	//METHODS AND PROPERTIES ====================================
@@ -175,7 +174,43 @@ var moduleFunction = function(args) {
 	//router.use(function(req, res, next) {});
 
 	//START SERVER ROUTING FUNCTION =======================================================
+	
+	router.get(/\/testFormInput/, function(req, res, next){
+			sendTestInputPage(req, res, next, 'testFormInput');
+			return;
+	});
+	
+	router.get(/\/testFormAjaxGetAll/, function(req, res, next){
+			sendTestInputPage(req, res, next, 'testFormAjaxGetAll');
+			return;
+	});
+	
+var sendResult=function(res, req, next, helixConnector){
+	return function(err, result) {
 
+				if (err) {
+					res.status(400).send(err.toString());
+					helixConnector.close();
+					return;
+				}
+
+				res.status('200');
+				res.set({
+					'content-type': 'application/json;charset=ISO-8859-1',
+					messageid: qtools.newGuid(),
+					messagetype: 'RESPONSE',
+					// 			 navigationcount: '100',
+					// 			 navigationpage: '1',
+					// 			 navigationpagesize: '10',
+					responsesource: 'helixConnector',
+					connection: 'Close'
+				});
+				res.json(result);
+				helixConnector.close();
+			}
+};
+		
+		
 	router.get(/.*/, function(req, res, next) {
 		var tmp = req.path.match(/\/(\w+)/),
 			schemaName = tmp ? tmp[1] : '',
@@ -184,11 +219,6 @@ var moduleFunction = function(args) {
 			helixAccessParms: helixParms
 		});
 
-		if (schemaName == 'input') {
-			sendTestInputPage(req, res, next);
-			return;
-
-		}
 
 		if (!schema || schema.private) {
 			res.status('404');
@@ -196,28 +226,7 @@ var moduleFunction = function(args) {
 			return;
 		}
 
-		retrieveRecords(helixConnector, schema, req.query, function(err, result) {
-
-			if (err) {
-				res.status(400).send(err.toString());
-				helixConnector.close();
-				return;
-			}
-
-			res.status('200');
-			res.set({
-				'content-type': 'application/json;charset=ISO-8859-1',
-				messageid: qtools.newGuid(),
-				messagetype: 'RESPONSE',
-				// 			 navigationcount: '100',
-				// 			 navigationpage: '1',
-				// 			 navigationpagesize: '10',
-				responsesource: 'helixConnector',
-				connection: 'Close'
-			});
-			res.json(result);
-			helixConnector.close();
-		});
+		retrieveRecords(helixConnector, schema, req.query, sendResult(res, req, next, helixConnector));
 
 	});
 
@@ -244,30 +253,8 @@ var moduleFunction = function(args) {
 			helixConnector.close();
 			return;
 		}
-
-		saveRecords(helixConnector, schema, outData, function(err, result) {
-			if (err) {
-				res.status(400).send(err.toString());
-				helixConnector.close();
-				return;
-			}
-			result = result ? result : {};
-			result.dataReceived = req.body;
-			result.message = "wrote data to helix";
-			res.status('200');
-			res.set({
-				'content-type': 'application/json;charset=ISO-8859-1',
-				messageid: qtools.newGuid(),
-				messagetype: 'RESPONSE',
-				// 			 navigationcount: '100',
-				// 			 navigationpage: '1',
-				// 			 navigationpagesize: '10',
-				responsesource: 'helixConnector',
-				connection: 'Close'
-			});
-			res.json(result);
-			helixConnector.close();
-		});
+		
+		saveRecords(helixConnector, schema, outData, sendResult(res, req, next, helixConnector));
 
 	});
 

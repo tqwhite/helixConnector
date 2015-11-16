@@ -65,7 +65,7 @@ var saveRecords = function(schemaName, testRecordData, callback) {
 		helixConnector.process('saveDirect', {
 			helixSchema: schemaMap[schemaName],
 			otherParms: {},
-			debug: true,
+			debug: false,
 			inData: testRecordData,
 			callback: commonTest.simpleCallback(done, 'from ' + moduleFileName) //needs closure for done()
 		});
@@ -227,7 +227,7 @@ var matchReferenceRecords = function(referenceData) {
 }
 
 
-describe.only('Data formatting save functions (' + moduleFileName + ')', function() {
+describe('Data formatting save functions (' + moduleFileName + ')', function() {
 
 
 	commonTest.standardInit(helixConnector, before, after, this);
