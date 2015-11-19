@@ -48,8 +48,6 @@ var moduleFunction = function(args) {
 
 	var helixParms = config.getHelixParms();
 
-
-
 	var simpleCallback = function(err, result, misc) {
 
 		qtools.dump({
@@ -60,50 +58,6 @@ var moduleFunction = function(args) {
 		});
 
 	};
-
-	var startTestDatabase = function(helixConnector) {
-
-		helixConnector.process('openTestDb', {
-			helixSchema: {},
-			otherParms: {
-				testDataDir: projectDir + "/testData/",
-				testCollectionFileName: "helixConnectTest06"
-			},
-			inData: {},
-			callback: function(err, result, misc) {
-
-				qtools.dump({
-					"err startTestDatabase": err
-				});
-				qtools.dump({
-					"result startTestDatabase": result
-				});
-				killHelix(helixConnector);
-			},
-			debug: false
-		});
-
-	};
-
-	var killHelix = function(helixConnector) {
-		helixConnector.process('kill', {
-			helixSchema: {},
-			otherParms: {},
-			inData: {},
-			debug: false,
-			callback: function(err, result, misc) {
-
-				qtools.dump({
-					"err killHelix": err
-				});
-				qtools.dump({
-					"result killHelix": result
-				});
-
-			}
-		});
-	};
-
 
 	var retrieveRecords = function(helixConnector, schema, criterion, callback) {
 
@@ -139,7 +93,7 @@ var moduleFunction = function(args) {
 	};
 
 	var sendTestInputPage = function(req, res, next, fileName) {
-		res.status('200').sendFile(helixAjaxPath+'/'+fileName+'.html');
+		res.status('200').sendFile(helixAjaxPath + '/samplePages/' + fileName + '.html');
 	};
 
 	//METHODS AND PROPERTIES ====================================
@@ -163,8 +117,6 @@ var moduleFunction = function(args) {
 	//app.use(bodyParser.json({type:'application/x-www-form-urlencoded'}))
 	//app.use(bodyParser.raw())
 
-
-
 	var config = {
 		port: '9000'
 	};
@@ -174,43 +126,38 @@ var moduleFunction = function(args) {
 	//router.use(function(req, res, next) {});
 
 	//START SERVER ROUTING FUNCTION =======================================================
-	
-	router.get(/\/testFormInput/, function(req, res, next){
-			sendTestInputPage(req, res, next, 'testFormInput');
-			return;
-	});
-	
-	router.get(/\/testFormAjaxGetAll/, function(req, res, next){
-			sendTestInputPage(req, res, next, 'testFormAjaxGetAll');
-			return;
-	});
-	
-var sendResult=function(res, req, next, helixConnector){
-	return function(err, result) {
 
-				if (err) {
-					res.status(400).send(err.toString());
-					helixConnector.close();
-					return;
-				}
+	var staticPageDispatch = require('staticpagedispatch');
+	staticPageDispatch = new staticPageDispatch({
+		router: router,
+		filePathList: [qtools.realPath('.') + '/samplePages']
+	});
 
-				res.status('200');
-				res.set({
-					'content-type': 'application/json;charset=ISO-8859-1',
-					messageid: qtools.newGuid(),
-					messagetype: 'RESPONSE',
-					// 			 navigationcount: '100',
-					// 			 navigationpage: '1',
-					// 			 navigationpagesize: '10',
-					responsesource: 'helixConnector',
-					connection: 'Close'
-				});
-				res.json(result);
+	var sendResult = function(res, req, next, helixConnector) {
+		return function(err, result) {
+
+			if (err) {
+				res.status(400).send(err.toString());
 				helixConnector.close();
+				return;
 			}
-};
-		
-		
+
+			res.status('200');
+			res.set({
+				'content-type': 'application/json;charset=ISO-8859-1',
+				messageid: qtools.newGuid(),
+				messagetype: 'RESPONSE',
+				// 			 navigationcount: '100',
+				// 			 navigationpage: '1',
+				// 			 navigationpagesize: '10',
+				responsesource: 'helixConnector',
+				connection: 'Close'
+			});
+			res.json(result);
+			helixConnector.close();
+		}
+	};
+
 	router.get(/.*/, function(req, res, next) {
 		var tmp = req.path.match(/\/(\w+)/),
 			schemaName = tmp ? tmp[1] : '',
@@ -218,7 +165,6 @@ var sendResult=function(res, req, next, helixConnector){
 		var helixConnector = new helixConnectorGenerator({
 			helixAccessParms: helixParms
 		});
-
 
 		if (!schema || schema.private) {
 			res.status('404');
@@ -235,6 +181,7 @@ var sendResult=function(res, req, next, helixConnector){
 			schemaName = tmp ? tmp[1] : '',
 			schema = helixParms.schemaMap[schemaName],
 			outData;
+			
 		if (!schema || schema.private) {
 			res.status('404');
 			res.send();
@@ -253,11 +200,10 @@ var sendResult=function(res, req, next, helixConnector){
 			helixConnector.close();
 			return;
 		}
-		
+
 		saveRecords(helixConnector, schema, outData, sendResult(res, req, next, helixConnector));
 
 	});
-
 
 	//START SERVER =======================================================
 
@@ -274,5 +220,4 @@ util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
 
 new moduleFunction();
-
 
