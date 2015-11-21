@@ -63,6 +63,7 @@ var saveRecords = function(schemaName, testRecordData, callback) {
 	return function(done) {
 
 		helixConnector.process('saveDirect', {
+			authToken:commonTest.authToken,
 			helixSchema: schemaMap[schemaName],
 			otherParms: {},
 			debug: false,
@@ -80,6 +81,7 @@ var retrieveRecords = function(schemaName, callback, criterion) {
 		var schema = schemaMap[schemaName];
 
 		var helixParms = {
+			authToken:commonTest.authToken,
 			helixSchema: qtools.clone(schema),
 			otherParms: {},
 			debug: false,

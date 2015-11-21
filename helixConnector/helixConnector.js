@@ -299,13 +299,6 @@ var moduleFunction = function(args) {
 		});
 	}
 
-	/*
-	NEXT
-	
-	make it so that the log in user is changed to the user pool user
-	
-	*/
-
 	//METHODS AND PROPERTIES ====================================
 
 	//DISPATCH ====================================
@@ -409,6 +402,10 @@ var moduleFunction = function(args) {
 	}
 
 	this.process = function(control, parameters) {
+	if (!parameters.authToken){
+		parameters.callback('no authToken supplied');
+		return;
+	}
 		getRelationList(control, function(err, result) {
 				if (err){
 					parameters.callback(err);

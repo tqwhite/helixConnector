@@ -41,6 +41,7 @@ describe('Connector Write Multiple (' + moduleFileName + ')', function() {
 	testDescription = "should write data with no errors"
 	it(testDescription, function(done) {
 		helixConnector.process('saveDirect', {
+			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			debug: false,
 			inData: testRecordData,
@@ -57,6 +58,7 @@ describe('Connector Write Multiple (' + moduleFileName + ')', function() {
 		});
 
 		helixConnector.process('retrieveRecords', {
+			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			debug: false,
 			inData: {},

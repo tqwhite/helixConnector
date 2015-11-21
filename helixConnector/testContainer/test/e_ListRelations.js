@@ -27,6 +27,7 @@ describe('Examine helix configuration (' + moduleFileName + ')', function() {
 	it(testDescription, function(done) {
 
 		helixConnector.process('listRelations', {
+			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			debug: false,
 			inData: {},

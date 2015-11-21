@@ -46,10 +46,13 @@
 			done(err)
 		}
 	};
+	
+	var authToken='hello';
 
 	var startTestDatabase = function(helixConnector) {
 		return function(done) {
 			helixConnector.process('openTestDb', {
+				authToken:authToken,
 				helixSchema: {},
 				otherParms: {
 					testDataDir: projectDir + "/testData/",
@@ -65,6 +68,7 @@
 	var killHelix = function(helixConnector) {
 		return function(done) {
 			helixConnector.process('kill', {
+				authToken:authToken,
 				helixSchema: {},
 				otherParms: {},
 				inData: {},
@@ -104,7 +108,8 @@
 		killHelix: killHelix,
 		qtools: qtools,
 		standardInit: standardInit,
-		ignoreHelixId: ignoreHelixId
+		ignoreHelixId: ignoreHelixId,
+		authToken:authToken
 	};
 })();
 

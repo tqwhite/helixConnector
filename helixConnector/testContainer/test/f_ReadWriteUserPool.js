@@ -51,6 +51,7 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 			mapping: {}
 		};
 		helixConnector.process('saveDirect', {
+			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,
@@ -73,6 +74,7 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 			mapping: {}
 		};
 		helixConnector.process('saveOne', {
+			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,
@@ -104,6 +106,7 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 		});
 
 		helixConnector.process('retrieveRecords', {
+			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,

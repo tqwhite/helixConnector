@@ -38,6 +38,7 @@ describe('Connector Write Single ('+moduleFileName+')', function() {
 	testDescription = "should write data with no errors"
 	it(testDescription, function(done) {
 		helixConnector.process('saveOne', {
+			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			debug: false,
 			inData: testRecordData,
@@ -51,6 +52,7 @@ describe('Connector Write Single ('+moduleFileName+')', function() {
 		var enhancedtestRecordData = testRecordData;
 		enhancedtestRecordData.helixId = 0; //this comes from Helix always, can't control value
 		helixConnector.process('retrieveRecords', {
+			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			debug: false,
 			inData: {},
