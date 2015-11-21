@@ -7,7 +7,8 @@ var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
 var testDescription;
 
 var helixConnector = new commonTest.helixConnector({
-	helixAccessParms: commonTest.config.getHelixParms()
+	helixAccessParms: commonTest.config.getHelixParms(),
+	authGoodies:commonTest.authGoodies
 });
 
 describe('Lease Pool User base function (' + moduleFileName + ')', function() {
@@ -26,7 +27,6 @@ describe('Lease Pool User base function (' + moduleFileName + ')', function() {
 	testDescription = "should return a pool user name"
 	it(testDescription, function(done) {
 		helixConnector.process('poolUserLease', {
-			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,

@@ -14,11 +14,13 @@ var fieldSequenceList = [
 ];
 
 var helixConnector1 = new commonTest.helixConnector({
-	helixAccessParms: commonTest.config.getHelixParms()
+	helixAccessParms: commonTest.config.getHelixParms(),
+	authGoodies:commonTest.authGoodies
 });
 
 var helixConnector2 = new commonTest.helixConnector({
-	helixAccessParms: commonTest.config.getHelixParms()
+	helixAccessParms: commonTest.config.getHelixParms(),
+	authGoodies:commonTest.authGoodies
 });
 
 describe('Multiple Pool Users (' + moduleFileName + ')', function() {
@@ -60,7 +62,6 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 			mapping: {}
 		};
 		helixConnector1.process('saveDirect', {
-			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			debug: false,
 			inData: testData,
@@ -82,7 +83,6 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 			mapping: {}
 		};
 		helixConnector1.process('saveOne', {
-			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,
@@ -107,7 +107,6 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 			mapping: {}
 		};
 		helixConnector2.process('saveOne', {
-			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,
@@ -136,7 +135,6 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 		});
 
 		helixConnector1.process('retrieveRecords', {
-			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,
@@ -177,7 +175,6 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 		});
 
 		helixConnector2.process('retrieveRecords', {
-			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,

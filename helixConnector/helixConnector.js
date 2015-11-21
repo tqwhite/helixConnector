@@ -28,6 +28,10 @@ var moduleFunction = function(args) {
 			{
 				name: 'processIdentifier',
 				optional: true
+			},
+			{
+				name: 'authGoodies',
+				optional: false
 			}
 		]
 	});
@@ -55,6 +59,7 @@ var moduleFunction = function(args) {
 		self.systemParms = {};
 		self.userPoolOk = '';
 		self.leaseUserName = '';
+		self.authorized = false;
 
 		self.helixAccessParms = qtools.clone(self.immutableHelixAccessParms);
 	}
@@ -301,6 +306,42 @@ var moduleFunction = function(args) {
 
 	//METHODS AND PROPERTIES ====================================
 
+	var jwt = require('jsonwebtoken');
+
+	self.generateAuthToken = function(userId, callback) {
+		var token = jwt.sign({
+			userId: userId,
+			instanceId: self.immutableHelixAccessParms.instanceId
+		}, self.immutableHelixAccessParms.authKey);
+		callback ('', token);
+	}
+
+	self.validateUserId = function(userId, token, callback) {
+
+		if (self.authorized) {
+			callback('', true);
+			return;
+		}
+
+		try {
+			var decoded = jwt.verify(token, self.immutableHelixAccessParms.authKey);
+		} catch (e) {
+			callback (e);
+			return;
+		}
+		if (decoded.instanceId != self.immutableHelixAccessParms.instanceId) {
+			callback(new Error('instanceId does not match'));
+			return;
+		}
+		if (decoded.userId != userId) {
+			callback(new Error('userId does not match'));
+			return;
+		}
+		self.authorized = true;
+		callback('', true);
+
+	}
+
 	//DISPATCH ====================================
 
 	var getScriptPathParameters = function(functionName) {
@@ -402,25 +443,35 @@ var moduleFunction = function(args) {
 	}
 
 	this.process = function(control, parameters) {
-	if (!parameters.authToken){
-		parameters.callback('no authToken supplied');
-		return;
-	}
-		getRelationList(control, function(err, result) {
-				if (err){
+		var runProcess = function() {
+			getRelationList(control, function(err, result) {
+				if (err) {
 					parameters.callback(err);
 					return;
 				}
-			initUserPoolIfNeeded(control, function(err) {
-				if (err){
-					parameters.callback(err);
-					return;
-				}
-				prepareProcess(control, parameters);
-			})
-		});
+				initUserPoolIfNeeded(control, function(err) {
+					if (err) {
+						parameters.callback(err);
+						return;
+					}
+					prepareProcess(control, parameters);
+				})
+			});
+		};
 
-	},
+		self.validateUserId(self.authGoodies.userId, self.authGoodies.authToken, function(err, result){
+			if (err){
+				parameters.callback(err);
+			}
+			else{
+				runProcess();
+			}
+		});
+	}
+	
+	self.cancelValidation=function(){
+		self.authorized=false;
+	}
 
 	this.close = function() {
 		releasePoolUser(resetConnector);
@@ -439,6 +490,9 @@ var moduleFunction = function(args) {
 
 util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
+
+
+
 
 
 

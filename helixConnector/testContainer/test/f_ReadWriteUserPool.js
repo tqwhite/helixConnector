@@ -7,7 +7,8 @@ var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
 var testDescription;
 
 var helixConnector = new commonTest.helixConnector({
-	helixAccessParms: commonTest.config.getHelixParms()
+	helixAccessParms: commonTest.config.getHelixParms(),
+	authGoodies:commonTest.authGoodies
 });
 
 var qtools = commonTest.qtools;
@@ -51,7 +52,6 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 			mapping: {}
 		};
 		helixConnector.process('saveDirect', {
-			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,
@@ -74,7 +74,6 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 			mapping: {}
 		};
 		helixConnector.process('saveOne', {
-			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,
@@ -106,7 +105,6 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 		});
 
 		helixConnector.process('retrieveRecords', {
-			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			otherParms: {},
 			debug: false,

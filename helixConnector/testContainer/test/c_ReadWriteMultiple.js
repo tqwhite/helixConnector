@@ -7,7 +7,8 @@ var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
 var testDescription;
 
 var helixConnector = new commonTest.helixConnector({
-	helixAccessParms: commonTest.config.getHelixParms()
+	helixAccessParms: commonTest.config.getHelixParms(),
+	authGoodies:commonTest.authGoodies
 });
 
 describe('Connector Write Multiple (' + moduleFileName + ')', function() {
@@ -41,7 +42,6 @@ describe('Connector Write Multiple (' + moduleFileName + ')', function() {
 	testDescription = "should write data with no errors"
 	it(testDescription, function(done) {
 		helixConnector.process('saveDirect', {
-			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			debug: false,
 			inData: testRecordData,
@@ -58,7 +58,6 @@ describe('Connector Write Multiple (' + moduleFileName + ')', function() {
 		});
 
 		helixConnector.process('retrieveRecords', {
-			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			debug: false,
 			inData: {},

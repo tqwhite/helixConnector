@@ -18,7 +18,8 @@ var helixSchema = {
 
 describe('Examine helix configuration (' + moduleFileName + ')', function() {
 	helixConnector = new commonTest.helixConnector({
-		helixAccessParms: commonTest.config.getHelixParms()
+		helixAccessParms: commonTest.config.getHelixParms(),
+	authGoodies:commonTest.authGoodies
 	});
 
 	commonTest.standardInit(helixConnector, before, after, this);
@@ -27,7 +28,6 @@ describe('Examine helix configuration (' + moduleFileName + ')', function() {
 	it(testDescription, function(done) {
 
 		helixConnector.process('listRelations', {
-			authToken:commonTest.authToken,
 			helixSchema: helixSchema,
 			debug: false,
 			inData: {},

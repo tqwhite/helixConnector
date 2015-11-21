@@ -7,7 +7,8 @@ var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
 var testDescription;
 
 var helixConnector = new commonTest.helixConnector({
-	helixAccessParms: commonTest.config.getHelixParms()
+	helixAccessParms: commonTest.config.getHelixParms(),
+	authGoodies:commonTest.authGoodies
 });
 
 var qtools = commonTest.qtools;
@@ -54,7 +55,6 @@ var saveRecords = function(testRecordData) {
 	return function(done) {
 
 		helixConnector.process('saveDirect', {
-			authToken:commonTest.authToken,
 			helixSchema: schemaMap.upTest1_Enter_AllFields,
 			otherParms: {},
 			debug: false,
@@ -72,7 +72,6 @@ var retrieveRecords = function(callback, schemaName, criterion) {
 		var schema = schemaMap[schemaName];
 
 		var helixParms = {
-			authToken:commonTest.authToken,
 			helixSchema: qtools.clone(schema),
 			otherParms: {},
 			debug: false,
