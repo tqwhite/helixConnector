@@ -16,6 +16,7 @@ describe('Lease Pool User base function (' + moduleFileName + ')', function() {
 	commonTest.standardInit(helixConnector, before, after, this);
 
 	var helixSchema = {
+		'emptyRecordsAllowed':true,
 		relation: '',
 		view: '',
 		fieldSequenceList: [

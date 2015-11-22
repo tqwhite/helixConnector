@@ -17,7 +17,7 @@ var moduleFunction = function(args) {
 		this.metaData[name] = data;
 	}
 
-	qtools.validateProperties({
+	var argsErrorList = qtools.validateProperties({
 		subject: args || {},
 		targetScope: this, //will add listed items to targetScope
 		propList: [
@@ -34,7 +34,11 @@ var moduleFunction = function(args) {
 				optional: false
 			}
 		]
-	});
+	}, true); //this is a server component, don't die on error
+
+	if (argsErrorList) {
+		throw (new Error(argsErrorList));
+	}
 
 	this.systemProfile = this.systemProfile || {};
 	this.immutableHelixAccessParms = qtools.clone(this.helixAccessParms);
@@ -46,8 +50,6 @@ var moduleFunction = function(args) {
 				data: outData
 			});
 		};
-
-
 
 	//LOCAL FUNCTIONS ====================================
 
@@ -232,7 +234,6 @@ var moduleFunction = function(args) {
 		//do something when app is closing
 		process.on('exit', exitEventHandler);
 
-
 		//catches ctrl+c event
 		//process.on('SIGINT', exitHandler.bind(null, {exit:true}));
 
@@ -344,6 +345,46 @@ var moduleFunction = function(args) {
 
 	//DISPATCH ====================================
 
+	var inDataIsOk = function(parameters) {
+		var helixSchema = parameters.helixSchema,
+			inData = parameters.inData,
+			fieldSequenceList = helixSchema.fieldSequenceList;
+
+		if (typeof (inData.length) == 'undefined') {
+			inData = [inData];
+		}
+
+		for (var i = 0, len = inData.length; i < len; i++) {
+			var element = inData[i];
+			var foundData = false;
+
+			if ((!fieldSequenceList || fieldSequenceList.length === 0) && qtools.count(element) !== 0) {
+				return "This schema does not allow input data";
+			}
+
+			if ((fieldSequenceList && fieldSequenceList.length !== 0) && qtools.count(element) === 0 && !helixSchema.emptyRecordsAllowed) {
+				return "Record data must be supplied for this schema";
+			}
+
+			for (var j in element) {
+				if (element[j] && element[j] !== '') {
+					foundData = true;
+				}
+				if (fieldSequenceList.indexOf(j) < 0) {
+					return "There is no field named " + j + " in this schema";
+				}
+				//later, I can check data type here, too
+			}
+
+			if (!foundData && !helixSchema.emptyRecordsAllowed) {
+				return "Empty records (ones with fields that are all missing or empty) are not allowed for this schema";
+			}
+		}
+
+		return;
+
+	}
+
 	var getScriptPathParameters = function(functionName) {
 
 		var libDir = __dirname + '/lib/';
@@ -427,6 +468,12 @@ var moduleFunction = function(args) {
 			]
 		});
 
+		var badDataMessage = inDataIsOk(parameters);
+		if (badDataMessage) {
+			parameters.callback(badDataMessage);
+			return;
+		}
+
 		//this allows mapping of user friendly names to file names
 		switch (control) {
 			case 'kill':
@@ -459,18 +506,17 @@ var moduleFunction = function(args) {
 			});
 		};
 
-		self.validateUserId(self.authGoodies.userId, self.authGoodies.authToken, function(err, result){
-			if (err){
+		self.validateUserId(self.authGoodies.userId, self.authGoodies.authToken, function(err, result) {
+			if (err) {
 				parameters.callback(err);
-			}
-			else{
+			} else {
 				runProcess();
 			}
 		});
 	}
-	
-	self.cancelValidation=function(){
-		self.authorized=false;
+
+	self.cancelValidation = function() {
+		self.authorized = false;
 	}
 
 	this.close = function() {
@@ -490,10 +536,4 @@ var moduleFunction = function(args) {
 
 util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
-
-
-
-
-
-
 

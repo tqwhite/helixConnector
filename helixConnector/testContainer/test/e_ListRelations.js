@@ -7,6 +7,7 @@ var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
 var testDescription;
 
 var helixSchema = {
+	'emptyRecordsAllowed':true,
 	relation: 'simpleTest',
 	view: 'simpleOne',
 	fieldSequenceList: [

@@ -31,12 +31,12 @@ var matchRecordData = [{
 	}];
 
 var testRecordData = qtools.clone(matchRecordData);
-testRecordData.push([{
+testRecordData.push({
 		textField01: 'marjoram',
 		textField02: 'garlic',
 		textField03: 'marjoram'
 	}
-]);
+);
 
 describe('User Pool System (' + moduleFileName + ')', function() {
 
@@ -46,6 +46,7 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 	it(testDescription, function(done) {
 
 		var helixSchema = {
+			'emptyRecordsAllowed':true,
 			relation: '_inertProcess',
 			view: 'upTest1_Enter_AllFields',
 			fieldSequenceList: fieldSequenceList,
@@ -56,7 +57,7 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 			otherParms: {},
 			debug: false,
 			inData: testRecordData,
-			callback: commonTest.simpleCallback(done, 'from test')
+			callback: commonTest.simpleCallback(done)
 		});
 
 	});
@@ -66,6 +67,7 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 	var testDescription = "should set the criterion without errors"
 	it(testDescription, function(done) {
 		var helixSchema = {
+			'emptyRecordsAllowed':true,
 			relation: '_inertProcess',
 			view: 'upTest1_setCriterion_MatchTextField01',
 			fieldSequenceList: [
@@ -80,7 +82,7 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 			inData: {
 				textField01: keyDataValue
 			},
-			callback: commonTest.simpleCallback(done, 'from test')
+			callback: commonTest.simpleCallback(done)
 		});
 
 	});
@@ -93,6 +95,7 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 	it(testDescription, function(done) {
 
 		var helixSchema = {
+			'emptyRecordsAllowed':true,
 			relation: 'upTest1',
 			view: 'upTest1_RetrieveOnTextfield01',
 			fieldSequenceList: fieldSequenceList,

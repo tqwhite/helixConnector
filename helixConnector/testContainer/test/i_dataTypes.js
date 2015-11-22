@@ -68,7 +68,7 @@ var saveRecords = function(schemaName, testRecordData, callback) {
 			otherParms: {},
 			debug: false,
 			inData: testRecordData,
-			callback: commonTest.simpleCallback(done, 'from ' + moduleFileName) //needs closure for done()
+			callback: commonTest.simpleCallback(done) //needs closure for done()
 		});
 
 	}
@@ -79,6 +79,9 @@ var retrieveRecords = function(schemaName, callback, criterion) {
 	return function(done) {
 
 		var schema = schemaMap[schemaName];
+		schema.emptyRecordsAllowed=true;
+
+
 
 		var helixParms = {
 			helixSchema: qtools.clone(schema),

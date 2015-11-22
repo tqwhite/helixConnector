@@ -21,18 +21,21 @@ var generalFieldSequence = [
 
 var schemaMap = {
 	upTest1_Enter_AllFields: {
+		'emptyRecordsAllowed':true,
 		relation: '_inertProcess',
 		view: 'upTest1_Enter_SevenFields',
 		fieldSequenceList: generalFieldSequence,
 		mapping: {}
 	},
 	upTest1_RetrieveAll: {
+		'emptyRecordsAllowed':true,
 		relation: 'upTest1',
 		view: 'upTest1_RetrieveAll',
 		fieldSequenceList: generalFieldSequence,
 		mapping: {}
 	},
 	upTest1_RetrieveOnTextfield01: {
+		'emptyRecordsAllowed':true,
 		relation: 'upTest1',
 		view: 'upTest1_RetrieveOnTextfield01',
 		fieldSequenceList: generalFieldSequence,
@@ -40,6 +43,7 @@ var schemaMap = {
 		criterionSchemaName: 'upTest1_setCriterion_MatchTextField01'
 	},
 	upTest1_setCriterion_MatchTextField01: {
+		'emptyRecordsAllowed':true,
 		relation: '_inertProcess',
 		view: 'upTest1_setCriterion_MatchTextField01',
 		fieldSequenceList: [
@@ -59,7 +63,7 @@ var saveRecords = function(testRecordData) {
 			otherParms: {},
 			debug: false,
 			inData: testRecordData,
-			callback: commonTest.simpleCallback(done, 'from ' + moduleFileName)
+			callback: commonTest.simpleCallback(done)
 		});
 
 	}

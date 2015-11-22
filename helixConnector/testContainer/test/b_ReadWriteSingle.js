@@ -17,6 +17,7 @@ describe('Connector Write Single ('+moduleFileName+')', function() {
 	commonTest.standardInit(helixConnector, before, after, this);
 
 	var helixSchema = {
+		'emptyRecordsAllowed':true,
 		relation: 'simpleTest',
 		view: 'simpleOne',
 		fieldSequenceList: [
@@ -42,7 +43,7 @@ describe('Connector Write Single ('+moduleFileName+')', function() {
 			helixSchema: helixSchema,
 			debug: false,
 			inData: testRecordData,
-			callback: commonTest.simpleCallback(done, 'from test')
+			callback: commonTest.simpleCallback(done)
 		});
 
 	});

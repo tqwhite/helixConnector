@@ -56,6 +56,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 	it(testDescription, function(done) {
 
 		var helixSchema = {
+			'emptyRecordsAllowed':true,
 			relation: '_inertProcess',
 			view: 'upTest1_Enter_AllFields',
 			fieldSequenceList: fieldSequenceList,
@@ -65,7 +66,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 			helixSchema: helixSchema,
 			debug: false,
 			inData: testData,
-			callback: commonTest.simpleCallback(done, 'from test')
+			callback: commonTest.simpleCallback(done)
 		});
 
 	});
@@ -75,6 +76,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 	var testDescription = "set the criterion for first user without errors"
 	it(testDescription, function(done) {
 		var helixSchema = {
+			'emptyRecordsAllowed':true,
 			relation: '_inertProcess',
 			view: 'upTest1_setCriterion_MatchTextField01',
 			fieldSequenceList: [
@@ -89,7 +91,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 			inData: {
 				textField01: keyDataValue1
 			},
-			callback: commonTest.simpleCallback(done, 'from test')
+			callback: commonTest.simpleCallback(done)
 		});
 
 	});
@@ -99,6 +101,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 	var testDescription = "set the criterion for second user without errors"
 	it(testDescription, function(done) {
 		var helixSchema = {
+			'emptyRecordsAllowed':true,
 			relation: '_inertProcess',
 			view: 'upTest1_setCriterion_MatchTextField01',
 			fieldSequenceList: [
@@ -113,7 +116,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 			inData: {
 				textField01: keyDataValue2
 			},
-			callback: commonTest.simpleCallback(done, 'from test')
+			callback: commonTest.simpleCallback(done)
 		});
 
 	});
@@ -123,6 +126,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 	testDescription = "get correct data according to the criterion for user number one ";
 	it(testDescription, function(done) {
 		var helixSchema = {
+			'emptyRecordsAllowed':true,
 			relation: 'upTest1',
 			view: 'upTest1_RetrieveOnTextfield01',
 			fieldSequenceList: fieldSequenceList,
@@ -163,6 +167,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 	it(testDescription, function(done) {
 
 		var helixSchema = {
+			'emptyRecordsAllowed':true,
 			relation: 'upTest1',
 			view: 'upTest1_RetrieveOnTextfield01',
 			fieldSequenceList: fieldSequenceList,
