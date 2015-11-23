@@ -343,6 +343,10 @@ var moduleFunction = function(args) {
 
 	}
 
+
+	self.cancelValidation = function() {
+		self.authorized = false;
+	}
 	//DISPATCH ====================================
 
 	var inDataIsOk = function(parameters) {
@@ -513,10 +517,6 @@ var moduleFunction = function(args) {
 				runProcess();
 			}
 		});
-	}
-
-	self.cancelValidation = function() {
-		self.authorized = false;
 	}
 
 	this.close = function() {
