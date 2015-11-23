@@ -19,8 +19,9 @@
 	
 </head>
 <body>
-
-getAccessToken
+<div id='status'>Enter a User ID and press Generate</div>
+<input name='userId' value='' style='height:40px;width:400px;font-size:100%;'>
+<div id='saveButton' style='cursor:pointer;text-align:center;border:1pt solid gray;height:50px;width:150px; background:#f2f2f2; color:#666; border-radius: 10px;'>Generate</div>
 	
 </body>
 
@@ -28,7 +29,37 @@ getAccessToken
 	/* <![CDATA[ */
 	$(document).ready(function(){
 
-		$('body').append("<p>Thanks for visiting!");
+
+	$('#saveButton').click(function() {
+
+		var outObj = {};
+
+		$('input').each(function(inx, item) {
+			var name = $(item).attr('name');
+			var value = $(item).val();
+			outObj[name] = value;
+		});
+		
+		if (!outObj.userId){
+			$('#status').html('you have to enter a userID');
+			return;
+		}
+
+		$.ajax({
+				method: "POST",
+				url: "generateToken",
+				data: outObj,
+				headers:{authorization:"<!userId!> <!authToken!>"}
+			})
+			.done(function(result) {
+			$('body').html("Merge this code into your AJAX header.<br/><textarea style='width:600px;height:100px;'>&nbsp;\n{\nauthorization:&apos;"+result.userId+'&nbsp;'+result.authToken+"&apos;\n}</textarea><br/><br/><a href=''>Make Another</a>");
+		})
+			.fail(function(data, textStatus) {
+				var errorString = "Server Error: " + data.status + " - " + data.statusText + " (" + data.responseText + ")";
+
+				$('body').html(errorString);
+			});
+	});
 	
 	
 	});

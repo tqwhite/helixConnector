@@ -17,18 +17,7 @@ var moduleFunction = function(args) {
 	this.addMeta = function(name, data) {
 		this.metaData[name] = data;
 	}
-
-	// 	qtools.validateProperties({
-	// 		subject: args || {},
-	// 		targetScope: this, //will add listed items to targetScope
-	// 		propList: [
-	// 			{
-	// 				name: 'placeholder',
-	// 				optional: true
-	// 			}
-	// 		]
-	// 	});
-
+	
 	var self = this,
 		forceEvent = function(eventName, outData) {
 			this.emit(eventName, {
@@ -41,12 +30,14 @@ var moduleFunction = function(args) {
 
 	var projectDir = qtools.realPath(process.env.helixProjectPath) + '/',
 		helixConnectorPath = process.env.helixConnectorPath,
+		helixConfigPath = process.env.helixConfigPath,
 		helixAjaxPath = process.env.helixAjaxPath,
 		helixConnectorGenerator = require(helixConnectorPath + 'helixConnector.js'),
-		config = require(projectDir + '/config/qbook.js'),
+		config = require(helixConfigPath),
 		systemProfile = config.getSystemProfile();
 
 	var helixParms = config.getHelixParms();
+	helixParms.schemaMap.generateToken={emptyRecordsAllowed:true}; //my node object doesn't provide for static methods, which this should be
 
 	var simpleCallback = function(err, result, misc) {
 
@@ -62,6 +53,7 @@ var moduleFunction = function(args) {
 	var retrieveRecords = function(helixConnector, schema, criterion, callback) {
 
 		var retrievalParms = {
+			authToken: 'hello',
 			helixSchema: qtools.clone(schema),
 			otherParms: {},
 			debug: false,
@@ -83,6 +75,7 @@ var moduleFunction = function(args) {
 	var saveRecords = function(helixConnector, schema, testRecordData, callback) {
 
 		helixConnector.process('saveDirect', {
+			authToken: 'hello',
 			helixSchema: schema,
 			otherParms: {},
 			debug: false,
@@ -92,9 +85,6 @@ var moduleFunction = function(args) {
 
 	};
 
-	var sendTestInputPage = function(req, res, next, fileName) {
-		res.status('200').sendFile(helixAjaxPath + '/samplePages/' + fileName + '.html');
-	};
 
 	//METHODS AND PROPERTIES ====================================
 
@@ -106,17 +96,27 @@ var moduleFunction = function(args) {
 	var bodyParser = require('body-parser');
 
 	app.use(function(req, res, next) {
-		console.log('before');next();
+		console.log('first');next();
 	})
+	app.use(bodyParser.json({
+		extended: true
+	}))
+	app.use(function(err, req, res, next) {
+		//bodyParser.json produces a syntax error when it gets badly formed json
+		//this catches the error
+		if (err) {
+			res.status(400).send(err.toString());
+			return;
+		}
+		next();
+
+	});
 	app.use(bodyParser.urlencoded({
 		extended: true
 	}))
 
 	app.use('/', router);
-	// parse application/json 
-	//app.use(bodyParser.json({type:'application/x-www-form-urlencoded'}))
-	//app.use(bodyParser.raw())
-
+	
 	var config = {
 		port: '9000'
 	};
@@ -125,7 +125,7 @@ var moduleFunction = function(args) {
 
 	//router.use(function(req, res, next) {});
 
-	//START SERVER ROUTING FUNCTION =======================================================
+	//STATIC PAGE DISPATCH =======================================================
 
 	var staticPageDispatch = require('staticpagedispatch');
 	staticPageDispatch = new staticPageDispatch({
@@ -133,6 +133,41 @@ var moduleFunction = function(args) {
 		filePathList: [qtools.realPath('.') + '/samplePages']
 	});
 
+	//START SERVER ROUTING FUNCTION =======================================================
+
+	var fabricateConnector = function(req, res, schema) {
+		var headerAuth=req.headers?req.headers.authorization:'';
+		var bodyAuth=req.body?req.body.authorization:'';
+	
+		var tmp = headerAuth ? headerAuth.split(' ') : [];
+		if (tmp.length<1){
+			tmp = bodyAuth ? bodyAuth.split(' ') : [];
+			delete req.body.authorization;
+		}
+		
+		
+		var	authGoodies = {
+				authToken: tmp[1] ? tmp[1] : '',
+				userId: tmp[0] ? tmp[0] : ''
+			};
+
+		try {
+			var helixConnector = new helixConnectorGenerator({
+				helixAccessParms: helixParms,
+				authGoodies: authGoodies
+			});
+		} catch (err) {
+			res.status(400).send(err.toString());
+			return;
+		}
+
+		if (!schema || schema.private) {
+			res.status('404').send('Bad Request: No such schema');
+			return;
+		}
+
+		return helixConnector;
+	};
 	var sendResult = function(res, req, next, helixConnector) {
 		return function(err, result) {
 
@@ -162,34 +197,38 @@ var moduleFunction = function(args) {
 		var tmp = req.path.match(/\/(\w+)/),
 			schemaName = tmp ? tmp[1] : '',
 			schema = helixParms.schemaMap[schemaName];
-		var helixConnector = new helixConnectorGenerator({
-			helixAccessParms: helixParms
-		});
 
-		if (!schema || schema.private) {
-			res.status('404');
-			res.send();
-			return;
+		var helixConnector = fabricateConnector(req, res, schema);
+		if (helixConnector) {
+			retrieveRecords(helixConnector, schema, req.query, sendResult(res, req, next, helixConnector));
 		}
-
-		retrieveRecords(helixConnector, schema, req.query, sendResult(res, req, next, helixConnector));
 
 	});
 
+	router.post(/generateToken/, function(req, res, next) {
+		var tmp = req.path.match(/\/(\w+)/),
+			schemaName = tmp ? tmp[1] : '',
+			schema = helixParms.schemaMap[schemaName];
+		var userId=req.body.userId;
+
+		if (!userId){
+			res.status('400').send("userId must be specified");
+			return;
+		}
+
+		var helixConnector = fabricateConnector(req, res, schema);
+		helixConnector.generateAuthToken(userId, function(err, result){
+			res.set('200').send({userId:userId, authToken:result});
+
+		});
+	});
+	
+	
 	router.post(/.*/, function(req, res, next) {
 		var tmp = req.path.match(/\/(\w+)/),
 			schemaName = tmp ? tmp[1] : '',
 			schema = helixParms.schemaMap[schemaName],
 			outData;
-			
-		if (!schema || schema.private) {
-			res.status('404');
-			res.send();
-			return;
-		}
-		var helixConnector = new helixConnectorGenerator({
-			helixAccessParms: helixParms
-		});
 
 		if (qtools.toType(req.body) == 'array') {
 			outData = req.body;
@@ -201,7 +240,10 @@ var moduleFunction = function(args) {
 			return;
 		}
 
-		saveRecords(helixConnector, schema, outData, sendResult(res, req, next, helixConnector));
+		var helixConnector = fabricateConnector(req, res, schema);
+		if (helixConnector) {
+			saveRecords(helixConnector, schema, outData, sendResult(res, req, next, helixConnector));
+		}
 
 	});
 
@@ -220,4 +262,5 @@ util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
 
 new moduleFunction();
+
 
