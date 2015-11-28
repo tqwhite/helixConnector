@@ -11,9 +11,9 @@ tell application "<!applicationName!>"
 	
 	tell collection 1
 		
-		set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve
-		set viewSummary to utilize {theProcessID} to get view summary --gets us {record count, field delimiter, record delimiter}
-		set theClose to utilize theProcessID to close process
+--		set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve
+--		set viewSummary to utilize {theProcessID} to get view summary --gets us {record count, field delimiter, record delimiter}
+--		set theClose to utilize theProcessID to close process
 		
 		set f to ASCII character 9
 		set r to ASCII character 12
@@ -22,10 +22,7 @@ tell application "<!applicationName!>"
 		set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for store
 		set saveStatus to utilize {theProcessID, myData} to store records
 		set theClose to utilize theProcessID to close process
-		
-		
-		set dataResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as list
-		
+
 	end tell
 	
 	return

@@ -48,7 +48,7 @@ qtools.dump({"result":result});
 		},
 				otherParms: {
 					testDataDir: projectDir + "/testData/",
-					testCollectionFileName: "helixConnectTest06"
+					testCollectionFileName: "helixConnectTest09"
 				},
 				inData: {},
 				callback: simpleCallback(done),
@@ -85,7 +85,7 @@ qtools.dump({"result":result});
 			return true;
 		}
 
-		if (leftParmValue === '' && rightParmValue === '') {
+		if ((typeof(leftParmValue) || leftParmValue === '') && (typeof(rightParmValue) || rightParmValue === '')) {
 			return true;
 		}
 	}
@@ -96,7 +96,7 @@ qtools.dump({"result":result});
 
 		testDataDir: projectDir + "/testData/",
 		simpleCallback: simpleCallback,
-		testDbName: "helixConnectTest06",
+		testDbName: "helixConnectTest09",
 		startTestDatabase: startTestDatabase,
 		killHelix: killHelix,
 		qtools: qtools,

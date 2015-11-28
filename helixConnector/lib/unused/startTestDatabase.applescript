@@ -1,3 +1,3 @@
 tell application "<!applicationName!>"
-   open POSIX file "/Users/tqwhite/Documents/webdev/helixConnector/project/testData/helixConnectTest06"
+   open POSIX file "/Users/tqwhite/Documents/webdev/helixConnector/project/testData/helixConnectTest09"
 end tell

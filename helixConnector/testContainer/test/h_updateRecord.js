@@ -2,7 +2,7 @@ var commonTest = require('../commonTest.js');
 var assert = require("assert");
 var isMatch = require('lodash.ismatch');
 
-var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
+var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_0-9]+)\.js/, '$1')
 
 var testDescription;
 
@@ -16,11 +16,16 @@ var qtools = commonTest.qtools;
 var generalFieldSequence = [
 	'textField01',
 	'textField02',
-	'textField03'
+	'textField03',
+	'dateField01',
+	'numField01',
+	'fixedPointField01',
+	'flagField01',
+	'recNum'
 ];
 
 var schemaMap = {
-	upTest1_Enter_AllFields: {
+	upTest1_Enter_SevenFields: {
 		'emptyRecordsAllowed':true,
 		relation: '_inertProcess',
 		view: 'upTest1_Enter_SevenFields',
@@ -59,7 +64,7 @@ var saveRecords = function(testRecordData) {
 	return function(done) {
 
 		helixConnector.process('saveDirect', {
-			helixSchema: schemaMap.upTest1_Enter_AllFields,
+			helixSchema: schemaMap.upTest1_Enter_SevenFields,
 			otherParms: {},
 			debug: false,
 			inData: testRecordData,
@@ -164,7 +169,7 @@ var matchReferenceRecords = function(referenceData) {
 }
 
 
-describe('Multiple criteria functions (' + moduleFileName + ')', function() {
+describe('Multiple criterion functions (' + moduleFileName + ')', function() {
 
 
 	commonTest.standardInit(helixConnector, before, after, this);

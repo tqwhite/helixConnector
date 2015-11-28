@@ -2,7 +2,7 @@ var commonTest = require('../commonTest.js');
 var assert = require("assert");
 var isMatch = require('lodash.ismatch');
 
-var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
+var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_0-9]+)\.js/, '$1')
 
 var testDescription;
 
@@ -21,6 +21,7 @@ var generalFieldSequence = [
 	'numField01',
 	'fixedPointField01',
 	'flagField01',
+	'recNum'
 ];
 
 var generalMapping={
@@ -29,7 +30,7 @@ var generalMapping={
 };
 
 var schemaMap = {
-	upTest1_Enter_AllFields: {
+	upTest1_Enter_SevenFields: {
 		relation: '_inertProcess',
 		view: 'upTest1_Enter_SevenFields',
 		fieldSequenceList: generalFieldSequence,
@@ -236,7 +237,7 @@ describe('Data formatting save functions (' + moduleFileName + ')', function() {
 
 	commonTest.standardInit(helixConnector, before, after, this);
 
-	it("should write data with no errors", saveRecords('upTest1_Enter_AllFields', testRecordData));
+	it("should write data with no errors", saveRecords('upTest1_Enter_SevenFields', testRecordData));
 
 
 	for (var i = 0, len = testDataBatchList.length; i < len; i++) {

@@ -3,14 +3,19 @@ var assert = require("assert");
 var isMatch = require('lodash.ismatch');
 var qtools = commonTest.qtools;
 
-var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
+var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_0-9]+)\.js/, '$1')
 
 var testDescription;
 
 var fieldSequenceList = [
 	'textField01',
 	'textField02',
-	'textField03'
+	'textField03',
+	'dateField01',
+	'numField01',
+	'fixedPointField01',
+	'flagField01',
+	'recNum'
 ];
 
 var helixConnector1 = new commonTest.helixConnector({
@@ -58,7 +63,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 		var helixSchema = {
 			'emptyRecordsAllowed':true,
 			relation: '_inertProcess',
-			view: 'upTest1_Enter_AllFields',
+			view: 'upTest1_Enter_SevenFields',
 			fieldSequenceList: fieldSequenceList,
 			mapping: {}
 		};

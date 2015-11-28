@@ -35,7 +35,7 @@ var userId='hello world';
 var authGoodies;
 /*
 
-Add test to confirm correct function when there is no authorize at all
+Add test to confirm correct function when there is no authorize at all.
 
 */
 

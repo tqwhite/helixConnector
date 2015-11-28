@@ -160,6 +160,11 @@ var moduleFunction = function(args) {
 
 		if (allPresent && self.userPoolOk && !self.leaseUserName) {
 			getPoolUser(function(err, result) {
+				
+				if (!result[0]){
+					callback(new Error("Did not receive a Pool User from Helix"));
+				}
+			
 				self.leaseUserName = result[0][self.leasePoolUserFieldName];
 
 				switchToPoolUser(result[0][self.leasePoolUserFieldName], decryptLeasePassword(result[0][self.leasePoolPasswordFieldName]))

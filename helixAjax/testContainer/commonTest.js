@@ -76,7 +76,7 @@
 				helixSchema: {'emptyRecordsAllowed':true},
 				otherParms: {
 					testDataDir: projectDir + "/testData/",
-					testCollectionFileName: "helixConnectTest06"
+					testCollectionFileName: "helixConnectTest09"
 				},
 				inData: {},
 				callback: simpleCallback(done),

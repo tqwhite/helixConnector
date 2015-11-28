@@ -2,7 +2,7 @@ var commonTest = require('../commonTest.js');
 var assert = require("assert");
 var isMatch = require('lodash.ismatch');
 
-var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+)\.js/, '$1')
+var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_0-9]+)\.js/, '$1')
 
 var testDescription;
 
@@ -17,24 +17,43 @@ var keyDataValue = 'oregano';
 var fieldSequenceList = [
 	'textField01',
 	'textField02',
-	'textField03'
+	'textField03',
+	'dateField01',
+	'numField01',
+	'fixedPointField01',
+	'flagField01',
+	'recNum'
 ];
-
 var matchRecordData = [{
-		textField01: keyDataValue,
-		textField02: 'cat',
-		textField03: 'lemur'
+	textField01:keyDataValue,
+	textField02:'cat',
+	textField03:'lemur',
+	numField01:'',
+	dateField01:'',
+	fixedPointField01:'',
+	flagField01:'',
+	recNum:'10'
 	}, {
-		textField01: keyDataValue,
-		textField02: 'garlic',
-		textField03: 'marjoram'
+	textField01:keyDataValue,
+	textField02:'garlic',
+	textField03:'marjoram',
+	numField01:'',
+	dateField01:'',
+	fixedPointField01:'',
+	flagField01:'',
+	recNum:'11'
 	}];
 
 var testRecordData = qtools.clone(matchRecordData);
 testRecordData.push({
-		textField01: 'marjoram',
-		textField02: 'garlic',
-		textField03: 'marjoram'
+	textField01:'marjoram',
+	textField02:'garlic',
+	textField03:'marjoram',
+	numField01:'',
+	dateField01:'',
+	fixedPointField01:'',
+	flagField01:'',
+	recNum:''
 	}
 );
 
@@ -42,13 +61,13 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 
 	commonTest.standardInit(helixConnector, before, after, this);
 
-	var testDescription = "should write to _inertProcess/upTest1_Enter_AllFields"
+	var testDescription = "should write to _inertProcess/upTest1_Enter_SevenFields"
 	it(testDescription, function(done) {
 
 		var helixSchema = {
 			'emptyRecordsAllowed':true,
 			relation: '_inertProcess',
-			view: 'upTest1_Enter_AllFields',
+			view: 'upTest1_Enter_SevenFields',
 			fieldSequenceList: fieldSequenceList,
 			mapping: {}
 		};
