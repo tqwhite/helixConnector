@@ -17,7 +17,7 @@ var moduleFunction = function(args) {
 	this.addMeta = function(name, data) {
 		this.metaData[name] = data;
 	}
-	
+
 	var self = this,
 		forceEvent = function(eventName, outData) {
 			this.emit(eventName, {
@@ -37,7 +37,9 @@ var moduleFunction = function(args) {
 		systemProfile = config.getSystemProfile();
 
 	var helixParms = config.getHelixParms();
-	helixParms.schemaMap.generateToken={emptyRecordsAllowed:true}; //my node object doesn't provide for static methods, which this should be
+	helixParms.schemaMap.generateToken = {
+		emptyRecordsAllowed: true
+	}; //my node object doesn't provide for static methods, which this should be
 
 	var simpleCallback = function(err, result, misc) {
 
@@ -95,9 +97,10 @@ var moduleFunction = function(args) {
 	var router = express.Router();
 	var bodyParser = require('body-parser');
 
-	app.use(function(req, res, next) {
-		console.log('first');next();
-	})
+	// 	app.use(function(req, res, next) {
+	// 		console.log('first');next();
+	// 	});
+
 	app.use(bodyParser.json({
 		extended: true
 	}))
@@ -116,7 +119,7 @@ var moduleFunction = function(args) {
 	}))
 
 	app.use('/', router);
-	
+
 	var config = {
 		port: '9000'
 	};
@@ -136,20 +139,20 @@ var moduleFunction = function(args) {
 	//START SERVER ROUTING FUNCTION =======================================================
 
 	var fabricateConnector = function(req, res, schema) {
-		var headerAuth=req.headers?req.headers.authorization:'';
-		var bodyAuth=req.body?req.body.authorization:'';
-	
+		var headerAuth = req.headers ? req.headers.authorization : '';
+		var bodyAuth = req.body ? req.body.authorization : '';
+
 		var tmp = headerAuth ? headerAuth.split(' ') : [];
-		if (tmp.length<1){
+		if (tmp.length < 1) {
 			tmp = bodyAuth ? bodyAuth.split(' ') : [];
 			delete req.body.authorization;
 		}
-		
-		
-		var	authGoodies = {
-				authToken: tmp[1] ? tmp[1] : '',
-				userId: tmp[0] ? tmp[0] : ''
-			};
+
+
+		var authGoodies = {
+			authToken: tmp[1] ? tmp[1] : '',
+			userId: tmp[0] ? tmp[0] : ''
+		};
 
 		try {
 			var helixConnector = new helixConnectorGenerator({
@@ -209,21 +212,24 @@ var moduleFunction = function(args) {
 		var tmp = req.path.match(/\/(\w+)/),
 			schemaName = tmp ? tmp[1] : '',
 			schema = helixParms.schemaMap[schemaName];
-		var userId=req.body.userId;
+		var userId = req.body.userId;
 
-		if (!userId){
+		if (!userId) {
 			res.status('400').send("userId must be specified");
 			return;
 		}
 
 		var helixConnector = fabricateConnector(req, res, schema);
-		helixConnector.generateAuthToken(userId, function(err, result){
-			res.set('200').send({userId:userId, authToken:result});
+		helixConnector.generateAuthToken(userId, function(err, result) {
+			res.set('200').send({
+				userId: userId,
+				authToken: result
+			});
 
 		});
 	});
-	
-	
+
+
 	router.post(/.*/, function(req, res, next) {
 		var tmp = req.path.match(/\/(\w+)/),
 			schemaName = tmp ? tmp[1] : '',
@@ -262,5 +268,6 @@ util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
 
 new moduleFunction();
+
 
 
