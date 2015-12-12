@@ -58,11 +58,7 @@
 		}
 	};
 
-	var authGoodies = {
-		userId: 'tq@justkidding.com',
-		authToken: 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ1c2VySWQiOiJ0cUBqdXN0a2lkZGluZy5jb20iLCJpbnN0YW5jZUlkIjoicWJvb2siLCJpYXQiOjE0NDgwODM4Mjl9.UiGrx-3E1k67B7e9QyRlIKVTmhyqzb5jc0_b3b_lJYU'
-	};
-
+	var authGoodies = config.getAdminPagesAccessData();
 
 	var helixConnector = new helixConnector({
 		helixAccessParms: config.getHelixParms(),
