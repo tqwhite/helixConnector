@@ -48,7 +48,7 @@ qtools.dump({"result":result});
 		},
 				otherParms: {
 					testDataDir: projectDir + "/testData/",
-					testCollectionFileName: "helixConnectTest09"
+					testCollectionFileName: "helixConnectTest11"
 				},
 				inData: {},
 				callback: simpleCallback(done),
@@ -96,7 +96,7 @@ qtools.dump({"result":result});
 
 		testDataDir: projectDir + "/testData/",
 		simpleCallback: simpleCallback,
-		testDbName: "helixConnectTest09",
+		testDbName: "helixConnectTest11",
 		startTestDatabase: startTestDatabase,
 		killHelix: killHelix,
 		qtools: qtools,

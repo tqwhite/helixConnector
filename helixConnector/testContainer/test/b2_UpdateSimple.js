@@ -119,7 +119,7 @@ var matchReferenceRecords = function(referenceData) {
 	}
 }
 
-describe.only('Non User Pool functions (' + moduleFileName + ')', function() {
+describe('Non User Pool functions (' + moduleFileName + ')', function() {
 
 	commonTest.standardInit(helixConnector, before, after, this);
 

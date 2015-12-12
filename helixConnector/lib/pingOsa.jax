@@ -1,5 +1,5 @@
 var helix= Application('Helix RADE');
-path = Path ("/Users/tqwhite/Documents/webdev/helixConnector/project//testData//helixConnectTest09")
+path = Path ("/Users/tqwhite/Documents/webdev/helixConnector/project//testData//helixConnectTest11")
 
 //<!processName!> - <!callingProcess!>
 
@@ -12,7 +12,7 @@ case '-1731':
 e.message='\n\nFATAL: Helix RADE is ALREADY OPEN. Must be closed for testing.\n\n'
 break;
 case '-43':
-e.message='\n\nFATAL: FILE NOT FOUND: /Users/tqwhite/Documents/webdev/helixConnector/project//testData//helixConnectTest09\n\n'
+e.message='\n\nFATAL: FILE NOT FOUND: /Users/tqwhite/Documents/webdev/helixConnector/project//testData//helixConnectTest11\n\n'
 break;
 }
 

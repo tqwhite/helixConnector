@@ -109,6 +109,56 @@ var moduleFunction = function(args) {
 			}
 		});
 	}
+	
+	
+
+	self.getViewDetails = function(control, parameters) {
+		var callback=parameters.callback?parameters.callback:function(err, result){
+			qtools.dump({"err":err});
+			qtools.dump({"result":result});
+		}
+		
+		var relationFieldName = 'relationName';
+		if (self.helixRelationList.length !== 0 || qtools.in(control, self.openDatabaseFunctionNames)) {
+			callback('', '');
+			return;
+		}
+
+		var helixSchema = {
+			relation: parameters.relation,
+			view: parameters.view,
+			fieldSequenceList: [],
+			mapping: {
+			}
+		};
+		
+		var viewDetailsConversion=function(helixFieldSequenceList, helixMapping, data){
+			var outObj={weirdString:data};
+			throw new Error("getViewDetails() does not produce decent results. It is not yet implemented corrrectly.");
+			return outObj;
+		}
+
+		executeHelixOperation('getViewDetails', {
+			specialStringConversion:viewDetailsConversion,
+			helixSchema: helixSchema,
+			debug: true,
+			inData: {},
+			callback: function(err, result, misc) {
+				if (err) {
+					callback(err, result);
+					return;
+				}
+				if (result.length < 1) {
+					callback(new Error("Helix not available or is broken: "+parameters.relation+"/"+parameters.view+" does not exist or is broken."))
+				} else {
+// 					result.map(function(item) {
+// 						self.helixRelationList.push(item[relationFieldName]);
+// 					});
+					callback(err, result);
+				}
+			}
+		});
+	}
 
 	var switchToPoolUser = function(user, password) {
 		self.systemParms.user = user;
@@ -303,7 +353,13 @@ var moduleFunction = function(args) {
 		osascript(finalScript, {
 			type: (scriptElement.language.toLowerCase() == 'javascript') ? '' : scriptElement.language //turns out that osascript won't let you specify, JS is the default
 		}, function(err, data) {
+			if (!parameters.specialStringConversion){
 			data = helixData.helixStringToRecordList(helixSchema.fieldSequenceList, helixSchema.mapping, data);
+			}
+			else{
+			data = parameters.specialStringConversion(helixSchema.fieldSequenceList, helixSchema.mapping, data);
+			}
+			
 			callback(err, data, {
 				user: self.systemParms.user
 			});
