@@ -36,61 +36,60 @@ var moduleFunction = function(args) {
 
 
 
-//DATABASE SPECIFIC SPECIFICATIONS ====================================
+	//DATABASE SPECIFIC SPECIFICATIONS ====================================
 
 
-//GENERIC DATABASE SPECIFICATIONS ====================================
-var specificationFileName='specifications.json';
-var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+\.js)/, '$1')
-var moduleFilePath=module.filename.replace(new RegExp(moduleFileName), '');
-var specificationFilePath=moduleFilePath+specificationFileName;
+	//GENERIC DATABASE SPECIFICATIONS ====================================
+	var specificationFileName = 'specifications.json';
+	var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+\.js)/, '$1')
+	var moduleFilePath = module.filename.replace(new RegExp(moduleFileName), '');
+	var specificationFilePath = moduleFilePath + specificationFileName;
 
 
 
-var instanceName=process.env.USER+'/'+moduleFileName.replace(/\..+$/, '');
+	var instanceName = process.env.USER + '/' + moduleFileName.replace(/\..+$/, '');
 
-var specsJson=qtools.fs.readFileSync(specificationFilePath);
-try{
-var specs=JSON.parse(specsJson);
-}
-catch(e){
-console.log(`failed to parse ${specificationFilePath}`);
-throw("specifications file failed to parse");
-}
-var operationalParameters=specs.operationalParameters;
-operationalParameters.instanceId=instanceName;
+	var specsJson = qtools.fs.readFileSync(specificationFilePath);
+	try {
+		var specs = JSON.parse(specsJson);
+	} catch (e) {
+		console.log("failed to parse " + specificationFilePath);
+		throw ("specifications file failed to parse");
+	}
+	var operationalParameters = specs.operationalParameters;
+	operationalParameters.instanceId = instanceName;
 
 
-var schemaMap = specs.schemaMap;
+	var schemaMap = specs.schemaMap;
 
 	var adminPagesAccessData = specs.adminPagesAccessData;
-	
-	this.getAdminPagesAccessData=function(){
+
+	this.getAdminPagesAccessData = function() {
 		return adminPagesAccessData;
 	}
 
 	this.getHelixParms = function() {
-	
-		var oParms=qtools.clone(operationalParameters);
-		oParms.schemaMap=qtools.clone(schemaMap);
-		
+
+		var oParms = qtools.clone(operationalParameters);
+		oParms.schemaMap = qtools.clone(schemaMap);
+
 		return oParms;
 	}
-	
-	this.getSystemProfile=function(){
+
+	this.getSystemProfile = function() {
 		return {
-			exposeTests:true
+			exposeTests: true
 		}
 	}
 
 	//INITIALIZATION ====================================
 
-this.validate=function(){
+	this.validate = function() {
 
-//console.log(JSON.stringify(schemaMap));
+		//console.log(JSON.stringify(schemaMap));
 
 
-}
+	}
 
 
 	return this;
@@ -100,6 +99,9 @@ this.validate=function(){
 
 util.inherits(moduleFunction, events.EventEmitter);
 module.exports = new moduleFunction();
+
+
+
 
 
 
