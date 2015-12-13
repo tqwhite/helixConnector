@@ -63,8 +63,6 @@ if (!helixConfigPath){
 var initPath=helixProjectPath+"/helixConnector/initializehxc";
 var initLib=initPath+"/lib";
 
-console.log("initLib="+initLib);
-
 
 var configJs=qtools.fs.readFileSync(initLib+"/config.js");
 
