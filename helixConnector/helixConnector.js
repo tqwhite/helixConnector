@@ -31,7 +31,11 @@ var moduleFunction = function(args) {
 			},
 			{
 				name: 'authGoodies',
-				optional: false
+				optional: true
+			},
+			{
+				name:'noValidationNeeded',
+				optional:true
 			}
 		]
 	}, true); //this is a server component, don't die on error
@@ -39,6 +43,9 @@ var moduleFunction = function(args) {
 	if (argsErrorList) {
 		throw (new Error(argsErrorList));
 	}
+	
+	this.noValidationNeeded=this.noValidationNeeded?this.noValidationNeeded:false;
+	this.authGoodies=this.authGoodies?this.authGoodies:{};
 
 	this.systemProfile = this.systemProfile || {};
 	this.immutableHelixAccessParms = qtools.clone(this.helixAccessParms);
@@ -380,7 +387,7 @@ var moduleFunction = function(args) {
 
 	self.validateUserId = function(userId, token, callback) {
 
-		if (true || self.authorized) {
+		if (self.noValidationNeeded || self.authorized) {
 			callback('', true);
 			return;
 		}
