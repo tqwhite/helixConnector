@@ -80,7 +80,9 @@ var moduleFunction = function(args) {
 
 	var getRelationList = function(control, callback) {
 		var relationFieldName = 'relationName';
-		if (self.helixRelationList.length !== 0 || qtools.in(control, self.openDatabaseFunctionNames)) {
+		
+		var skipGetHelixRelations=true; //see comment below re: helixRelationList
+		if (skipGetHelixRelations || self.helixRelationList.length !== 0 || qtools.in(control, self.openDatabaseFunctionNames)) {
 			callback('', '');
 			return;
 		}
