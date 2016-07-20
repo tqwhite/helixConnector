@@ -126,7 +126,10 @@ var moduleFunction = function(args) {
 		}
 		
 		var relationFieldName = 'relationName';
-		if (self.helixRelationList.length !== 0 || qtools.in(control, self.openDatabaseFunctionNames)) {
+		
+		var forceSkipHelixRelationLookup=true; //see note below
+		
+		if (forceSkipHelixRelationLookup || self.helixRelationList.length !== 0 || qtools.in(control, self.openDatabaseFunctionNames)) {
 			callback('', '');
 			return;
 		}
@@ -202,8 +205,15 @@ var moduleFunction = function(args) {
 			) ? true : false;
 
 		var missingTables = '';
+/*
+		Turns out that Helix takes FOREVER to return the list of relations if it's very long.
+		TODO: I need to refactor this to 1) not retrieve the list, 2) decide if detecting
+		missing relations is an important error category, 3) implement a different way
+		of detecting that Helix is not up and running. Presently, this is not detected.
+		
 		missingTables += !qtools.in(self.helixAccessParms.userPoolLeaseRelation, self.helixRelationList) ? self.helixAccessParms.userPoolLeaseRelation + " " : '';
 		missingTables += !qtools.in(self.helixAccessParms.userPoolReleaseRelation, self.helixRelationList) ? self.helixAccessParms.userPoolReleaseRelation + " " : '';
+*/
 
 		if (allPresent && missingTables) {
 			callback(new Error("One or more of the User Pool Lease relations is missing: " + missingTables));
