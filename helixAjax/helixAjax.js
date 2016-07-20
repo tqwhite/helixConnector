@@ -157,7 +157,8 @@ var moduleFunction = function(args) {
 		try {
 			var helixConnector = new helixConnectorGenerator({
 				helixAccessParms: helixParms,
-				authGoodies: authGoodies
+				authGoodies: authGoodies,
+				noValidationNeeded:helixParms.noValidationNeeded
 			});
 		} catch (err) {
 			res.status(400).send(err.toString());
