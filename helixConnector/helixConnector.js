@@ -230,8 +230,10 @@ var moduleFunction = function(args) {
 		if (allPresent && self.userPoolOk && !self.leaseUserName) {
 			getPoolUser(function(err, result) {
 				
-				if (!result[0]){
+				if (!result || !result[0]){
+					qtools.logError("Did not receive a Pool User from Helix");
 					callback(new Error("Did not receive a Pool User from Helix"));
+					return;
 				}
 			
 				self.leaseUserName = result[0][self.leasePoolUserFieldName];
