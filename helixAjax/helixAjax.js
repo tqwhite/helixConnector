@@ -27,16 +27,73 @@ var moduleFunction = function(args) {
 		};
 
 	//LOCAL FUNCTIONS ====================================
+	
+	if (!process.env.helixProjectPath) {
+		var message = 'there must be an environment variable: helixProjectPath';
+		qtools.logError(message);
+		return message;
+	}
+	if (!process.env.USER) {
+		var message = 'there must be an environment variable: USER';
+		qtools.logError(message);
+		return message;
+	}
+	var configPath =
+		process.env.helixProjectPath +
+		'configs/instanceSpecific/ini/' +
+		process.env.USER +
+		'.ini';
+	if (!qtools.realPath(configPath)) {
+		var message = 'configuration file ' + configPath + ' is missing';
+		qtools.logError(message);
+		return message;
+	}
+	var helixConnectorPath =
+		process.env.helixConnectorPath  + 'helixConnector.js';
+	if (!qtools.realPath(helixConnectorPath)) {
+		var message = 'helixConnectorPath file ' + helixConnectorPath + ' is missing';
+		qtools.logError(message);
+		return message;
+	}
+	
+	
+	const newConfig = qtools.configFileProcessor.getConfig(configPath);
+	const collectionName=qtools.getSurePath(newConfig, 'system.collection');
+	const schemaMapName=qtools.getSurePath(newConfig, 'system.schemaMapName') || collectionName;
 
-	var projectDir = qtools.realPath(process.env.helixProjectPath) + '/',
-		helixConnectorPath = process.env.helixConnectorPath,
-		helixConfigPath = process.env.helixConfigPath,
-		helixAjaxPath = process.env.helixAjaxPath,
-		helixConnectorGenerator = require(helixConnectorPath + 'helixConnector.js'),
-		config = require(helixConfigPath),
-		systemProfile = config.getSystemProfile();
+	const schemaMapPath =
+		process.env.helixProjectPath +
+		'configs/schemaMaps/'+
+		schemaMapName+'.json';
+	if (!qtools.realPath(schemaMapPath)) {
+		const message = 'system.collection.schemaMapPath: ' + schemaMapPath + ' is missing';
+		qtools.logError(message);
+		return message;
+	}
+	
+	let schemaMap;
+	const schemaMapJson = qtools.fs.readFileSync(schemaMapPath);
+	try {
+		schemaMap = JSON.parse(schemaMapJson);
+	} catch (e) {
+		console.log("failed to parse " + schemaMap);
+		throw ("schemaMap file failed to parse");
+	}
 
-	var helixParms = config.getHelixParms();
+
+	const helixConnectorGenerator = require(helixConnectorPath);
+	const helixParms = qtools.getSurePath(newConfig, 'system');
+	helixParms.schemaMap=schemaMap.schemaMap;
+	
+		global.applicationLoggingIdString =
+			helixParms.instanceId;
+	const logParms = qtools.clone(helixParms);
+	logParms.password='****';
+	qtools.logMilestone("Starting hxAjax *************************");
+	qtools.dump(logParms);
+	qtools.logMilestone("**************************************************");
+
+
 	helixParms.schemaMap.generateToken = {
 		emptyRecordsAllowed: true
 	}; //my node object doesn't provide for static methods, which this should be
@@ -196,6 +253,13 @@ var moduleFunction = function(args) {
 			helixConnector.close();
 		}
 	};
+
+	router.get(/hxConnectorCheck/, function(req, res, next) {
+
+			res.status('200');
+			res.send("<div style='font-size:24pt;padding:150px;'>hxConnector status: <span style='color:green;'>active</span><br/>helix server status: <span style='color:gray;'>[check disabled]</span></div>");
+
+	});
 
 	router.get(/.*/, function(req, res, next) {
 		var tmp = req.path.match(/\/(\w+)/),

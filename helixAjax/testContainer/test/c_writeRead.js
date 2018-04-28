@@ -38,12 +38,14 @@ return function(body){
 
 	var preparedReferenceItem=qtools.clone(referenceItem);
 	var bodyItem=JSON.parse(body);
-	var	preparedBody=bodyItem;
+	var	preparedBodyItem=bodyItem;
 	
+	preparedBodyItem.map(function(item){ delete item.recNum;}); //this comes even though I don't want it
 	preparedReferenceItem.map(function(item){ item.helixId=1;});
 
-	var first = isMatch(preparedReferenceItem[0], bodyItem[0], commonTest.ignoreHelixId); //isMatch() ignores extra values in rightParm
-	var second = isMatch(bodyItem[0], preparedReferenceItem[0], commonTest.ignoreHelixId); //evaluate both directions means no extras
+
+	var first = isMatch(preparedReferenceItem[0], preparedBodyItem[0], commonTest.ignoreHelixId); //isMatch() ignores extra values in rightParm
+	var second = isMatch(preparedBodyItem[0], preparedReferenceItem[0], commonTest.ignoreHelixId); //evaluate both directions means no extras
 
 	if (first && second) {
 		return;
@@ -64,6 +66,8 @@ var testData1=[{
 	fixedPointField01: '',
 	flagField01: ''
 }]
+
+console.log("\n\nNOTE: runHxConnector is needed for these ajax tests\n\n");
 
 describe('Data access functions (' + moduleFileName + ')', function() {
 

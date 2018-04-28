@@ -449,7 +449,7 @@ var moduleFunction = function(args) {
 			}
 
 			if ((fieldSequenceList && fieldSequenceList.length !== 0) && qtools.count(element) === 0 && !helixSchema.emptyRecordsAllowed) {
-				return "Record data must be supplied for this schema";
+				return "Record data must be supplied for this schema (emptyRecordsAllowed)";
 			}
 
 			for (var j in element) {
