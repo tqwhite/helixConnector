@@ -17,7 +17,7 @@ tell application "<!applicationName!>"
 			set criterionResult to utilize {myCollection, myUser, myPassword, criterionRelation, criterionView, criterionData} to store one record
 		end if
 
-		set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as list
+		set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as string
 		
 	end tell
 	

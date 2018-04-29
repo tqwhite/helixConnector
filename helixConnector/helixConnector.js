@@ -43,7 +43,7 @@ var moduleFunction = function(args) {
 	if (argsErrorList) {
 		throw (new Error(argsErrorList));
 	}
-	
+
 	this.noValidationNeeded=this.noValidationNeeded?this.noValidationNeeded:false;
 	this.authGoodies=this.authGoodies?this.authGoodies:{};
 
@@ -80,7 +80,7 @@ var moduleFunction = function(args) {
 
 	var getRelationList = function(control, callback) {
 		var relationFieldName = 'relationName';
-		
+
 		var skipGetHelixRelations=true; //see comment below re: helixRelationList
 		if (skipGetHelixRelations || self.helixRelationList.length !== 0 || qtools.in(control, self.openDatabaseFunctionNames)) {
 			callback('', '');
@@ -118,19 +118,17 @@ var moduleFunction = function(args) {
 			}
 		});
 	}
-	
-	
 
 	self.getViewDetails = function(control, parameters) {
 		var callback=parameters.callback?parameters.callback:function(err, result){
 			qtools.dump({"err":err});
 			qtools.dump({"result":result});
 		}
-		
+
 		var relationFieldName = 'relationName';
-		
+
 		var forceSkipHelixRelationLookup=true; //see note below
-		
+
 		if (forceSkipHelixRelationLookup || self.helixRelationList.length !== 0 || qtools.in(control, self.openDatabaseFunctionNames)) {
 			callback('', '');
 			return;
@@ -143,7 +141,7 @@ var moduleFunction = function(args) {
 			mapping: {
 			}
 		};
-		
+
 		var viewDetailsConversion=function(helixFieldSequenceList, helixMapping, data){
 			var outObj={weirdString:data};
 			throw new Error("getViewDetails() does not produce decent results. It is not yet implemented corrrectly.");
@@ -212,7 +210,7 @@ var moduleFunction = function(args) {
 		TODO: I need to refactor this to 1) not retrieve the list, 2) decide if detecting
 		missing relations is an important error category, 3) implement a different way
 		of detecting that Helix is not up and running. Presently, this is not detected.
-		
+
 		missingTables += !qtools.in(self.helixAccessParms.userPoolLeaseRelation, self.helixRelationList) ? self.helixAccessParms.userPoolLeaseRelation + " " : '';
 		missingTables += !qtools.in(self.helixAccessParms.userPoolReleaseRelation, self.helixRelationList) ? self.helixAccessParms.userPoolReleaseRelation + " " : '';
 */
@@ -229,13 +227,13 @@ var moduleFunction = function(args) {
 
 		if (allPresent && self.userPoolOk && !self.leaseUserName) {
 			getPoolUser(function(err, result) {
-				
+
 				if (!result || !result[0]){
 					qtools.logError("Did not receive a Pool User from Helix");
 					callback(new Error("Did not receive a Pool User from Helix"));
 					return;
 				}
-			
+
 				self.leaseUserName = result[0][self.leasePoolUserFieldName];
 
 				switchToPoolUser(result[0][self.leasePoolUserFieldName], decryptLeasePassword(result[0][self.leasePoolPasswordFieldName]))
@@ -263,7 +261,10 @@ var moduleFunction = function(args) {
 				self.leasePoolUserFieldName,
 				self.leasePoolPasswordFieldName
 			],
-			mapping: {}
+			mapping: {},
+			separators:{
+				field:', '
+			}
 		};
 		executeHelixOperation('poolUserLease', {
 			helixSchema: helixSchema,
@@ -375,12 +376,12 @@ var moduleFunction = function(args) {
 			type: (scriptElement.language.toLowerCase() == 'javascript') ? '' : scriptElement.language //turns out that osascript won't let you specify, JS is the default
 		}, function(err, data) {
 			if (!parameters.specialStringConversion){
-			data = helixData.helixStringToRecordList(helixSchema.fieldSequenceList, helixSchema.mapping, data);
+			data = helixData.helixStringToRecordList(helixSchema, data);
 			}
 			else{
-			data = parameters.specialStringConversion(helixSchema.fieldSequenceList, helixSchema.mapping, data);
+			data = parameters.specialStringConversion(helixSchema, data);
 			}
-			
+
 			callback(err, data, {
 				user: self.systemParms.user
 			});
@@ -424,7 +425,6 @@ var moduleFunction = function(args) {
 		callback('', true);
 
 	}
-
 
 	self.cancelValidation = function() {
 		self.authorized = false;

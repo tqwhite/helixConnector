@@ -22,7 +22,10 @@ describe('Lease Pool User base function (' + moduleFileName + ')', function() {
 		fieldSequenceList: [
 			'leaseUserName'
 		],
-		mapping: {}
+		mapping: {},
+		separators:{
+			field:', '
+		}
 	};
 
 	testDescription = "should return a pool user name"
@@ -33,6 +36,9 @@ describe('Lease Pool User base function (' + moduleFileName + ')', function() {
 			debug: false,
 			inData: {},
 			callback: function(err, result, misc) {
+console.dir({"result [d_LeaseUser.js.callback]":result});
+
+
 				if (err) {
 					done(err);
 				}

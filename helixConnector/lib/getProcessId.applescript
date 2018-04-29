@@ -14,7 +14,7 @@ tell application "Helix RADE"
 		--log (myProcessID)
 		--set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to get view summary
 		
-		--set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView, myData} to retrieve records as list
+		--set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView, myData} to retrieve records as string
 		
 		--set myProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for store
 		
