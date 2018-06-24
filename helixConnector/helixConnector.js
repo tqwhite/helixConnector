@@ -114,11 +114,7 @@ var moduleFunction = function(args) {
 				}
 
 				if (result.length < 1) {
-					callback(
-						new Error(
-							'Helix not available or is broken: No relations were retrieved'
-						)
-					);
+					callback('Helix not available or is broken: No relations were retrieved');
 				} else {
 					result.map(function(item) {
 						self.helixRelationList.push(item[relationFieldName]);
@@ -181,14 +177,12 @@ var moduleFunction = function(args) {
 				}
 				if (result.length < 1) {
 					callback(
-						new Error(
 							'Helix not available or is broken: ' +
 								parameters.relation +
 								'/' +
 								parameters.view +
 								' does not exist or is broken.'
-						)
-					);
+						);
 				} else {
 					// 					result.map(function(item) {
 					// 						self.helixRelationList.push(item[relationFieldName]);
@@ -247,20 +241,16 @@ var moduleFunction = function(args) {
 
 		if (allPresent && missingTables) {
 			callback(
-				new Error(
 					'One or more of the User Pool Lease relations is missing: ' +
 						missingTables
-				)
-			);
+				);
 			return;
 		}
 
 		if (anyPresent && !allPresent) {
 			callback(
-				new Error(
 					'One of the User Pool Lease parameters is missing (userPoolLeaseRelation, userPoolLeaseView, userPoolReleaseRelation, userPoolReleaseView)'
-				)
-			);
+				);
 			return;
 		}
 
@@ -268,7 +258,7 @@ var moduleFunction = function(args) {
 			getPoolUser(function(err, result) {
 				if (!result || !result[0]) {
 					qtools.logError('Did not receive a Pool User from Helix');
-					callback(new Error('Did not receive a Pool User from Helix'));
+					callback('Did not receive a Pool User from Helix');
 					return;
 				}
 
@@ -499,11 +489,11 @@ var moduleFunction = function(args) {
 			return;
 		}
 		if (decoded.instanceId != self.immutableHelixAccessParms.instanceId) {
-			callback(new Error('instanceId does not match'));
+			callback('instanceId does not match');
 			return;
 		}
 		if (decoded.userId != userId) {
-			callback(new Error('userId does not match'));
+			callback('userId does not match');
 			return;
 		}
 		self.authorized = true;

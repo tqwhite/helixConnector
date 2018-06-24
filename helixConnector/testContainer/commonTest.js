@@ -8,16 +8,20 @@
 		qtools.logError(message);
 		return message;
 	}
-	if (!process.env.USER) {
-		var message = 'there must be an environment variable: USER';
+	
+	if (!process.env.USER && !process.env.HXCONNECTORUSER) {
+		var message = 'there must be an environment variable: USER or HXCONNECTORUSER';
 		qtools.logError(message);
 		return message;
 	}
+	
+	const hxConnectorUser=process.env.HXCONNECTORUSER || process.env.USER;
+	
 	var configPath =
 		process.env.helixProjectPath +
-		'configs/instanceSpecific/ini/' +
-		process.env.USER +
-		'.ini';
+		'configs/' +
+		hxConnectorUser +
+		'/systemParameters.ini';
 	if (!qtools.realPath(configPath)) {
 		var message = 'configuration file ' + configPath + ' is missing';
 		qtools.logError(message);
@@ -38,8 +42,10 @@
 
 	const schemaMapPath =
 		process.env.helixProjectPath +
-		'configs/schemaMaps/'+
-		schemaMapName+'.json';
+		'configs/' +
+		hxConnectorUser + '/'+
+		schemaMapName +
+		'.json';
 	if (!qtools.realPath(schemaMapPath)) {
 		const message = 'system.collection.schemaMapPath: ' + schemaMapPath + ' is missing';
 		qtools.logError(message);

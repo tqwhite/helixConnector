@@ -1,5 +1,5 @@
 var helixConnector = require('../../helixConnector.js');
-var config = require('../../../configs/qbook.js');
+var config = require('../../../javascript/getConfig.js');
 global.systemProfile = config.getSystemProfile();
 
 var helixConnector = new helixConnector({

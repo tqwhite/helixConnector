@@ -57,6 +57,12 @@ describe('Connector Write Single ('+moduleFileName+')', function() {
 			debug: false,
 			inData: {},
 			callback: function(err, result, misc) {
+console.dir({"err [b_ReadWriteSingle.js.callback]":err});
+
+
+console.dir({"result [b_ReadWriteSingle.js.callback]":result});
+
+
 				if (err) {
 					done(err);
 				}
