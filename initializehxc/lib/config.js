@@ -47,7 +47,7 @@ var moduleFunction = function(args) {
 
 
 
-	var instanceName = process.env.USER + '/' + moduleFileName.replace(/\..+$/, '');
+	var instanceName = (process.env.HXCONNECTORUSER || process.env.USER) + '/' + moduleFileName.replace(/\..+$/, '');
 
 	var specsJson = qtools.fs.readFileSync(specificationFilePath);
 	try {

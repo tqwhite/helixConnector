@@ -1,3 +1,4 @@
+#!/usr/local/bin/node
 'use strict';
 var qtools = require('qtools'),
 	qtools = new qtools(module),
@@ -33,16 +34,26 @@ var moduleFunction = function(args) {
 		qtools.logError(message);
 		return message;
 	}
-	if (!process.env.USER) {
-		var message = 'there must be an environment variable: USER';
+	
+	if (!process.env.helixAjaxPagesPath) {
+		var message = 'there must be an environment variable: helixAjaxPagesPath';
 		qtools.logError(message);
 		return message;
 	}
+	
+	if (!process.env.USER && !process.env.HXCONNECTORUSER) {
+		var message = 'there must be an environment variable: USER or HXCONNECTORUSER';
+		qtools.logError(message);
+		return message;
+	}
+	
+	const hxConnectorUser=process.env.HXCONNECTORUSER || process.env.USER;
+	
 	var configPath =
 		process.env.helixProjectPath +
-		'configs/instanceSpecific/ini/' +
-		process.env.USER +
-		'.ini';
+		'configs/' +
+		hxConnectorUser +
+		'/systemParameters.ini';
 	if (!qtools.realPath(configPath)) {
 		var message = 'configuration file ' + configPath + ' is missing';
 		qtools.logError(message);
@@ -55,8 +66,6 @@ var moduleFunction = function(args) {
 		qtools.logError(message);
 		return message;
 	}
-	
-	
 	const newConfig = qtools.configFileProcessor.getConfig(configPath);
 	const collectionName = qtools.getSurePath(newConfig, 'system.collection');
 	const schemaMapName =
@@ -64,7 +73,8 @@ var moduleFunction = function(args) {
 
 	const schemaMapPath =
 		process.env.helixProjectPath +
-		'configs/schemaMaps/' +
+		'configs/' +
+		hxConnectorUser + '/'+
 		schemaMapName +
 		'.json';
 	if (!qtools.realPath(schemaMapPath)) {
@@ -194,8 +204,9 @@ var moduleFunction = function(args) {
 	var staticPageDispatch = require('staticpagedispatch');
 	staticPageDispatch = new staticPageDispatch({
 		router: router,
-		filePathList: [qtools.realPath('.') + '/samplePages']
+		filePathList: [process.env.helixAjaxPagesPath]
 	});
+
 
 	//START SERVER ROUTING FUNCTION =======================================================
 
@@ -221,6 +232,7 @@ var moduleFunction = function(args) {
 				noValidationNeeded: helixParms.noValidationNeeded
 			});
 		} catch (err) {
+			qtools.logError(qtools.dump(err, true));
 			res.status(400).send(err.toString());
 			return;
 		}
@@ -235,7 +247,7 @@ var moduleFunction = function(args) {
 	var sendResult = function(res, req, next, helixConnector) {
 		return function(err, result) {
 			if (err) {
-				res.status(400).send(err.toString());
+				res.status(500).send(err.toString());
 				helixConnector.close();
 				return;
 			}
@@ -332,7 +344,7 @@ var moduleFunction = function(args) {
 
 	app.listen(config.port);
 
-	qtools.message('Magic happens on port ' + config.port);
+	qtools.log(new Date().toLocaleTimeString()+': Magic happens on port ' + config.port);
 
 	return this;
 };

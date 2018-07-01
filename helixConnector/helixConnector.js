@@ -361,7 +361,6 @@ var moduleFunction = function(args) {
 		};
 		osa(test);
 	};
-	//demoJs();
 
 	var compileScript = function(
 		scriptElement,
