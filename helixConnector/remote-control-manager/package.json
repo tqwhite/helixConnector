@@ -1,0 +1,11 @@
+{
+  "name": "remote-control-manager",
+  "version": "1.0.0",
+  "description": "operate scripts intended mainly to control events on the host computer",
+  "main": "remote-control-manager.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

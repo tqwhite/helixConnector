@@ -5,6 +5,8 @@ var qtools = require('qtools'),
 	util = require('util'),
 	helixData = require('helixdata'),
 	helixData = new helixData();
+const remoteControlManagerGen = require('./remote-control-manager');
+const path = require('path');
 
 //START OF moduleFunction() ============================================================
 
@@ -55,8 +57,8 @@ var moduleFunction = function(args) {
 	this.systemProfile = this.systemProfile || {};
 	this.immutableHelixAccessParms = qtools.clone(this.helixAccessParms);
 
-	var self = this,
-		forceEvent = function(eventName, outData) {
+	var self = this;
+	var forceEvent = function(eventName, outData) {
 			this.emit(eventName, {
 				eventName: eventName,
 				data: outData
@@ -114,7 +116,9 @@ var moduleFunction = function(args) {
 				}
 
 				if (result.length < 1) {
-					callback('Helix not available or is broken: No relations were retrieved');
+					callback(
+						'Helix not available or is broken: No relations were retrieved'
+					);
 				} else {
 					result.map(function(item) {
 						self.helixRelationList.push(item[relationFieldName]);
@@ -177,12 +181,12 @@ var moduleFunction = function(args) {
 				}
 				if (result.length < 1) {
 					callback(
-							'Helix not available or is broken: ' +
-								parameters.relation +
-								'/' +
-								parameters.view +
-								' does not exist or is broken.'
-						);
+						'Helix not available or is broken: ' +
+							parameters.relation +
+							'/' +
+							parameters.view +
+							' does not exist or is broken.'
+					);
 				} else {
 					// 					result.map(function(item) {
 					// 						self.helixRelationList.push(item[relationFieldName]);
@@ -241,16 +245,16 @@ var moduleFunction = function(args) {
 
 		if (allPresent && missingTables) {
 			callback(
-					'One or more of the User Pool Lease relations is missing: ' +
-						missingTables
-				);
+				'One or more of the User Pool Lease relations is missing: ' +
+					missingTables
+			);
 			return;
 		}
 
 		if (anyPresent && !allPresent) {
 			callback(
-					'One of the User Pool Lease parameters is missing (userPoolLeaseRelation, userPoolLeaseView, userPoolReleaseRelation, userPoolReleaseView)'
-				);
+				'One of the User Pool Lease parameters is missing (userPoolLeaseRelation, userPoolLeaseView, userPoolReleaseRelation, userPoolReleaseView)'
+			);
 			return;
 		}
 
@@ -281,6 +285,9 @@ var moduleFunction = function(args) {
 
 	var getPoolUser = function(callback) {
 		var localCallback = function(err, result) {
+			if (result  && result[0]){
+				self.hasPoolUser=true;
+			}
 			callback(err, result);
 		};
 		var helixSchema = {
@@ -313,6 +320,12 @@ var moduleFunction = function(args) {
 
 	var releasePoolUser = function(callback) {
 		callback = callback ? callback : function() {};
+	
+		if (!self.hasPoolUser) {
+			callback();
+			return;
+		}
+		
 		var localCallback = function(err, result) {
 			//note: tests kill Helix before they close so this is not triggered, it works if Helix stays up
 			callback(err, result);
@@ -362,12 +375,7 @@ var moduleFunction = function(args) {
 		osa(test);
 	};
 
-	var compileScript = function(
-		scriptElement,
-		processName,
-		parameters,
-		helixSchema
-	) {
+	var compileScript = (scriptElement, processName, parameters, helixSchema) => {
 		var inData = qtools.clone(parameters.inData) || {};
 		var otherParms = parameters.otherParms || {};
 		var systemParms = self.systemParms;
@@ -415,8 +423,18 @@ var moduleFunction = function(args) {
 
 	var executeHelixOperation = function(processName, parameters) {
 		var helixSchema = qtools.clone(parameters.helixSchema) || {},
-			scriptElement = getScript(processName),
-			finalScript = compileScript(
+			scriptElement = getScript(processName);
+
+			const tmp=parameters.helixSchema?parameters.helixSchema.view:"NO HELIX SCHEMA";
+			qtools.logMilestone(`helix access script: ${processName}/${tmp} ${new Date().toLocaleString()}`);
+			qtools.logMilestone(`========================================`);
+
+		if (scriptElement.err) {
+			!parameters.callback || parameters.callback(scriptElement.err);
+			return;
+		}
+
+		var finalScript = compileScript(
 				scriptElement,
 				processName,
 				parameters,
@@ -551,7 +569,7 @@ var moduleFunction = function(args) {
 		return;
 	};
 
-	var getScriptPathParameters = function(functionName) {
+	var getScriptPathParameters = functionName => {
 		var libDir = __dirname + '/lib/';
 
 		var scriptNameMap = {
@@ -571,36 +589,115 @@ var moduleFunction = function(args) {
 
 		var scriptElement = scriptNameMap[functionName];
 
-		if (!scriptElement) {
-			var path = libDir + functionName + '.applescript';
+		if (scriptElement) {
+			return scriptElement;
+		}
 
-			if (qtools.realPath(path)) {
-				var language = 'AppleScript';
-			} else {
-				var path = libDir + functionName + '.jax';
-				var language = 'Javascript';
+		const internalLibPath = __dirname + '/lib/';
+		const remoteControlDirectoryPath =
+			self.helixAccessParms.remoteControlDirectoryPath;
+
+		if (remoteControlDirectoryPath) {
+			var scriptElement = {
+				path: path.join(
+					remoteControlDirectoryPath,
+					`${functionName}.applescript`
+				),
+				language: 'AppleScript'
+			};
+			
+			if (qtools.realPath(scriptElement.path)) {
+				return scriptElement;
 			}
 
 			var scriptElement = {
-				path: path,
-				language: language
+				path: path.join(remoteControlDirectoryPath, `${functionName}.jax`),
+				language: 'Javascript'
 			};
+			
+			if (qtools.realPath(scriptElement.path)) {
+				return scriptElement;
+			}
+
+			var scriptElement = {
+				path: path.join(remoteControlDirectoryPath, `${functionName}.bash`),
+				language: 'BASH'
+			};
+			
+			if (qtools.realPath(scriptElement.path)) {
+				return scriptElement;
+			}
+		}
+
+		var scriptElement = {
+			path: path.join(internalLibPath, `${functionName}.applescript`),
+			language: 'AppleScript'
+		};
+		
+		if (qtools.realPath(scriptElement.path)) {
+			return scriptElement;
+		}
+
+		var scriptElement = {
+			path: path.join(internalLibPath, `${functionName}.jax`),
+			language: 'Javascript'
+		};
+		
+		if (qtools.realPath(scriptElement.path)) {
+			return scriptElement;
+		}
+	};
+
+	var getScript = functionName => {
+		var scriptElement = getScriptPathParameters(functionName);
+
+		if (qtools.fs.existsSync(scriptElement.path)) {
+			scriptElement.script = qtools.fs
+				.readFileSync(scriptElement.path)
+				.toString();
+		} else {
+			scriptElement.err = `Error: File not found ${scriptElement.path}`;
 		}
 
 		return scriptElement;
 	};
 
-	var getScript = function(functionName) {
-		var scriptElement = getScriptPathParameters(functionName);
-
-		scriptElement.script = qtools.fs
-			.readFileSync(scriptElement.path)
-			.toString();
-
-		return scriptElement;
-	};
-
 	var prepareProcess = function(control, parameters) {
+		if (!parameters.schema && !parameters.helixSchema) {
+			parameters.callback('Must have either schema or helixSchema');
+			return;
+		}
+
+		if (parameters.helixSchema) {
+			var badDataMessage = inDataIsOk(parameters);
+			if (badDataMessage) {
+				parameters.callback(badDataMessage);
+				return;
+			}
+		}
+		//this allows mapping of user friendly names to file names and processes
+		switch (control) {
+			case 'kill':
+			case 'quitHelixNoSave':
+				qtools.logMilestone(`special hxConnector process: ${control}  ${new Date().toLocaleString()}`);
+				executeHelixOperation('quitHelixNoSave', parameters);
+				resetConnector();
+				break;
+			case 'remoteControlManager':
+				qtools.logMilestone(`special hxConnector process: ${control}  ${new Date().toLocaleString()}`);
+				const remoteControlManager = new remoteControlManagerGen({
+					getScript,
+					compileScript
+				});
+				remoteControlManager.execute(control, parameters);
+				break;
+			default:
+				executeHelixOperation(control, parameters);
+				break;
+		}
+	};
+	
+	const helixAccess = (control, parameters) => {
 		qtools.validateProperties({
 			subject: parameters || {},
 			propList: [
@@ -631,26 +728,6 @@ var moduleFunction = function(args) {
 			]
 		});
 
-		var badDataMessage = inDataIsOk(parameters);
-		if (badDataMessage) {
-			parameters.callback(badDataMessage);
-			return;
-		}
-
-		//this allows mapping of user friendly names to file names
-		switch (control) {
-			case 'kill':
-			case 'quitHelixNoSave':
-				executeHelixOperation('quitHelixNoSave', parameters);
-				resetConnector();
-				break;
-			default:
-				executeHelixOperation(control, parameters);
-				break;
-		}
-	};
-
-	this.process = function(control, parameters) {
 		var runProcess = function() {
 			getRelationList(control, function(err, result) {
 				if (err) {
@@ -678,6 +755,63 @@ var moduleFunction = function(args) {
 				}
 			}
 		);
+	};
+	
+	const remoteControlAccess = (control, parameters) => {
+		qtools.validateProperties({
+			subject: parameters || {},
+			propList: [
+				{
+					name: 'schema',
+					optional: false
+				},
+				{
+					name: 'callback',
+					optional: false
+				},
+				{
+					name: 'otherParms',
+					optional: true
+				},
+				{
+					name: 'criterion',
+					optional: true
+				},
+				{
+					name: 'debug',
+					optional: true
+				}
+			]
+		});
+
+		self.validateUserId(
+			self.authGoodies.userId,
+			self.authGoodies.authToken,
+			function(err, result) {
+				if (err) {
+					parameters.callback(err);
+				} else {
+					prepareProcess(control, parameters);
+				}
+			}
+		);
+	};
+
+	this.process = function(control, parameters) {
+		const schemaType = qtools.getSurePath(
+			parameters,
+			'schema.schemaType',
+			'helixAccess'
+		);
+		switch (schemaType) {
+			case 'remoteControl':
+				remoteControlAccess(control, parameters);
+				break;
+
+			case 'helixAccess':
+			default:
+				helixAccess(control, parameters);
+		}
 	};
 
 	this.close = function() {
