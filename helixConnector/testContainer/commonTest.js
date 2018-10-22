@@ -125,6 +125,10 @@
 		after(killHelix(helixConnector));
 	};
 
+	var nonHelixInit = function(helixConnector, before, after, scope) {
+		scope.timeout(15000);
+	};
+
 	var ignoreHelixId = function(leftParmValue, rightParmValue, inx) {
 		if (inx === 'helixId') {
 			return true;
@@ -152,6 +156,7 @@
 		killHelix: killHelix,
 		qtools: qtools,
 		standardInit: standardInit,
+		nonHelixInit:nonHelixInit,
 		ignoreHelixId: ignoreHelixId,
 		authGoodies: authGoodies
 	};

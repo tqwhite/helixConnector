@@ -1,18 +1,16 @@
 'use strict';
 const qtoolsGen = require('qtools');
-const 	qtools = new qtoolsGen(module);
-const 	events = require('events');
+const qtools = new qtoolsGen(module, { updatePrototypes: true });
+const async = require('async');
 const 	util = require('util');
 const 	helixDataGen = require('helixdata');
 const 	helixData = new helixDataGen();
-const remoteControlManagerGen = require('./remote-control-manager');
 const path = require('path');
-const helixEngineGen=require('./accessors/helix-engine');
+const osascript = require('osascript').eval;
 
 //START OF moduleFunction() ============================================================
 
-const moduleFunction = function(args) {
-	events.EventEmitter.call(this);
+var moduleFunction = function(args) {
 
 	const argsErrorList = qtools.validateProperties(
 		{
@@ -33,6 +31,10 @@ const moduleFunction = function(args) {
 				},
 				{
 					name: 'noValidationNeeded',
+					optional: true
+				},
+				{
+					name: 'libDir',
 					optional: true
 				}
 			]
@@ -195,11 +197,16 @@ const moduleFunction = function(args) {
 	};
 
 	const switchToPoolUser = function(user, password) {
+console.log(`\n=-=============   switchToPoolUser  ========================= [helix-engine.js.switchToPoolUser]\n`);
+
+
 		self.systemParms.user = user;
 		self.systemParms.password = password;
 	};
 
 	const initUserPoolIfNeeded = function(control, callback) {
+console.log("X:control="+control+" [helix-engine.js.initUserPoolIfNeeded]");
+
 		switch (control) {
 			case 'openTestDb':
 				callback();
@@ -254,6 +261,13 @@ const moduleFunction = function(args) {
 			);
 			return;
 		}
+
+console.log("X:allPresent="+allPresent+" [helixConnector.js.initUserPoolIfNeeded]");
+
+console.log("X:self.userPoolOk="+self.userPoolOk+" [helixConnector.js.initUserPoolIfNeeded]");
+
+console.log("X:self.leaseUserName="+self.leaseUserName+" [helixConnector.js.initUserPoolIfNeeded]");
+
 		if (allPresent && self.userPoolOk && !self.leaseUserName) {
 			getPoolUser(function(err, result) {
 				if (!result || !result[0]) {
@@ -385,7 +399,6 @@ const moduleFunction = function(args) {
 				{},
 				self.helixAccessParms,
 				helixSchema,
-				inData,
 				otherParms,
 				systemParms,
 				{
@@ -415,8 +428,6 @@ const moduleFunction = function(args) {
 			);
 		}
 
-
-
 		const finalScript = qtools.templateReplace({
 			template: script.toString(),
 			replaceObject: replaceObject
@@ -428,6 +439,8 @@ const moduleFunction = function(args) {
 	const executeHelixOperation = function(processName, parameters) {
 		const helixSchema = qtools.clone(parameters.helixSchema) || {};
 		const scriptElement = getScript(processName);
+
+
 
 		const tmp = parameters.helixSchema
 			? parameters.helixSchema.view
@@ -450,7 +463,7 @@ const moduleFunction = function(args) {
 			),
 			callback = parameters.callback || function() {};
 
-		if (true || parameters.debug) {
+		if (parameters.debug) {
 			console.log('finalScript=' + finalScript);
 		}
 
@@ -535,9 +548,6 @@ const moduleFunction = function(args) {
 		let inData = parameters.inData;
 		const fieldSequenceList = helixSchema.fieldSequenceList;
 
-console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
-
-
 		if (typeof inData.length == 'undefined') {
 			inData = [inData];
 		}
@@ -550,8 +560,7 @@ console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
 				(!fieldSequenceList || fieldSequenceList.length === 0) &&
 				qtools.count(element) !== 0
 			) {
-				qtools.logError(`The schema '${helixSchema.schemaName}' does not allow input data (no fieldSequenceList and inData exists)`);
-				return `The schema '${helixSchema.schemaName}' does not allow input data (no fieldSequenceList and inData exists)`;
+				return 'This schema does not allow input data';
 			}
 
 			if (
@@ -581,8 +590,7 @@ console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
 		return;
 	};
 
-	const getScriptPathParameters = functionName => {
-		const libDir = __dirname + '/lib/';
+	const getScriptPathParameters = libDir =>functionName => {
 
 		var scriptNameMap = {
 			save: {
@@ -605,9 +613,13 @@ console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
 			return scriptElement;
 		}
 
-		const internalLibPath = __dirname + '/lib/';
+		const internalLibPath = libDir;
 		const remoteControlDirectoryPath =
 			self.helixAccessParms.remoteControlDirectoryPath;
+
+
+
+
 
 		if (remoteControlDirectoryPath) {
 			scriptElement = {
@@ -658,19 +670,10 @@ console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
 		if (qtools.realPath(scriptElement.path)) {
 			return scriptElement;
 		}
-
-		scriptElement = {
-			path: path.join(internalLibPath, `${functionName}.bash`),
-			language: 'BASH'
-		};
-
-		if (qtools.realPath(scriptElement.path)) {
-			return scriptElement;
-		}
 	};
 
 	var getScript = functionName => {
-		const scriptElement = getScriptPathParameters(functionName);
+		const scriptElement = getScriptPathParameters(args.libDir)(functionName);
 
 		if (qtools.fs.existsSync(scriptElement.path)) {
 			scriptElement.script = qtools.fs
@@ -700,6 +703,9 @@ console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
 		switch (control) {
 			case 'kill':
 			case 'quitHelixNoSave':
+console.log(`\n=-=============   kill  ========================= [helix-engine.js.prepareProcess]\n`);
+
+
 				qtools.logMilestone(
 					`special hxConnector process: ${control}  ${new Date().toLocaleString()}`
 				);
@@ -722,7 +728,7 @@ console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
 		}
 	};
 	
-	const helixAccess = (control, parameters) => {
+	this.helixAccess = (control, parameters) => {
 		qtools.validateProperties({
 			subject: parameters || {},
 			propList: [
@@ -752,7 +758,7 @@ console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
 				}
 			]
 		});
-		
+
 		const runProcess = function() {
 			getRelationList(control, function(err, result) {
 				if (err) {
@@ -782,86 +788,12 @@ console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
 		);
 	};
 	
-	const remoteControlAccess = (control, parameters) => {
-		qtools.validateProperties({
-			subject: parameters || {},
-			propList: [
-				{
-					name: 'schema',
-					optional: false
-				},
-				{
-					name: 'callback',
-					optional: false
-				},
-				{
-					name: 'otherParms',
-					optional: true
-				},
-				{
-					name: 'criterion',
-					optional: true
-				},
-				{
-					name: 'debug',
-					optional: true
-				}
-			]
-		});
-
-		self.validateUserId(
-			self.authGoodies.userId,
-			self.authGoodies.authToken,
-			function(err, result) {
-				if (err) {
-					parameters.callback(err);
-				} else {
-					prepareProcess(control, parameters);
-				}
-			}
-		);
-	};
-
-	this.process = function(control, parameters) {
-		const schemaType = qtools.getSurePath(
-			parameters,
-			'schema.schemaType',
-			'helixAccess'
-		);
-		switch (schemaType) {
-			case 'remoteControl':
-				remoteControlAccess(control, parameters);
-				break;
-
-			case 'helixAccess':
-			default:
-			
-			if (true){
-				helixAccess(control, parameters);
-				}
-				else{
-					args.libDir=__dirname + '/lib/';
-					const helixEngine=new helixEngineGen(args);
-					helixEngine.helixAccess(control, parameters);
-				}
-		}
-	};
-
-	this.close = function() {
-		releasePoolUser(resetConnector);
-	};
-
-	//INITIALIZATION ====================================
-
-	const osascript = require('osascript').eval;
-
-	initializeProperties();
 
 	return this;
 };
 
 //END OF moduleFunction() ============================================================
 
-util.inherits(moduleFunction, events.EventEmitter);
 module.exports = moduleFunction;
+//module.exports = new moduleFunction();
 

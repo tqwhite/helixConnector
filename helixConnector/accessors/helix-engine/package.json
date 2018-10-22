@@ -1,0 +1,11 @@
+{
+  "name": "helix-engine",
+  "version": "1.0.0",
+  "description": "code specific to helix",
+  "main": "helix-engine.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

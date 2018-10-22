@@ -37,10 +37,6 @@ var moduleFunction = function(args) {
 		var helixSchema = qtools.clone(parameters.helixSchema) || {},
 			scriptElement = getScript(parameters.schema.scriptName);
 
-		console.dir({
-			'scriptElement [remote-control-manager.js.moduleFunction]': scriptElement
-		});
-
 		const tmp = parameters.schema ? parameters.schema.scriptName : 'NO SCRIPT';
 		qtools.logMilestone(
 			`remote control script: ${processName}/${tmp} ${new Date().toLocaleString()}`
