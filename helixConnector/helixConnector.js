@@ -1,13 +1,13 @@
 'use strict';
 const qtoolsGen = require('qtools');
-const 	qtools = new qtoolsGen(module);
-const 	events = require('events');
-const 	util = require('util');
-const 	helixDataGen = require('helixdata');
-const 	helixData = new helixDataGen();
+const qtools = new qtoolsGen(module);
+const events = require('events');
+const util = require('util');
+const helixDataGen = require('helixdata');
+const helixData = new helixDataGen();
 const remoteControlManagerGen = require('./remote-control-manager');
 const path = require('path');
-const helixEngineGen=require('./accessors/helix-engine');
+const helixEngineGen = require('./accessors/helix-engine');
 
 //START OF moduleFunction() ============================================================
 
@@ -413,11 +413,8 @@ const moduleFunction = function(args) {
 				otherParms,
 				parameters.criterion.data
 			);
-		}
-
-
-
-		const finalScript = qtools.templateReplace({
+		} 
+		 const finalScript = qtools.templateReplace({
 			template: script.toString(),
 			replaceObject: replaceObject
 		});
@@ -535,9 +532,8 @@ const moduleFunction = function(args) {
 		let inData = parameters.inData;
 		const fieldSequenceList = helixSchema.fieldSequenceList;
 
-console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
-
-
+		console.dir({ 'parameters [helixConnector.js.inDataIsOk]': parameters });
+		
 		if (typeof inData.length == 'undefined') {
 			inData = [inData];
 		}
@@ -550,8 +546,14 @@ console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
 				(!fieldSequenceList || fieldSequenceList.length === 0) &&
 				qtools.count(element) !== 0
 			) {
-				qtools.logError(`The schema '${helixSchema.schemaName}' does not allow input data (no fieldSequenceList and inData exists)`);
-				return `The schema '${helixSchema.schemaName}' does not allow input data (no fieldSequenceList and inData exists)`;
+				qtools.logError(
+					`The schema '${
+						helixSchema.schemaName
+					}' does not allow input data (no fieldSequenceList and inData exists)`
+				);
+				return `The schema '${
+					helixSchema.schemaName
+				}' does not allow input data (no fieldSequenceList and inData exists)`;
 			}
 
 			if (
@@ -696,6 +698,7 @@ console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
 				return;
 			}
 		}
+		
 		//this allows mapping of user friendly names to file names and processes
 		switch (control) {
 			case 'kill':
@@ -752,8 +755,20 @@ console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
 				}
 			]
 		});
-		
+
 		const runProcess = function() {
+			if (parameters.helixSchema.staticTest) {
+				const maybeFunc=eval(parameters.helixSchema.staticTestData);
+				
+				if (typeof(maybeFunc)=='function'){
+					parameters.callback('', maybeFunc(parameters.helixSchema));
+				}
+				else{
+					parameters.callback('', parameters.helixSchema.staticTestData);
+				}
+				return;
+			}
+						
 			getRelationList(control, function(err, result) {
 				if (err) {
 					parameters.callback(err);
@@ -835,13 +850,11 @@ console.dir({"parameters [helixConnector.js.inDataIsOk]":parameters});
 
 			case 'helixAccess':
 			default:
-			
-			if (true){
-				helixAccess(control, parameters);
-				}
-				else{
-					args.libDir=__dirname + '/lib/';
-					const helixEngine=new helixEngineGen(args);
+				if (true) {
+					helixAccess(control, parameters);
+				} else {
+					args.libDir = __dirname + '/lib/';
+					const helixEngine = new helixEngineGen(args);
 					helixEngine.helixAccess(control, parameters);
 				}
 		}
