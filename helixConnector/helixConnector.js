@@ -8,6 +8,7 @@ const helixData = new helixDataGen();
 const remoteControlManagerGen = require('./remote-control-manager');
 const path = require('path');
 const helixEngineGen = require('./accessors/helix-engine');
+const staticDataGen = require('./static-data');
 
 //START OF moduleFunction() ============================================================
 
@@ -413,8 +414,8 @@ const moduleFunction = function(args) {
 				otherParms,
 				parameters.criterion.data
 			);
-		} 
-		 const finalScript = qtools.templateReplace({
+		}
+		const finalScript = qtools.templateReplace({
 			template: script.toString(),
 			replaceObject: replaceObject
 		});
@@ -432,7 +433,6 @@ const moduleFunction = function(args) {
 		qtools.logMilestone(
 			`helix access script: ${processName}/${tmp} ${new Date().toLocaleString()}`
 		);
-		qtools.logMilestone(`========================================`);
 
 		if (scriptElement.err) {
 			!parameters.callback || parameters.callback(scriptElement.err);
@@ -447,7 +447,7 @@ const moduleFunction = function(args) {
 			),
 			callback = parameters.callback || function() {};
 
-		if (true || parameters.debug) {
+		if (parameters.debug) {
 			console.log('finalScript=' + finalScript);
 		}
 
@@ -532,8 +532,6 @@ const moduleFunction = function(args) {
 		let inData = parameters.inData;
 		const fieldSequenceList = helixSchema.fieldSequenceList;
 
-		console.dir({ 'parameters [helixConnector.js.inDataIsOk]': parameters });
-		
 		if (typeof inData.length == 'undefined') {
 			inData = [inData];
 		}
@@ -698,21 +696,15 @@ const moduleFunction = function(args) {
 				return;
 			}
 		}
-		
+
 		//this allows mapping of user friendly names to file names and processes
 		switch (control) {
 			case 'kill':
 			case 'quitHelixNoSave':
-				qtools.logMilestone(
-					`special hxConnector process: ${control}  ${new Date().toLocaleString()}`
-				);
 				executeHelixOperation('quitHelixNoSave', parameters);
 				resetConnector();
 				break;
 			case 'remoteControlManager':
-				qtools.logMilestone(
-					`special hxConnector process: ${control}  ${new Date().toLocaleString()}`
-				);
 				const remoteControlManager = new remoteControlManagerGen({
 					getScript,
 					compileScript
@@ -756,19 +748,38 @@ const moduleFunction = function(args) {
 			]
 		});
 
+		const executeStaticTest = (helixSchema, callback) => {
+			const buildResponse = (helixData, helixSchema, data) => {
+				return helixData.arrayOfRecordsToArrayOfResponseObjects(
+					helixSchema.fieldSequenceList,
+					helixSchema.mapping,
+					data
+				);
+
+				// specialStringConversion appears to be a deadend relic.
+				// I leave it here so I don't forget if I ever change my mind
+				// if (!parameters.specialStringConversion) {
+				// 	return helixData.helixStringToRecordList(helixSchema, data);
+				// } else {
+				// 	return parameters.specialStringConversion(helixSchema, data);
+				// }
+			};
+			const staticData = new staticDataGen();
+			const outData = staticData.get(
+				parameters.helixSchema.staticTestData,
+				self.helixAccessParms.staticDataDirectoryPath,
+				helixSchema,
+				self.helixAccessParms
+			);
+			callback('', buildResponse(helixData, helixSchema, outData));
+		};
+
 		const runProcess = function() {
 			if (parameters.helixSchema.staticTest) {
-				const maybeFunc=eval(parameters.helixSchema.staticTestData);
-				
-				if (typeof(maybeFunc)=='function'){
-					parameters.callback('', maybeFunc(parameters.helixSchema));
-				}
-				else{
-					parameters.callback('', parameters.helixSchema.staticTestData);
-				}
+				executeStaticTest(parameters.helixSchema, parameters.callback);
 				return;
 			}
-						
+
 			getRelationList(control, function(err, result) {
 				if (err) {
 					parameters.callback(err);

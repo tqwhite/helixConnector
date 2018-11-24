@@ -38,10 +38,6 @@ var moduleFunction = function(args) {
 			scriptElement = getScript(parameters.schema.scriptName);
 
 		const tmp = parameters.schema ? parameters.schema.scriptName : 'NO SCRIPT';
-		qtools.logMilestone(
-			`remote control script: ${processName}/${tmp} ${new Date().toLocaleString()}`
-		);
-		qtools.logMilestone(`========================================`);
 
 		if (scriptElement.err) {
 			!parameters.callback || parameters.callback(scriptElement.err);

@@ -1,0 +1,11 @@
+{
+  "name": "static-data",
+  "version": "1.0.0",
+  "description": "gets data from files and hx schemas into json",
+  "main": "static-data.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

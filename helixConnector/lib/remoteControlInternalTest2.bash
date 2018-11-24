@@ -1,3 +1,3 @@
 
 
-echo "<!testReturnString!>_INTERNAL_BASH;
+echo "<!testReturnString!>_INTERNAL_BASH";

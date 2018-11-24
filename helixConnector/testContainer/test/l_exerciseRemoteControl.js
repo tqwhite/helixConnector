@@ -67,9 +67,9 @@ describe('Exercise Remote Control (' + moduleFileName + ')', function() {
 			debug: false,
 			inData: testRecordData,
 			callback: function(err, result, misc) {
-				if (result.trim() != `${testRecordData.testReturnString}USER`) {
+				if (result.trim() != `?testReturnString=\'${testRecordData.testReturnString}' (via remoteControlTest1.applescript)`) {
 					err = new Error(
-						'return value does not match the value that was sent'
+						'return value does not match the value that was sent (the most common problem is TQ changed the return from some library script)'
 					);
 				}
 				done(err);
@@ -97,7 +97,7 @@ describe('Exercise Remote Control (' + moduleFileName + ')', function() {
 			debug: false,
 			inData: testRecordData,
 			callback: function(err, result, misc) {
-				if (result.trim() != `${testRecordData.testReturnString}INTERNAL`) {
+				if (result.trim() != `${testRecordData.testReturnString}_INTERNAL_BASH`) {
 					err = new Error(
 						'return value does not match the value that was sent'
 					);
@@ -109,7 +109,7 @@ describe('Exercise Remote Control (' + moduleFileName + ')', function() {
 
 	//new test ====================================================
 
-	testDescription = 'do some good BASH from INTERNAL TEST Directory';
+	testDescription = 'do some good BASH from USER TEST Directory';
 	it(testDescription, function(done) {
 		var helixSchema = {
 			schemaType: 'remoteControl',

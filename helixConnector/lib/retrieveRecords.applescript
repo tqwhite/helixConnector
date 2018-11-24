@@ -12,6 +12,7 @@ tell application "<!applicationName!>"
 --<!processName!> - <!callingProcess!>	
 	
 	tell collection 1
+		with timeout of 3600 seconds
 	
 		if criterionView is not equal to "" then
 			set criterionResult to utilize {myCollection, myUser, myPassword, criterionRelation, criterionView, criterionData} to store one record
@@ -19,7 +20,9 @@ tell application "<!applicationName!>"
 
 		set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as string
 		
+		end timeout
 	end tell
 	
 	return theResult
 end tell
+
