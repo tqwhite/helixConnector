@@ -80,7 +80,7 @@ var saveRecords = function(schemaName, testRecordData, callback) {
 	return function(done) {
 
 		helixConnector.process('saveDirect', {
-			helixSchema: schemaMap[schemaName],
+			schema: schemaMap[schemaName],
 			otherParms: {},
 			debug: false,
 			inData: testRecordData,
@@ -96,9 +96,10 @@ var retrieveRecords = function(schemaName, callback, criterion) {
 
 		var schema = schemaMap[schemaName];
 		schema.emptyRecordsAllowed = true;
+		schema.publicEndpoint = true;
 
 		var helixParms = {
-			helixSchema: qtools.clone(schema),
+			schema: qtools.clone(schema),
 			otherParms: {},
 			debug: false,
 			inData: {},
@@ -107,7 +108,7 @@ var retrieveRecords = function(schemaName, callback, criterion) {
 
 		if (schema.criterionSchemaName) {
 			var criterionSchema = schemaMap[schema.criterionSchemaName];
-			helixParms.helixSchema.criterion = criterionSchema;
+			helixParms.schema.criterion = criterionSchema;
 			helixParms.criterion = {};
 			helixParms.criterion.data = criterion;
 		}

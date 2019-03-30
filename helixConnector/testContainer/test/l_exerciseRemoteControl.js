@@ -36,7 +36,6 @@ describe('Exercise Remote Control (' + moduleFileName + ')', function() {
 			debug: false,
 			inData: testRecordData,
 			callback: function(err, result, misc) {
-				
 				if (result.trim() != `${testRecordData.testReturnString}INTERNAL`) {
 					err = new Error(
 						'return value does not match the value that was sent'
@@ -67,7 +66,12 @@ describe('Exercise Remote Control (' + moduleFileName + ')', function() {
 			debug: false,
 			inData: testRecordData,
 			callback: function(err, result, misc) {
-				if (result.trim() != `?testReturnString=\'${testRecordData.testReturnString}' (via remoteControlTest1.applescript)`) {
+				if (
+					result.trim() !=
+					`?testReturnString=\'${
+						testRecordData.testReturnString
+					}' (via remoteControlTest1.applescript)`
+				) {
 					err = new Error(
 						'return value does not match the value that was sent (the most common problem is TQ changed the return from some library script)'
 					);
@@ -97,7 +101,9 @@ describe('Exercise Remote Control (' + moduleFileName + ')', function() {
 			debug: false,
 			inData: testRecordData,
 			callback: function(err, result, misc) {
-				if (result.trim() != `${testRecordData.testReturnString}_INTERNAL_BASH`) {
+				if (
+					result.trim() != `${testRecordData.testReturnString}_INTERNAL_BASH`
+				) {
 					err = new Error(
 						'return value does not match the value that was sent'
 					);
@@ -133,6 +139,40 @@ describe('Exercise Remote Control (' + moduleFileName + ')', function() {
 					);
 				}
 				done(err);
+			}
+		});
+	});
+
+	//new test ====================================================
+
+	testDescription = 'force error because of a bad schema type';
+	it(testDescription, function(done) {
+		const badSchemaType = 'bad schema name';
+		var helixSchema = {
+			schemaType: badSchemaType,
+			scriptName: 'remoteControlUserTest2',
+			arguments: {
+				hello: 'goodbye I do not think this gets carried through yet',
+				orange: 'black'
+			}
+		};
+		var testRecordData = {
+			testReturnString: 'orange'
+		};
+		helixConnector.process('remoteControlManager', {
+			schema: helixSchema,
+			debug: false,
+			inData: testRecordData,
+			callback: function(err, result, misc) {
+				if (
+					err.toString().trim() != `Error: unknown schemaType 'bad schema name'`
+				) {
+					err = new Error(`got wrong error '${err}'`);
+					done(err);
+					return;
+				}
+
+				done();
 			}
 		});
 	});

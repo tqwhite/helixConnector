@@ -32,12 +32,18 @@ var moduleFunction = function(args) {
 	
 	
 
-	const executeActual = args => (processName, parameters) => {
-		const { processor, getScript } = args;
-		var helixSchema = qtools.clone(parameters.helixSchema) || {},
-			scriptElement = getScript(parameters.schema.scriptName);
+	const executeActual = args => (libraryScriptName, parameters, callback) => {
+		const { processor, getScript, compileScript } = args;
+
+		var helixSchema = qtools.clone(parameters.schema) || {},
+			scriptElement = getScript(libraryScriptName);
+
+
 
 		const tmp = parameters.schema ? parameters.schema.scriptName : 'NO SCRIPT';
+		qtools.logDetail(
+			`remote control script: ${libraryScriptName}/${tmp} ${new Date().toLocaleString()}`
+		);
 
 		if (scriptElement.err) {
 			!parameters.callback || parameters.callback(scriptElement.err);
@@ -50,15 +56,17 @@ var moduleFunction = function(args) {
 			return;
 		}
 
-		var finalScript = compileScript(
+		var finalScript = compileScript({
 				scriptElement,
-				processName,
-				parameters,
+				libraryScriptName,
+				parameters:parameters.schema,
 				helixSchema
-			),
+			}),
 			callback = parameters.callback || function() {};
 
-		if (parameters.debug) {
+
+
+		if (helixSchema.debug=='true') {
 			console.log('finalScript=' + finalScript);
 		}
 
@@ -78,14 +86,13 @@ var moduleFunction = function(args) {
 	
 	//INITIALIZATION ====================================
 
-	const { getScript, compileScript } = args;
 	
 	const processor = (script, parms, callback) => {
-	const localCallback=(err, result)=>{
-		callback(err, result);
-	}
-	
-		const exec = require('child_process').exec;
+		const localCallback = (err, result) => {
+			callback(err, result);
+		};
+
+		const bash = require('child_process').exec;
 		const osaScript = require('osascript').eval;
 
 		const workingParms = qtools.clone(parms);
@@ -96,19 +103,22 @@ var moduleFunction = function(args) {
 				osaScript(script, parms, localCallback);
 				break;
 			case 'bash':
-				exec(script, localCallback);
+				bash(script, localCallback);
 				break;
 			case 'jax':
 				workingParms.type = 'javascript';
 				osaScript(script, parms, localCallback);
 				break;
 			default:
-				localCallback(`scriptElement language (${parms.type}) is not supported`);
+				localCallback(
+					`scriptElement language (${parms.type}) is not supported`
+				);
 				break;
 		}
 	};
 	
-	this.execute = executeActual({ processor, getScript });
+	const { getScript, compileScript } = args;
+	this.execute = executeActual({ processor, getScript, compileScript });
 	
 	
 	!this.initCallback || this.initCallback();

@@ -29,56 +29,61 @@ var moduleFunction = function(args) {
 	
 	//METHODS AND PROPERTIES ====================================
 	
-	this.get=(staticTestData, staticDataDirectoryPath, helixSchema, helixAccessParms)=>{
-	
-	const makeArray=(inData, fieldSep, recordSep)=>{
-	fieldSep ||  qtools.logWarn('helix schema has no separators.field property');
-	recordSep ||  qtools.logWarn('helix schema has no separators.record property');
-	return inData.toString().split(recordSep).map(recordString=>recordString.split(fieldSep))
-	}
+	this.get = (
+		staticTestData,
+		staticDataDirectoryPath,
+		helixSchema,
+		helixAccessParms
+	) => {
+		
+		const makeArray = (inData, fieldSep, recordSep) => {
+			fieldSep ||
+				qtools.logWarn('helix schema has no separators.field property');
+			recordSep ||
+				qtools.logWarn('helix schema has no separators.record property');
+			return inData
+				.toString()
+				.split(recordSep)
+				.map(recordString => recordString.split(fieldSep));
+		};
+		
+		let maybeFunc = '';
+		try {
+			maybeFunc = eval(staticTestData);
+		} catch (e) {}
 
+		let outData;
 
-			let maybeFunc = '';
-			try {
-				maybeFunc = eval(staticTestData);
-			} catch (e) {}
-			
-			let outData;
-			
-			if (typeof(staticTestData)=='object'){
-				return staticTestData;
-			}
+		if (typeof staticTestData == 'object') {
+			return staticTestData;
+		}
 
-			const staticDataPath = path.join(
-				staticDataDirectoryPath,
-				staticTestData
+		const staticDataPath = path.join(staticDataDirectoryPath, staticTestData);
+
+		if (typeof maybeFunc == 'function') {
+			outData = maybeFunc(helixSchema);
+		} else if (qtools.realPath(staticDataPath)) {
+			outData = makeArray(
+				qtools.fs.readFileSync(staticDataPath),
+				helixSchema.separators.field,
+				helixSchema.separators.record
 			);
 
-			if (typeof maybeFunc == 'function') {
-				outData = maybeFunc(helixSchema);
-			} else if (qtools.realPath(staticDataPath)) {
-				outData=makeArray(qtools.fs.readFileSync(staticDataPath), helixSchema.separators.field, helixSchema.separators.record);
-
-if (outData && helixSchema.fieldSequenceList[0]==outData[0][0]){
-outData=outData.slice(1, outData.length);
-}
-
-
-
-
-			} else {
-				outData = staticTestData;
-			}
+			if (outData && helixSchema.fieldSequenceList[0] == outData[0][0]) {
+				outData = outData.slice(1, outData.length);
+			}  
 			
-			return outData;
-			
-			}
+		} else {
+			outData = staticTestData;
+		}
+
+		return outData;
+	};
+
 	//API ENDPOINTS ====================================
 	
 	
 	//INITIALIZATION ====================================
-
-	console.log(__dirname);
 	
 	!this.initCallback || this.initCallback();
 
