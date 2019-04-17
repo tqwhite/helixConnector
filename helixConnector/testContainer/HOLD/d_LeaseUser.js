@@ -1,0 +1,53 @@
+var commonTest = require('../commonTest.js');
+var assert = require("assert");
+var isMatch = require('lodash.ismatch');
+
+var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_0-9]+)\.js/, '$1')
+
+var testDescription;
+
+var helixConnector = new commonTest.helixConnector({
+	helixAccessParms: commonTest.config.getHelixParms(),
+	authGoodies:commonTest.authGoodies
+});
+
+describe('Lease Pool User base function (' + moduleFileName + ')', function() {
+
+	commonTest.standardInit(helixConnector, before, after, this);
+
+	var helixSchema = {
+		'emptyRecordsAllowed':true,
+		relation: '',
+		view: '',
+		fieldSequenceList: [
+			'leaseUserName'
+		],
+		mapping: {},
+		separators:{
+			field:', '
+		}
+	};
+
+	testDescription = "should return a pool user name"
+	it(testDescription, function(done) {
+		helixConnector.process('poolUserLease', {
+			schema: helixSchema,
+			otherParms: {},
+			debug: false,
+			inData: {},
+			callback: function(err, result, misc) {
+				if (err) {
+					done(err);
+				}
+				if (typeof (result[0].leaseUserName) == 'string') {
+					done()
+				} else {
+					done(new Error("leaseUserName was not found"));
+				}
+			}
+		});
+
+	});
+
+});
+

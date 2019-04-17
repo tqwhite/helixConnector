@@ -131,7 +131,7 @@ var moduleFunction = function(args) {
 						? ''
 						: scriptElement.language //turns out that osascript won't let you specify, JS is the default
 			},
-			function(err, data) {
+			function(err, data='') {
 				data = data.replace(/([^\n])\n$/, '$1');
 				err = err ? new Error(err) : err;
 				if (!parameters.specialStringConversion) {
