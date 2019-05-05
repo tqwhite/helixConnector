@@ -30,7 +30,7 @@ describe('Lease Pool User base function (' + moduleFileName + ')', function() {
 
 	testDescription = "should return a pool user name"
 	it(testDescription, function(done) {
-		helixConnector.process('poolUserLease', {
+		helixConnector.process('testPoolUserLease', {
 			schema: helixSchema,
 			otherParms: {},
 			debug: false,

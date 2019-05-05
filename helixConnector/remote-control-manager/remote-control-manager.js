@@ -2,6 +2,8 @@
 const qtoolsGen = require('qtools');
 const qtools = new qtoolsGen(module, { updatePrototypes: true });
 const async = require('async');
+const helixDataGen = require('helixdata');
+const helixData = new helixDataGen();
 
 //START OF moduleFunction() ============================================================
 
@@ -32,14 +34,11 @@ var moduleFunction = function(args) {
 	
 	
 
-	const executeActual = args => (libraryScriptName, parameters, callback) => {
+	const executeActual = args => (libraryScriptName, parameters) => {
 		const { processor, getScript, compileScript } = args;
 
-		var helixSchema = qtools.clone(parameters.schema) || {},
-			scriptElement = getScript(libraryScriptName);
-
-
-
+		const helixSchema = Object.assign({}, parameters.schema, parameters.otherParms);
+		const scriptElement = getScript(libraryScriptName);
 		const tmp = parameters.schema ? parameters.schema.scriptName : 'NO SCRIPT';
 		qtools.logDetail(
 			`remote control script: ${libraryScriptName}/${tmp} ${new Date().toLocaleString()}`
@@ -61,13 +60,31 @@ var moduleFunction = function(args) {
 				libraryScriptName,
 				parameters:parameters.schema,
 				helixSchema
-			}),
-			callback = parameters.callback || function() {};
+			});
+		const callback = parameters.callback || function() {};
 
-
-
-		if (helixSchema.debug=='true') {
+		if (helixSchema.debug) {
 			console.log('finalScript=' + finalScript);
+		}
+		
+		const localCallback=(err, result)=>{
+			
+			if (helixSchema.conversion){
+			
+				const conversionFunction = helixData.remoteControlConversionList[helixSchema.conversion.functionName];
+				
+				if (!conversionFunction){
+					callback(`Conversion function '${helixSchema.conversion.functionName}' is missing`);
+					return;
+				}
+				
+				conversionFunction(helixSchema.conversion, result, callback)
+
+			}
+			else{
+			callback(err, result);
+		}
+		
 		}
 
 		processor(
@@ -75,7 +92,7 @@ var moduleFunction = function(args) {
 			{
 				type: scriptElement.language
 			},
-			callback
+			localCallback
 		);
 	};
 	

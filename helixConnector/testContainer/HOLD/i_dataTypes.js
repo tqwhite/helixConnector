@@ -64,7 +64,7 @@ var saveRecords = function(schemaName, testRecordData, callback) {
 
 	return function(done) {
 
-		helixConnector.process('saveDirect', {
+		helixConnector.process('saveOneWithProcess', {
 			schema: schemaMap[schemaName],
 			otherParms: {},
 			debug: false,

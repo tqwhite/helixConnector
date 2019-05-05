@@ -120,7 +120,7 @@ var moduleFunction = function(args) {
 			callback = parameters.callback || function() {};
 
 		if (helixSchema.debug == 'true') {
-			console.log('finalScript=' + finalScript);
+			console.log('finalScriptZZ=' + finalScript);
 		}
 
 		processor(

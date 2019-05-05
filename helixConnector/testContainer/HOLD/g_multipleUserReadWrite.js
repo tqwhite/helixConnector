@@ -67,7 +67,7 @@ describe('Multiple Pool Users (' + moduleFileName + ')', function() {
 			fieldSequenceList: fieldSequenceList,
 			mapping: {}
 		};
-		helixConnector1.process('saveDirect', {
+		helixConnector1.process('saveOneWithProcess', {
 			schema: helixSchema,
 			debug: false,
 			inData: testData,

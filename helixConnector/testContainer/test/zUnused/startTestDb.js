@@ -16,7 +16,7 @@ describe.skip('start helix test database ('+moduleFileName+')', function() {
 	this.timeout(15000);
 	testDescription = "opening file: "+commonTest.testDbName
 	it(testDescription, function(done) {
-		helixConnector.process('openTestDb', {
+		helixConnector.process('testOpenTestDb', {
 			inData: {
 				testDataDir: commonTest.testDataDir,
 				testCollectionFileName:commonTest.testDbName,

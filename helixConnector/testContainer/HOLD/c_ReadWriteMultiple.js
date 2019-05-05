@@ -42,7 +42,7 @@ describe('Connector Write Multiple (' + moduleFileName + ')', function() {
 
 	testDescription = "should write data with no errors"
 	it(testDescription, function(done) {
-		helixConnector.process('saveDirect', {
+		helixConnector.process('saveOneWithProcess', {
 			schema: helixSchema,
 			debug: false,
 			inData: testRecordData,

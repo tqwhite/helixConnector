@@ -85,7 +85,7 @@ const moduleFunction = function(args) {
 		}
 		
 		
-console.log(`\n=-=============   decoded  ========================= [helixConnector.js.moduleFunction]\n`);
+console.log(`\n=-=============   validateUserTokenActual  ========================= [helixConnector.js.moduleFunction]\n`);
 
 // 
 // console.dir({"decoded [helixConnector.js.moduleFunction]":decoded});
@@ -117,11 +117,11 @@ console.log(`\n=-=============   decoded  ========================= [helixConnec
 					language: 'AppleScript'
 				},
 				kill: {
-					path: libDir + 'quitHelixNoSave.applescript',
+					path: libDir + 'testQuitHelixNoSave.applescript',
 					language: 'AppleScript'
 				},
 				startDb: {
-					path: libDir + 'openTestDb.jax',
+					path: libDir + 'testOpenTestDb.jax',
 					language: 'Javascript'
 				}
 			};
@@ -257,6 +257,7 @@ console.log(`\n=-=============   decoded  ========================= [helixConnec
 				parameters.criterion.data
 			);
 		}
+
 		const finalScript = qtools.templateReplace({
 			template: script.toString(),
 			replaceObject: replaceObject
@@ -284,7 +285,7 @@ console.log(`\n=-=============   decoded  ========================= [helixConnec
 				new helixAccessManagerGen({
 					getScript,
 					compileScript
-				}).execute('quitHelixNoSave', parameters);
+				}).execute('testQuitHelixNoSave', parameters);
 				break;
 			case 'staticTest':
 				executeStaticTestRoute(
@@ -299,8 +300,8 @@ console.log(`\n=-=============   decoded  ========================= [helixConnec
 				}).execute(parameters.schema.scriptName, parameters);
 				break;
 			case 'retrieveRecords':
-			case 'saveDirect':
-			case 'openTestDb':
+			case 'saveOneWithProcess':
+			case 'testOpenTestDb':
 				const processManager3 = new helixAccessManagerGen({
 					getScript,
 					compileScript

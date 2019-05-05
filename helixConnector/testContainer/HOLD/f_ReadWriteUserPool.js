@@ -71,7 +71,7 @@ describe('User Pool System (' + moduleFileName + ')', function() {
 			fieldSequenceList: fieldSequenceList,
 			mapping: {}
 		};
-		helixConnector.process('saveDirect', {
+		helixConnector.process('saveOneWithProcess', {
 			schema: helixSchema,
 			otherParms: {},
 			debug: false,
