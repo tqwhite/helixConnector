@@ -22,6 +22,7 @@ tell application "<!applicationName!>"
 		set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for store
 		set saveStatus to utilize {theProcessID, myData} to store records
 		set theClose to utilize theProcessID to close process
+		
 
 	end tell
 	

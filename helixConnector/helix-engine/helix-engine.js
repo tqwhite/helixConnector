@@ -95,6 +95,9 @@ var moduleFunction = function(args) {
 
 	const executeActual = args => (processName, parameters) => {
 		
+console.log(`\n=-=============   executeActual  ========================= [helix-engine.js.moduleFunction]\n`);
+
+
 		const { processor, getScript, compileScript, helixData } = args;
 
 		const helixSchema = qtools.clone(parameters.schema) || {};
@@ -119,8 +122,9 @@ var moduleFunction = function(args) {
 			}),
 			callback = parameters.callback || function() {};
 
+
 		if (helixSchema.debug == 'true') {
-			console.log('finalScriptZZ=' + finalScript);
+			console.log('finalScript=\n\n' + finalScript+"\n\n=================(helixEngine.js)\n");
 		}
 
 		processor(
@@ -139,7 +143,6 @@ var moduleFunction = function(args) {
 				} else {
 					data = parameters.specialStringConversion(helixSchema, data);
 				}
-
 				callback(err, data);
 			}
 		);

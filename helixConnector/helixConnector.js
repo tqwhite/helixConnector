@@ -384,8 +384,16 @@ console.log(`\n=-=============   validateUserTokenActual  ======================
 			parameters.callback(new Error(`unknown schemaType '${schemaType}'`));
 			return;
 		}
+const localCallback=(err, result)=>{
+console.dir({"errXXX [helixConnector.js.moduleFunction]":err});
+console.dir({"resultXXX [helixConnector.js.moduleFunction]":result});
 
-		executeProcess(control, parameters, parameters.callback);
+
+
+
+parameters.callback(err, result)
+}
+		executeProcess(control, parameters, localCallback);
 	};
 
 	this.close = () => {

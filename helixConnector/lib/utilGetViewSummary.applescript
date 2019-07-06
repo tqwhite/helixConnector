@@ -21,7 +21,7 @@ set myPassword to "<!password!>"
 
 
 --swap out as necessary
-tell application "<!applicationName!>"
+tell application "Helix Server"
 	tell collection 1
 		set appendedText to ""
 		set appendedText2 to ""
@@ -33,8 +33,8 @@ tell application "<!applicationName!>"
 		
 		if (myView is not "") then
 			set viewName to myView
-			else
-		set viewName to (theRelationCustomName & "_sync_mySQL")
+		else
+			set viewName to (theRelationCustomName & "_sync_mySQL")
 		end if
 		
 		set allViews to every view of relation myRelation
@@ -62,76 +62,45 @@ tell application "<!applicationName!>"
 								
 								if (theRectObjectClass is data rectangle) then
 									
-									--process the rectangle contents
 									tell theRectObject
 										set theFieldIcon to the field icon
 										set theAbacusIcon to the abacus icon
 										
-										--field icon priocessing
 										if (theFieldIcon is not null) then
 											tell theFieldIcon
-												set customName to custom name
-												set theName to name
 												set theFieldType to data type
 												set theFieldFormat to the format
 												
-												if (customName is not "") then
-													set fieldName to customName
-												else
-													set fieldName to theName
-												end if
-												--set fieldName to custom name
-												
-												
-												--pull out the specs of each data type
 												if (theFieldType is fixed point type) then
 													set theHelixResult to my formatFixedPoint(theFieldIcon, "field")
 												else if (theFieldType is number type) then
 													set theHelixResult to my formatNumber(theFieldIcon, "field")
 												else if (theFieldType is date time type) then
 													set theHelixResult to my formatDateTime(theFieldIcon, "field")
-													
 												else if (theFieldType is flag type) then
 													set theHelixResult to my formatFlag(theFieldIcon, "field")
-													
-													
 												else if (theFieldType is text type) then
 													set theHelixResult to my formatText(theFieldIcon, "field")
 												end if
 											end tell
 											
-											--abacus content processing
 										else if (theAbacusIcon is not null) then
 											tell theAbacusIcon
-												set customName to custom name
-												set theName to name
 												set theAbacusType to data type
 												set theAbacusFormat to the format
 												
-												if (customName is not "") then
-													set abacusName to customName
-												else
-													set abacusName to theName
-												end if
-												
-												
-												--pull out the specs of each data type
 												if (theAbacusType is fixed point type) then
 													set theHelixResult to my formatFixedPoint(theAbacusIcon, "abacus")
 												else if (theAbacusType is number type) then
 													set theHelixResult to my formatNumber(theAbacusIcon, "abacus")
-													
-													
 												else if (theAbacusType is date time type) then
 													set theHelixResult to my formatDateTime(theAbacusIcon, "abacus")
-													
 												else if (theAbacusType is flag type) then
 													set theHelixResult to my formatFlag(theAbacusIcon, "abacus")
-													
-													
 												else if (theAbacusType is text type) then
 													set theHelixResult to my formatText(theAbacusIcon, "abacus")
 												end if
+												
 											end tell
 											
 										end if
@@ -160,25 +129,18 @@ tell application "<!applicationName!>"
 			return finishedString
 		end if
 		
-		set appendedText2 to text 1 thru -2 of appendedText2
-
-		set propertyList to {{"requestedRelation", myRelation}, {"requestedView", myView}, {"viewNameUsed", viewName}, {"nativeRelationName", theRelationName}, {"customRelationName", theRelationCustomName}}
+		set primaryKeyName to my retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
 		
-		set propertyArray to my convertToJsonArray(propertyList)
+		set appendedText2 to text 1 thru -2 of appendedText2
+		set contextList to {{"primaryKeyName", primaryKeyName}, {"requestedRelation", myRelation}, {"requestedView", myView}, {"viewNameUsed", viewName}, {"nativeRelationName", theRelationName}, {"customRelationName", theRelationCustomName}}
+		set contextElement to my convertToJsonObject(contextList)
 		
 		set finishedString to ""
 		set finishedString to finishedString & "{"
-		
 		set finishedString to finishedString & my q("context") & ":"
-		
-		set finishedString to finishedString & propertyArray & ","
-		
-		
+		set finishedString to finishedString & contextElement & ","
 		set finishedString to finishedString & my q("fieldData") & ":"
-		
 		set finishedString to finishedString & "[" & appendedText2 & "]"
-		
-		
 		set finishedString to finishedString & "}"
 		
 		
@@ -196,7 +158,7 @@ end tell
 
 --FIELD TYPE CONVERTERS =====================================================================
 on formatFixedPoint(hxIconObject, hxIconType)
-	tell application "<!applicationName!>"
+	tell application "Helix Server"
 		tell hxIconObject
 			set customName to custom name
 			set fieldName to name
@@ -205,7 +167,11 @@ on formatFixedPoint(hxIconObject, hxIconType)
 		end tell
 	end tell
 	
-	tell application "<!applicationName!>"
+	if (customName is not "") then
+		set customName to fieldName
+	end if
+	
+	tell application "Helix Server"
 		tell hxObject
 			set the decimalsOut to decimal places
 			set the commasOut to commas
@@ -214,15 +180,15 @@ on formatFixedPoint(hxIconObject, hxIconType)
 	end tell
 	set propertyList to {{"decimals", decimalsOut}, {"commas", commasOut}, {"currencyMark", currencyMarkOut}}
 	
-	set propertyArray to convertToJsonArray(propertyList)
-	set metaDataElement to createMetaDataElement(hxFieldType, hxIconType, customName)
+	set propertyArray to convertToJsonObject(propertyList)
+	set metaDataElement to createMetaDataElement(fieldName, hxFieldType, hxIconType, customName)
 	
 	return buildFinishedJson(fieldName, metaDataElement, propertyArray)
 end formatFixedPoint
 
 --===========================================
 on formatNumber(hxIconObject, hxIconType)
-	tell application "<!applicationName!>"
+	tell application "Helix Server"
 		tell hxIconObject
 			set customName to custom name
 			set fieldName to name
@@ -231,20 +197,24 @@ on formatNumber(hxIconObject, hxIconType)
 		end tell
 	end tell
 	
+	if (customName is not "") then
+		set customName to fieldName
+	end if
 	
-	tell application "<!applicationName!>"
+	
+	tell application "Helix Server"
 		set the decimalsOut to decimal places of hxObject
 	end tell
 	set propertyList to {{"decimals", decimalsOut}}
 	
-	set propertyArray to convertToJsonArray(propertyList)
-	set metaDataElement to createMetaDataElement(hxFieldType, hxIconType, customName)
+	set propertyArray to convertToJsonObject(propertyList)
+	set metaDataElement to createMetaDataElement(fieldName, hxFieldType, hxIconType, customName)
 	return buildFinishedJson(fieldName, metaDataElement, propertyArray)
 end formatNumber
 
 --===========================================
 on formatDateTime(hxIconObject, hxIconType)
-	tell application "<!applicationName!>"
+	tell application "Helix Server"
 		tell hxIconObject
 			set customName to custom name
 			set fieldName to name
@@ -253,7 +223,11 @@ on formatDateTime(hxIconObject, hxIconType)
 		end tell
 	end tell
 	
-	tell application "<!applicationName!>"
+	if (customName is not "") then
+		set customName to fieldName
+	end if
+	
+	tell application "Helix Server"
 		set the dateStyleOut to the date style of hxObject
 		set the hasSecondsOut to the include seconds of hxObject
 		set the hasLeadingZeroOut to the leading zero of hxObject
@@ -261,14 +235,14 @@ on formatDateTime(hxIconObject, hxIconType)
 	end tell
 	set propertyList to {{"decimals", dateStyleOut}, {"hasSeconds", hasSecondsOut}, {"hasLeadingZero", hasLeadingZeroOut}, {"timeStyle", timeStyleOut}}
 	
-	set propertyArray to convertToJsonArray(propertyList)
-	set metaDataElement to createMetaDataElement(hxFieldType, hxIconType, customName)
+	set propertyArray to convertToJsonObject(propertyList)
+	set metaDataElement to createMetaDataElement(fieldName, hxFieldType, hxIconType, customName)
 	return buildFinishedJson(fieldName, metaDataElement, propertyArray)
 end formatDateTime
 
 --===========================================
 on formatFlag(hxIconObject, hxIconType)
-	tell application "<!applicationName!>"
+	tell application "Helix Server"
 		tell hxIconObject
 			set customName to custom name
 			set fieldName to name
@@ -277,18 +251,22 @@ on formatFlag(hxIconObject, hxIconType)
 		end tell
 	end tell
 	
-	tell application "<!applicationName!>"
+	if (customName is not "") then
+		set customName to fieldName
+	end if
+	
+	tell application "Helix Server"
 	end tell
 	set propertyList to {}
 	
-	set propertyArray to convertToJsonArray(propertyList)
-	set metaDataElement to createMetaDataElement(hxFieldType, hxIconType, customName)
+	set propertyArray to convertToJsonObject(propertyList)
+	set metaDataElement to createMetaDataElement(fieldName, hxFieldType, hxIconType, customName)
 	return buildFinishedJson(fieldName, metaDataElement, propertyArray)
 end formatFlag
 
 --===========================================
 on formatText(hxIconObject, hxIconType)
-	tell application "<!applicationName!>"
+	tell application "Helix Server"
 		tell hxIconObject
 			set customName to custom name
 			set fieldName to name
@@ -297,12 +275,16 @@ on formatText(hxIconObject, hxIconType)
 		end tell
 	end tell
 	
-	tell application "<!applicationName!>"
+	if (customName is not "") then
+		set customName to fieldName
+	end if
+	
+	tell application "Helix Server"
 	end tell
 	set propertyList to {}
 	
-	set propertyArray to convertToJsonArray(propertyList)
-	set metaDataElement to createMetaDataElement(hxFieldType, hxIconType, customName)
+	set propertyArray to convertToJsonObject(propertyList)
+	set metaDataElement to createMetaDataElement(fieldName, hxFieldType, hxIconType, customName)
 	return buildFinishedJson(fieldName, metaDataElement, propertyArray)
 end formatText
 
@@ -313,8 +295,6 @@ on buildFinishedJson(fieldName, metaDataElement, propertyArray)
 	set jsonOut to ""
 	set jsonOut to jsonOut & "{"
 	
-	set jsonOut to jsonOut & q(fieldName) & ":"
-	set jsonOut to jsonOut & "{"
 	
 	set jsonOut to jsonOut & q("meta") & ":"
 	set jsonOut to jsonOut & metaDataElement
@@ -322,17 +302,16 @@ on buildFinishedJson(fieldName, metaDataElement, propertyArray)
 	
 	set jsonOut to jsonOut & q("properties") & ":"
 	set jsonOut to jsonOut & propertyArray
-	
-	set jsonOut to jsonOut & "}"
 	set jsonOut to jsonOut & "}"
 	
 end buildFinishedJson
 
-on createMetaDataElement(hxFieldType, hxIconType, customName)
+on createMetaDataElement(nativeName, hxFieldType, hxIconType, customName)
 	
 	set jsonOut to ""
 	set jsonOut to jsonOut & "{"
 	
+	set jsonOut to jsonOut & q("nativeName") & ":" & q(nativeName) & ","
 	set jsonOut to jsonOut & q("customName") & ":" & q(customName) & ","
 	set jsonOut to jsonOut & q("fieldType") & ":" & q(hxFieldType) & ","
 	set jsonOut to jsonOut & q("iconType") & ":" & q(hxIconType)
@@ -363,6 +342,27 @@ on convertToJsonArray(propertyList)
 	
 end convertToJsonArray
 
+on convertToJsonObject(propertyList)
+	set dq to character id 34
+	set listLen to length of propertyList
+	set counter to 0
+	set propertyString to ""
+	repeat with i from 1 to length of propertyList
+		set element to item i of propertyList
+		set propertyName to item 1 of element
+		set propertyValue to item 2 of element
+		set json to q(propertyName) & ":" & q(propertyValue)
+		set counter to counter + 1
+		if (counter < listLen) then
+			set propertyString to propertyString & json & ","
+		else
+			set propertyString to propertyString & json
+		end if
+	end repeat
+	return "{" & propertyString & "}"
+	
+end convertToJsonObject
+
 on q(inString)
 	set dq to character id 34
 	return dq & inString & dq
@@ -371,5 +371,30 @@ end q
 
 
 
-
+on retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
+	
+	set referenceCollection to "Seachem"
+	set myRelation to "363" --this is the InertProceess relation
+	set myView to "sqlMirrorCriterionForm02"
+	set myData to theRelationCustomName
+	
+	tell application "Helix Server"
+		
+		set theResult to utilize {referenceCollection, myUser, myPassword, myRelation, myView, myData} to store one record
+		
+		
+		set myRelation to "085" --this is the !-Custom Names Relation
+		set myView to "retrievePrimaryKeyName"
+		
+		set processID to utilize {referenceCollection, myUser, myPassword, myRelation, myView} to create process for retrieve
+		set theResult to utilize {referenceCollection, myUser, myPassword, myRelation, myView} to retrieve records as list
+		set theDisconnect to utilize {processID} to close process
+		
+		set primaryKeyName to the helix record of item 1 of theResult
+	end tell
+	
+	return primaryKeyName
+	
+	
+end retrievePrimaryKey
 

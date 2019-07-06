@@ -1,0 +1,1 @@
+array('helixName' => "<!helixName!>", 'mysqlName' => "<!mysqlName!>", 'type' => "<!type!>", 'primaryKey' => <!primaryKey!>, "autoIncrement" => <!autoIncrement!>)
