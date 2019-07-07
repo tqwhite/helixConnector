@@ -50,14 +50,14 @@ var moduleFunction = function(args) {
 					(!fieldSequenceList || fieldSequenceList.length === 0) &&
 					qtools.count(element) !== 0
 				) {
+					// prettier-ignore
 					qtools.logError(
-						`The schema '${helixSchema.schemaName}'` +
-							`does not allow input data (no fieldSequenceList and inData exists)`
-					); //string concatenation is only so Prettier does a nicer job of line breaks
+						`The schema '${helixSchema.schemaName}' does not allow input data (no fieldSequenceList and inData exists)`
+					);
 					return (
 						`The schema '${helixSchema.schemaName}'` +
 						`does not allow input data (no fieldSequenceList and inData exists)`
-					); //string concatenation is only so Prettier does a nicer job of line breaks
+					);
 				}
 
 				if (
@@ -101,8 +101,8 @@ var moduleFunction = function(args) {
 		const osascript = require('osascript').eval;
 
 		const tmp = parameters.schema ? parameters.schema.view : 'NO HELIX SCHEMA';
-		qtools.logDetail(
-			`helix access script: ${processName}/${tmp} ${new Date().toLocaleString()}`
+		qtools.logMilestone(
+			`applescript name/view: ${processName}/${tmp}`
 		);
 
 		if (scriptElement.err) {
@@ -117,10 +117,13 @@ var moduleFunction = function(args) {
 				helixSchema
 			}),
 			callback = parameters.callback || function() {};
-
-
+		
 		if (helixSchema.debug == 'true') {
-			console.log('finalScript=\n\n' + finalScript+"\n\n=================(helixEngine.js)\n");
+			console.log(
+				'finalScript=\n\n' +
+					finalScript +
+					'\n\n=================(helixEngine.js)\n'
+			);
 		}
 
 		processor(
@@ -131,12 +134,12 @@ var moduleFunction = function(args) {
 						? ''
 						: scriptElement.language //turns out that osascript won't let you specify, JS is the default
 			},
-			function(err, data='') {
+			function(err, data = '') {
 				data = data.replace(/([^\n])\n$/, '$1');
 				err = err ? new Error(err) : err;
-				let workingSchema=helixSchema;
-				if (helixSchema.response){
-					workingSchema=helixSchema.response;
+				let workingSchema = helixSchema;
+				if (helixSchema.response) {
+					workingSchema = helixSchema.response;
 				}
 				if (!parameters.specialStringConversion) {
 					data = helixData.helixStringToRecordList(workingSchema, data);

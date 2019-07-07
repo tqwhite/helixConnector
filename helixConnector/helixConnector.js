@@ -84,8 +84,7 @@ const moduleFunction = function(args) {
 			return e.toString();
 		}
 		
-		
-console.log(`\n=-=============   validateUserTokenActual  ========================= [helixConnector.js.moduleFunction]\n`);
+//console.log(`\n=-=============   validateUserTokenActual  ========================= [helixConnector.js.moduleFunction]\n`);
 
 // 
 // console.dir({"decoded [helixConnector.js.moduleFunction]":decoded});
@@ -93,15 +92,15 @@ console.log(`\n=-=============   validateUserTokenActual  ======================
 // console.log(`\n=-=============   instanceId  ========================= [helixConnector.js.moduleFunction]\n`);
 
 
-
-
-
 		if (decoded.instanceId != instanceId) {
+			qtools.logMilestone(`auth failed (1) for: ${userId}`);
 			return 'instanceId does not match';
 		}
 		if (decoded.userId != userId) {
+			qtools.logMilestone(`auth failed (2) for: ${userId}`);
 			return 'userId does not match';
 		}
+		qtools.logMilestone(`got auth for: ${userId}`);	
 		return decoded;
 	};
 	
