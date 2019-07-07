@@ -258,6 +258,20 @@ console.log(`\n=-=============   validateUserTokenActual  ======================
 			);
 		}
 
+		if (
+			helixSchema.response &&
+			parameters.response &&
+			parameters.response.data
+		) {
+			replaceObject.response=getresponse(helixSchema, helixSchema.response);
+			replaceObject.response.dataString = makeApplescriptDataString(
+				helixSchema.response.fieldSequenceList,
+				helixSchema.mapping,
+				otherParms,
+				parameters.response.data
+			);
+		}
+
 		const finalScript = qtools.templateReplace({
 			template: script.toString(),
 			replaceObject: replaceObject
@@ -384,15 +398,10 @@ console.log(`\n=-=============   validateUserTokenActual  ======================
 			parameters.callback(new Error(`unknown schemaType '${schemaType}'`));
 			return;
 		}
-const localCallback=(err, result)=>{
-console.dir({"errXXX [helixConnector.js.moduleFunction]":err});
-console.dir({"resultXXX [helixConnector.js.moduleFunction]":result});
-
-
-
-
-parameters.callback(err, result)
-}
+		
+		const localCallback=(err, result)=>{
+		parameters.callback(err, result)
+		}
 		executeProcess(control, parameters, localCallback);
 	};
 

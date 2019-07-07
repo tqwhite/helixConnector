@@ -5,9 +5,15 @@ tell application "<!applicationName!>"
 	set myView to "<!view!>"
 	set myUser to "<!user!>"
 	set myPassword to "<!password!>"
+	
+	set responseRelation to "<!response.relation!>"
+	set responseView to "<!response.view!>"
+	
 	set myData to {<!dataString!>}
 	
---<!processName!> - <!processIndicator!>
+	set theResult to ""
+	
+--HELLO <!processName!> - <!processIndicator!>
 	
 	tell collection 1
 		
@@ -21,11 +27,17 @@ tell application "<!applicationName!>"
 		
 		set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for store
 		set saveStatus to utilize {theProcessID, myData} to store records
+		
+		if responseRelation is not equal to "" then
+			set theResult to utilize {myCollection, myUser, myPassword, responseRelation, responseView} to retrieve records as string
+		end if
+		
+		
 		set theClose to utilize theProcessID to close process
 		
 
 	end tell
 	
-	return
+	return theResult
 	
 end tell
