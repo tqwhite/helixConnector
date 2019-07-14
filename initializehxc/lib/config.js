@@ -90,7 +90,7 @@ var moduleFunction = function(args) {
 
 
 	}
-
+this.AAA='config.js';
 
 	return this;
 };

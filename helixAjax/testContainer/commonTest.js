@@ -68,7 +68,7 @@
 
 	var startTestDatabase = function(helixConnector) {
 		return function(done) {
-			helixConnector.process('openTestDb', {
+			helixConnector.process('testOpenTestDb', {
 				helixSchema: {'emptyRecordsAllowed':true},
 				otherParms: {
 					testDataDir: projectDir + "/testData/",

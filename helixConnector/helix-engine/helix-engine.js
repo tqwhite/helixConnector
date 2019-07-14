@@ -94,7 +94,7 @@ var moduleFunction = function(args) {
 	
 
 	const executeActual = args => (processName, parameters) => {
-		const { processor, getScript, compileScript, helixData } = args;
+		const { executeOsaScript, getScript, compileScript, helixData } = args;
 
 		const helixSchema = qtools.clone(parameters.schema) || {};
 		const scriptElement = getScript(processName);
@@ -125,28 +125,34 @@ var moduleFunction = function(args) {
 					'\n\n=================(helixEngine.js)\n'
 			);
 		}
-
-		processor(
-			finalScript,
-			{
+		
+		const languageSpec={
 				type:
 					scriptElement.language.toLowerCase() == 'javascript'
 						? ''
 						: scriptElement.language //turns out that osascript won't let you specify, JS is the default
-			},
-			function(err, data = '') {
+			};
+
+		executeOsaScript(
+			finalScript,
+			languageSpec,
+			
+			(err, data = '')=>{
+				if (err){
+					callback(new Error(err));
+					return;
+				}
+				
 				data = data.replace(/([^\n])\n$/, '$1');
-				err = err ? new Error(err) : err;
+				
 				let workingSchema = helixSchema;
 				if (helixSchema.response) {
 					workingSchema = helixSchema.response;
 				}
-				if (!parameters.specialStringConversion) {
-					data = helixData.helixStringToRecordList(workingSchema, data);
-				} else {
-					data = parameters.specialStringConversion(workingSchema, data);
-				}
-				callback(err, data);
+				
+				data = helixData.helixStringToRecordList(workingSchema, data);
+				
+				callback('', data);
 			}
 		);
 	};
@@ -159,7 +165,7 @@ var moduleFunction = function(args) {
 	
 	//INITIALIZATION ====================================
 
-	const processor = (script, parms, callback) => {
+	const executeOsaScript = (script, parms, callback) => {
 		const localCallback = (err, result) => {
 			callback(err, result);
 		};
@@ -188,7 +194,7 @@ var moduleFunction = function(args) {
 	
 	const { getScript, compileScript } = args;
 	this.execute = executeActual({
-		processor,
+		executeOsaScript,
 		getScript,
 		compileScript,
 		helixData

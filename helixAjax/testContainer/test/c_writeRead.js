@@ -75,11 +75,11 @@ describe('Data access functions (' + moduleFileName + ')', function() {
 
 	testDescription = "should throw error for bad schema"
 	it(testDescription, function(done) {
-
+		const suffix='XXX';
 		request.get({
-			uri: ajaxUri+"XXX",
+			uri: ajaxUri+suffix,
 			headers: generalHeader
-		}, simpleCallback(done, 'No such schema'));
+		}, simpleCallback(done, `Schema '${suffix}' not defined`));
 
 	});
 

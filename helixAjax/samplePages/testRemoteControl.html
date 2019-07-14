@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<META HTTP-EQUIV='Content-Type' CONTENT='text/html; charset=UTF-8'>
+	
+	<!-- META http-equiv="refresh" content="5;URL=http://somewhere.com" -->
+	
+	<title>HXC Remote Control Test</title>
+	
+	<script type='text/javascript' src='http://code.jquery.com/jquery-2.1.4.js'></script>
+	<!--link rel='stylesheet' type='text/css' href='css/main.css' /-->
+	
+	<style type='text/css'><!--
+		body {
+			color:#4B92D1;
+			font-family:sans-serif;padding:100px;font-size:150%;line-height:2;
+		}
+		.instructions{
+			color:#666;
+			font-size:80%;
+			line-height:1;
+			margin-bottom:20px;
+		}
+		
+		#saveButton{
+			margin:15px 0px;
+		}
+	--></style>
+	
+</head>
+<body>
+<div style='color:#d88';'>Helix Connector Remote Control Test Page</div>
+<div class='instructions'>
+Initial load does GET from localTestRemoteControl.applescript, displays in listing section below<br/>
+</div>
+
+<form method='post' action='upTest1_Enter_SevenFields'>
+<div style=' opacity: 0.2'>
+textField01!! <select name='textField01' style='font-size:150%;width:250px;height:85px;padding:10px;'>
+<option value='animals'>animals</options>
+<option value='colors'>colors</options>
+</select><br/>
+textField02 <input type='text' name='textField02' value='' style='height:50px;width:250px;font-size:150%;'><br/>
+textField02 <input type='text' name='textField03' value='FROM BROWSER' style='height:50px;width:350px;font-size:100%;'><br/>
+
+<div id='saveButton' style='cursor:pointer;text-align:center;border:1pt solid gray;height:50px;width:150px; background:#f2f2f2; color:#666; border-radius: 10px;'>SAVE</div>
+</div>
+<div id='listing' style='font-size:18pt;border-top:1pt solid #666;'>
+</div>
+</form>
+	
+</body>
+
+<script type='text/javascript'>
+	/* <![CDATA[ */
+$(document).ready(function() {
+	var updateList = function() {
+		$.ajax({
+				method: "GET",
+				url: "rcTest1_no_parameters",
+				headers:{authorization:"<!userId!> <!authToken!>"},
+				data:{
+					testParm:'From testRemoteControl.html/ajax:GET'
+				}
+			})
+			.done(function(data, textStatus, jqXHR) {
+
+	var listingString = '';
+				for (var i = 0, len = data.length; i < len; i++) {
+					var element = data[i];
+
+					for (var j in element) {
+						listingString += element[j] + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
+					}
+					listingString += "<br/>";
+				}
+
+				$('#listing').html(data);
+			})
+			.fail(function(data, textStatus, jqXHR) {
+				$('#listing').html(`
+					<div>Error</div>
+					<div>${data.responseText}</div>
+					<div>${textStatus.toString()}</div>
+					<div>${jqXHR.toString()}</div>
+				
+				`);
+				console.log("error");
+			})
+			.always(function(data, textStatus, jqXHR) {
+			console.log("complete");
+		});
+	}
+	$('#saveButton').click(function() {
+
+		var outObj = {};
+
+		$('select').each(function(inx, item) {
+			var name = $(item).attr('name');
+			var value = $(item).val();
+			outObj[name] = value;
+		});
+
+		$('input').each(function(inx, item) {
+			var name = $(item).attr('name');
+			var value = $(item).val();
+			outObj[name] = value;
+		});
+
+		$.ajax({
+				method: "GET",
+				url: "rcTest1_no_parameters",
+				data: outObj,
+				headers:{authorization:"<!userId!> <!authToken!>"}
+			})
+			.done(function(msg) {
+			updateList()
+		})
+			.fail(function(data, textStatus) {
+				var errorString = "Server Error: " + data.status + " - " + data.statusText + " (" + data.responseText + ")";
+
+				$('#listing').html(errorString);
+			});
+	});
+	updateList()
+
+});
+
+
+	/* ]]> */
+</script>
+
+</html>
