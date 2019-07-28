@@ -433,7 +433,7 @@ var moduleFunction = function(args) {
 		schema.staticTestRequestFlag = staticTest;
 
 		if (schema.staticTest && typeof schema.staticTestData == 'undefined') {
-			send500(res, req, Schema`${schemaName}' does not have staticTestData`);
+			send500(res, req, `Schema ${schemaName}' does not have staticTestData`);
 			return;
 		}
 

@@ -43,10 +43,34 @@
 		
 		}
 	},
-		"getViewSummary":{
+		"hxGetViewSummary":{
 			"debug":"false",
 			"schemaType":"remoteControl",
 			"scriptName": "utilGetViewSummary",
+			"arguments": {},
+			"conversion":{
+				"functionName":"cleanToJson",
+				"parameters":{}
+			},
+			"debug":true
+			
+		},
+		"hxListAllRelationsForCollection":{
+			"debug":"false",
+			"schemaType":"remoteControl",
+			"scriptName": "hxListAllRelationsForCollection",
+			"arguments": {},
+			"conversion":{
+				"functionName":"cleanToJson",
+				"parameters":{}
+			},
+			"debug":true
+			
+		},
+		"hxListViewsForRelation":{
+			"debug":"false",
+			"schemaType":"remoteControl",
+			"scriptName": "hxListViewsForRelation",
 			"arguments": {},
 			"conversion":{
 				"functionName":"cleanToJson",

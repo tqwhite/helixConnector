@@ -8,13 +8,11 @@ set myPassword to "<!password!>"
 	
 tell application "<!applicationName!>"
 	
-set theRetrievedData to utilize {myCollection, myUser, myPassword, myRelation, myView} action retrieve records as list
+set theRetrievedData to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as list
 	
 	
-	set theItem to object 1 of theRetrievedData
-	set theDataArray to (get helix record of theItem)
-	set myLeasedUser to object 1 of theDataArray
-	set leasePassword to object 5 of theDataArray
+	set myLeasedUser to item 1 of helix record of item 1 of theRetrievedData
+	set leasePassword to item 2 of helix record of item 1 of theRetrievedData
 	
 	set one to my jProp("leaseUserName", myLeasedUser)
 	set two to my jProp("leasePassword", leasePassword)

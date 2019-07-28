@@ -204,7 +204,7 @@ var moduleFunction = function(args) {
 			};
 
 			const helixSchema = {
-				debug: false,
+				debug: true,
 				returnsJson: true,
 				relation: '',
 				view: '',
@@ -251,19 +251,24 @@ var moduleFunction = function(args) {
 
 		taskList.push((args, next) => {
 			const localCallback = (err, releaseStatus) => {
-				args.releaseStatus=releaseStatus;
+				if (err) {
+					callback(
+						new Error(
+							`CANNOT RELEASE pool session from Helix (${err.toString()}) in pool-user.js/poolUserRelease`
+						)
+					);
+				}
+				args.releaseStatus = releaseStatus;
 				next(err, args);
 			};
 
 			const helixSchema = {
-				debug: false,
+				debug: true,
 				returnsJson: true,
 				relation: '',
 				view: '',
 				mapping: {}
 			};
-
-			
 
 			hxScriptRunner('poolUserRelease', {
 				schema: Object.assign(helixSchema, args.poolUserObject),
