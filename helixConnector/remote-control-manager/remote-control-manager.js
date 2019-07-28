@@ -66,7 +66,7 @@ console.log(`\n=-=============   executeActual  ========================= [remot
 			});
 		const callback = parameters.callback || function() {};
 
-		if (helixSchema.debug) {
+		if (helixSchema.debug === 'true' || helixSchema.debug === true) {
 			console.log('finalScript=\n\n' + finalScript+"\n\n=================(remoteControlManager.js)\n");
 		}
 		

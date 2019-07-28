@@ -21,7 +21,7 @@ set myPassword to "<!password!>"
 
 
 --swap out as necessary
-tell application "Helix Server"
+tell application "<!applicationName!>"
 	tell collection 1
 		set appendedText to ""
 		set appendedText2 to ""

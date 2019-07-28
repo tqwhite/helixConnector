@@ -1,0 +1,11 @@
+{
+  "name": "pool-user",
+  "version": "1.0.0",
+  "description": "get the helix equivalent of a session, Lenny's lease pool user system",
+  "main": "pool-user.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}

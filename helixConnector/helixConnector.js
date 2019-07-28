@@ -38,6 +38,8 @@ const moduleFunction = function(args) {
 		},
 		true
 	); //this is a server component, don't die on error
+	
+	const {hxScriptRunner}=args;
 
 	if (argsErrorList) {
 		throw new Error(argsErrorList);
@@ -218,10 +220,17 @@ const moduleFunction = function(args) {
 		helixAccessParms,
 		makeApplescriptDataString
 	) => args => {
-		const { scriptElement, processName, parameters, helixSchema } = args;
+		const { scriptElement, processName, parameters, helixSchema, poolUserObject } = args;
 
 		const inData = qtools.clone(parameters.inData) || {};
 		const otherParms = parameters.otherParms || {};
+		
+		const workingHelixAccessParms=qtools.clone(helixAccessParms);
+
+		if (parameters.poolUserObject && parameters.poolUserObject.leaseUserName){
+			workingHelixAccessParms.user=parameters.poolUserObject.leaseUserName;
+			workingHelixAccessParms.password=parameters.poolUserObject.leasePassword;
+		}
 
 		const replaceObject = qtools.extend(
 				{},
@@ -284,7 +293,8 @@ const moduleFunction = function(args) {
 		compileScript,
 		executeStaticTestRoute,
 		remoteControlManagerGen,
-		helixAccessManagerGen
+		helixAccessManagerGen,
+		helixAccessParms
 	) => (libraryScriptName, parameters, callback) => {
 		if (!parameters.schema) {
 			parameters('Must have schema');
@@ -297,7 +307,8 @@ const moduleFunction = function(args) {
 			case 'quitHelixNoSave':
 				new helixAccessManagerGen({
 					getScript,
-					compileScript
+					compileScript,
+					helixAccessParms
 				}).execute('testQuitHelixNoSave', parameters);
 				break;
 			case 'staticTest':
@@ -317,7 +328,8 @@ const moduleFunction = function(args) {
 			case 'testOpenTestDb':
 				const processManager3 = new helixAccessManagerGen({
 					getScript,
-					compileScript
+					compileScript,
+					helixAccessParms
 				});
 				
 				const invalid = processManager3.validateSchema(parameters);
@@ -435,7 +447,8 @@ const moduleFunction = function(args) {
 		compileScript,
 		executeStaticTestRoute,
 		remoteControlManagerGen,
-		helixAccessManagerGen
+		helixAccessManagerGen,
+		this.helixAccessParms
 	);
 
 	const validateUserToken = validateUserTokenActual(

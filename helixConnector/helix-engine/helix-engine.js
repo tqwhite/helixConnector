@@ -5,6 +5,8 @@ const async = require('async');
 const helixDataGen = require('helixdata');
 const helixData = new helixDataGen();
 
+const poolUserGen = require('./lib/pool-user');
+
 //START OF moduleFunction() ============================================================
 
 var moduleFunction = function(args) {
@@ -21,6 +23,10 @@ var moduleFunction = function(args) {
 				optional: false
 			},
 			{
+				name: 'helixAccessParms',
+				optional: false
+			},
+			{
 				name: 'initCallback',
 				optional: true
 			}
@@ -28,7 +34,6 @@ var moduleFunction = function(args) {
 	});
 
 	//LOCAL VARIABLES ====================================
-	
 
 	//LOCAL FUNCTIONS ====================================
 
@@ -92,18 +97,101 @@ var moduleFunction = function(args) {
 		}
 	};
 	
+	const asynchronousPipePlus = new require('asynchronous-pipe-plus')();
+	const asynchronousPipe = asynchronousPipePlus.asynchronousPipe;
+	const taskListPlus = asynchronousPipePlus.taskListPlus;
 
-	const executeActual = args => (processName, parameters) => {
-		const { executeOsaScript, getScript, compileScript, helixData } = args;
+	const executeActual = (
+		hxScriptRunner,
+		hxPoolUserAccessor,
+		helixAccessParms
+	) => (processName, parameters) => {
+		const callback = parameters.callback;
+		const taskList = new taskListPlus();
+		
+		if (
+			parameters.schema.skipPoolUser !== 'true' &&
+			parameters.schema.skipPoolUser !== true
+		) {
+			taskList.push((args, next) => {
+				const localCallback = (err, poolUserObject) => {
+					if (err) {
+						next(new Error(err));
+						return;
+					}
+
+					args.poolUserObject = poolUserObject;
+					next('', args);
+				};
+
+				hxPoolUserAccessor.getPoolUserObject(
+					{ processName, helixAccessParms },
+					localCallback
+				);
+			});
+		}
+
+		taskList.push((args, next) => {
+			const localCallback = (err, queryData) => {
+				args.queryData = queryData;
+				next(err, args);
+			};
+			if (args.poolUserObject) {
+				parameters.poolUserObject = args.poolUserObject;
+			}
+			const workingParameters=qtools.clone(parameters);
+			parameters.callback=localCallback;
+			hxScriptRunner(processName, parameters);
+		});
+		if (
+			parameters.schema.skipPoolUser !== 'true' &&
+			parameters.schema.skipPoolUser !== true
+		) {
+
+		taskList.push((args, next) => {
+			const localCallback = (err, releaseStatus) => {
+				args.releaseStatus = releaseStatus;
+				next(err, args);
+			};
+			if (args.poolUserObject) {
+				parameters.poolUserObject = args.poolUserObject;
+			}
+
+			hxPoolUserAccessor.releasePoolUserObject(
+					{ processName, helixAccessParms, poolUserObject:args.poolUserObject},
+					localCallback
+				);
+		});
+		}
+
+		const initialData = typeof inData != 'undefined' ? inData : {};
+		asynchronousPipe(taskList.getList(), initialData, (err, finalResult) => {
+			if (err){
+				callback(new Error(err));
+				return;
+			}
+			callback(err, finalResult.queryData);
+		});
+	};
+
+	const hxScriptRunnerActual = args => (processName, parameters) => {
+		const {
+			executeOsaScript,
+			getScript,
+			compileScript,
+			helixData,
+			helixAccessParms
+		} = args;
 
 		const helixSchema = qtools.clone(parameters.schema) || {};
 		const scriptElement = getScript(processName);
 		const osascript = require('osascript').eval;
 
-		const tmp = parameters.schema ? parameters.schema.view : 'NO HELIX SCHEMA';
-		qtools.logMilestone(
-			`applescript name/view: ${processName}/${tmp}`
-		);
+		const tmp =
+			typeof parameters.schema != 'undefined'
+				? parameters.schema.view
+				: 'NO HELIX SCHEMA';
+		qtools.logMilestone(`applescript name/view: ${processName}/${tmp}`);
 
 		if (scriptElement.err) {
 			!parameters.callback || parameters.callback(scriptElement.err);
@@ -117,52 +205,64 @@ var moduleFunction = function(args) {
 				helixSchema
 			}),
 			callback = parameters.callback || function() {};
-		
-		if (helixSchema.debug == 'true') {
+
+		if (helixSchema.debug === 'true' || helixSchema.debug === true) {
 			console.log(
 				'finalScript=\n\n' +
 					finalScript +
 					'\n\n=================(helixEngine.js)\n'
 			);
 		}
-		
-		const languageSpec={
-				type:
-					scriptElement.language.toLowerCase() == 'javascript'
-						? ''
-						: scriptElement.language //turns out that osascript won't let you specify, JS is the default
-			};
+
+		const languageSpec = {
+			type:
+				scriptElement.language.toLowerCase() == 'javascript'
+					? ''
+					: scriptElement.language //turns out that osascript won't let you specify, JS is the default
+		};
 
 		executeOsaScript(
 			finalScript,
 			languageSpec,
-			
-			(err, data = '')=>{
-				if (err){
+
+			(err, data = '') => {
+				if (err) {
 					callback(new Error(err));
 					return;
 				}
-				
+
 				data = data.replace(/([^\n])\n$/, '$1');
-				
+
 				let workingSchema = helixSchema;
 				if (helixSchema.response) {
 					workingSchema = helixSchema.response;
 				}
-				
-				data = helixData.helixStringToRecordList(workingSchema, data);
-				
+
+				if (
+					workingSchema.returnsJson === 'true' ||
+					workingSchema.returnsJson === true
+				) {
+					try {
+						data = JSON.parse(data);
+					} catch (e) {
+						callback(new Error(e));
+						return;
+					}
+				} else {
+					data = helixData.helixStringToRecordList(workingSchema, data);
+				}
+
 				callback('', data);
 			}
 		);
 	};
-	
+
 	//METHODS AND PROPERTIES ====================================
-	
+
 	//API ENDPOINTS ====================================
-	
+
 	const executeHelixOperation = function(processName, parameters) {};
-	
+
 	//INITIALIZATION ====================================
 
 	const executeOsaScript = (script, parms, callback) => {
@@ -191,26 +291,38 @@ var moduleFunction = function(args) {
 				break;
 		}
 	};
-	
+
 	const { getScript, compileScript } = args;
-	this.execute = executeActual({
+
+	const hxScriptRunner = hxScriptRunnerActual({
 		executeOsaScript,
 		getScript,
 		compileScript,
-		helixData
+		helixData,
+		helixAccessParms: this.helixAccessParms
 	});
-	
+
+	const hxPoolUserAccessor = new poolUserGen({
+		helixAccessParms: this.helixAccessParms,
+		hxScriptRunner
+	});
+
+	this.execute = executeActual(
+		hxScriptRunner,
+		hxPoolUserAccessor,
+		this.helixAccessParms
+	);
+
 	this.validateSchema = validateSchema;
-	
-	
+
 	!this.initCallback || this.initCallback();
 
 	//ECOSYSTEM REQUIREMENTS ====================================
-	
+
 	const ping = (message = 'NO MESSAGE SUPPLIED') => {
 		return `${qtools.ping().employer} got the ${message}`;
 	};
-	
+
 	this.ping = ping;
 
 	this.shutdown = (message, callback) => {
