@@ -260,7 +260,7 @@ const moduleFunction = function(args) {
 			replaceObject.criterion=getCriterion(helixSchema, helixSchema.criterion);
 			replaceObject.criterion.dataString = makeApplescriptDataString(
 				helixSchema.criterion.fieldSequenceList,
-				helixSchema.mapping,
+				helixSchema.criterion.mapping,
 				otherParms,
 				parameters.criterion.data
 			);
