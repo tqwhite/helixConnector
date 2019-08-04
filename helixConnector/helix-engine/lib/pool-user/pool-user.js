@@ -32,6 +32,8 @@ var moduleFunction = function(args) {
 		}
 
 		var helixSchema = {
+			internalSchema:true,
+			schemaName:'listRelations',
 			relation: '',
 			view: '',
 			fieldSequenceList: [relationFieldName],
@@ -156,6 +158,8 @@ var moduleFunction = function(args) {
 			};
 
 			const helixSchema = {
+			internalSchema:true,
+				schemaName:'listRelations',
 				debug: false,
 				returnsJson: true,
 				relation: '',
@@ -204,7 +208,9 @@ var moduleFunction = function(args) {
 			};
 
 			const helixSchema = {
-				debug: true,
+			internalSchema:true,
+				schemaName:'poolUserLease',
+				debug: false,
 				returnsJson: true,
 				relation: '',
 				view: '',
@@ -263,7 +269,9 @@ var moduleFunction = function(args) {
 			};
 
 			const helixSchema = {
-				debug: true,
+			internalSchema:true,
+				schemaName:'poolUserRelease',
+				debug: false,
 				returnsJson: true,
 				relation: '',
 				view: '',

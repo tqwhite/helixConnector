@@ -156,7 +156,6 @@ var moduleFunction = function(args) {
 			if (args.poolUserObject) {
 				parameters.poolUserObject = args.poolUserObject;
 			}
-
 			hxPoolUserAccessor.releasePoolUserObject(
 					{ processName, helixAccessParms, poolUserObject:args.poolUserObject},
 					localCallback
@@ -189,8 +188,9 @@ var moduleFunction = function(args) {
 
 		const tmp =
 			typeof parameters.schema != 'undefined'
-				? parameters.schema.view
+				? parameters.schema.schemaName
 				: 'NO HELIX SCHEMA';
+				
 		qtools.logMilestone(`applescript name/view: ${processName}/${tmp}`);
 
 		if (scriptElement.err) {
@@ -231,6 +231,11 @@ var moduleFunction = function(args) {
 					return;
 				}
 
+	if (qtools.isTrue(parameters.schema.debugData) && parameters.schema.schemaName){
+			const filePath=`${process.env.HOME}/Desktop/tmp/file_FromHelix_${new Date().getTime()}_${parameters.schema.schemaName}.txt`;
+			qtools.logWarn(`WRITING received helix data to file: ${filePath}`);
+			qtools.writeSureFile(filePath, data);
+	}	
 				data = data.replace(/([^\n])\n$/, '$1');
 
 				let workingSchema = helixSchema;

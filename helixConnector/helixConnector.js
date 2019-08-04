@@ -243,10 +243,9 @@ const moduleFunction = function(args) {
 				}
 			),
 			script = scriptElement.script;
-
+			
 		replaceObject.dataString = makeApplescriptDataString(
-			helixSchema.fieldSequenceList,
-			helixSchema.mapping,
+			helixSchema,
 			otherParms,
 			inData,
 			helixSchema.separators
@@ -323,22 +322,23 @@ const moduleFunction = function(args) {
 					compileScript
 				}).execute(parameters.schema.scriptName, parameters);
 				break;
+			case 'THIS IS THE MAIN CASE FOR ACCESSING HELIX':
 			case 'retrieveRecords':
 			case 'saveOneWithProcess':
 			case 'testOpenTestDb':
-				const processManager3 = new helixAccessManagerGen({
+				const helixEngineInstance3 = new helixAccessManagerGen({
 					getScript,
 					compileScript,
 					helixAccessParms
 				});
 				
-				const invalid = processManager3.validateSchema(parameters);
+				const invalid = helixEngineInstance3.validateSchema(parameters);
 				if (invalid) {
 					callback(new Error(invalid));
 					return;
 				}
 
-				processManager3.execute(libraryScriptName, parameters);
+				helixEngineInstance3.execute(libraryScriptName, parameters);
 				break;
 			default:
 				parameters.callback(`unknown libraryScriptName type '${libraryScriptName}' in helixConnector.js`);
