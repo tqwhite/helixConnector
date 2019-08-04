@@ -404,16 +404,18 @@ var moduleFunction = function(args) {
 		} else {
 			schemaName = tmp ? tmp[0].replace(/^\//, '') : '';
 		}
-
+		
 		const staticTest = tmp[0] == '/staticTest';
 		const dynamicTest = tmp[0] == '/dynamicTest';
 
 		const schema = getSchema(helixParms, schemaName);
-
+	
 		if (!schema) {
 			send500(res, req, `Schema '${schemaName}' not defined`);
 			return;
-		}
+		}	
+		schema.schemaName = schemaName; //I don't trust myself not to forget to include this when I define an endpoint
+
 
 		if (dynamicTest) {
 			const testViewName = schema.testViewName;
@@ -429,7 +431,6 @@ var moduleFunction = function(args) {
 			schema.view = schema.testViewName;
 		}
 
-		schema.schemaName = schemaName; //I don't trust myself to include this when I define an endpoint
 		schema.staticTestRequestFlag = staticTest;
 
 		if (schema.staticTest && typeof schema.staticTestData == 'undefined') {
