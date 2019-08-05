@@ -251,6 +251,8 @@ const moduleFunction = function(args) {
 			helixSchema.separators
 		);
 
+
+
 		if (
 			helixSchema.criterion &&
 			parameters.criterion &&
@@ -258,8 +260,7 @@ const moduleFunction = function(args) {
 		) {
 			replaceObject.criterion=getCriterion(helixSchema, helixSchema.criterion);
 			replaceObject.criterion.dataString = makeApplescriptDataString(
-				helixSchema.criterion.fieldSequenceList,
-				helixSchema.criterion.mapping,
+				helixSchema.criterion,
 				otherParms,
 				parameters.criterion.data
 			);
