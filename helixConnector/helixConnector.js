@@ -39,7 +39,7 @@ const moduleFunction = function(args) {
 		true
 	); //this is a server component, don't die on error
 	
-	const {hxScriptRunner}=args;
+	const { hxScriptRunner } = args;
 
 	if (argsErrorList) {
 		throw new Error(argsErrorList);
@@ -85,14 +85,13 @@ const moduleFunction = function(args) {
 		} catch (e) {
 			return e.toString();
 		}
-		
-//console.log(`\n=-=============   validateUserTokenActual  ========================= [helixConnector.js.moduleFunction]\n`);
 
-// 
-// console.dir({"decoded [helixConnector.js.moduleFunction]":decoded});
-// console.log("instanceId="+instanceId+" [helixConnector.js.moduleFunction]");
-// console.log(`\n=-=============   instanceId  ========================= [helixConnector.js.moduleFunction]\n`);
+		//console.log(`\n=-=============   validateUserTokenActual  ========================= [helixConnector.js.moduleFunction]\n`);
 
+		//
+		// console.dir({"decoded [helixConnector.js.moduleFunction]":decoded});
+		// console.log("instanceId="+instanceId+" [helixConnector.js.moduleFunction]");
+		// console.log(`\n=-=============   instanceId  ========================= [helixConnector.js.moduleFunction]\n`);
 
 		if (decoded.instanceId != instanceId) {
 			qtools.logMilestone(`auth failed (1) for: ${userId}`);
@@ -102,7 +101,7 @@ const moduleFunction = function(args) {
 			qtools.logMilestone(`auth failed (2) for: ${userId}`);
 			return 'userId does not match';
 		}
-		qtools.logMilestone(`got auth for: ${userId}`);	
+		qtools.logMilestone(`got auth for: ${userId}`);
 		return decoded;
 	};
 	
@@ -195,6 +194,11 @@ const moduleFunction = function(args) {
 			}
 		};
 		const scriptElement = getScriptPathParameters(functionName);
+		
+		if (!scriptElement){
+			qtools.logError(`missing scriptElement for ${functionName}`);
+			return;
+		}
 
 		if (qtools.fs.existsSync(scriptElement.path)) {
 			scriptElement.script = qtools.fs
@@ -220,16 +224,32 @@ const moduleFunction = function(args) {
 		helixAccessParms,
 		makeApplescriptDataString
 	) => args => {
-		const { scriptElement, processName, parameters, helixSchema, poolUserObject } = args;
+		const {
+			scriptElement,
+			processName,
+			parameters,
+			helixSchema,
+			poolUserObject
+		} = args;
 
 		const inData = qtools.clone(parameters.inData) || {};
 		const otherParms = parameters.otherParms || {};
-		
-		const workingHelixAccessParms=qtools.clone(helixAccessParms);
 
-		if (parameters.poolUserObject && parameters.poolUserObject.leaseUserName){
-			workingHelixAccessParms.user=parameters.poolUserObject.leaseUserName;
-			workingHelixAccessParms.password=parameters.poolUserObject.leasePassword;
+		const workingHelixAccessParms = qtools.clone(helixAccessParms);
+
+		if (parameters.poolUserObject && parameters.poolUserObject.leaseUserName) {
+			workingHelixAccessParms.user = parameters.poolUserObject.leaseUserName;
+			workingHelixAccessParms.password =
+				parameters.poolUserObject.leasePassword;
+		}
+
+		for (var i in inData) {
+			var element = inData[i];
+			for (var j in element) {
+				const detail = element[j];
+				element[j] =
+					typeof detail == 'string' ? detail.replace(/\"/g, '\\"') : detail;
+			}
 		}
 
 		const replaceObject = qtools.extend(
@@ -243,22 +263,22 @@ const moduleFunction = function(args) {
 				}
 			),
 			script = scriptElement.script;
-			
+
 		replaceObject.dataString = makeApplescriptDataString(
 			helixSchema,
 			otherParms,
 			inData,
 			helixSchema.separators
 		);
-
-
-
 		if (
 			helixSchema.criterion &&
 			parameters.criterion &&
 			parameters.criterion.data
 		) {
-			replaceObject.criterion=getCriterion(helixSchema, helixSchema.criterion);
+			replaceObject.criterion = getCriterion(
+				helixSchema,
+				helixSchema.criterion
+			);
 			replaceObject.criterion.dataString = makeApplescriptDataString(
 				helixSchema.criterion,
 				otherParms,
@@ -271,10 +291,9 @@ const moduleFunction = function(args) {
 			parameters.response &&
 			parameters.response.data
 		) {
-			replaceObject.response=getresponse(helixSchema, helixSchema.response);
+			replaceObject.response = getresponse(helixSchema, helixSchema.response);
 			replaceObject.response.dataString = makeApplescriptDataString(
-				helixSchema.response.fieldSequenceList,
-				helixSchema.mapping,
+				helixSchema.response,
 				otherParms,
 				parameters.response.data
 			);
@@ -312,10 +331,7 @@ const moduleFunction = function(args) {
 				}).execute('testQuitHelixNoSave', parameters);
 				break;
 			case 'staticTest':
-				executeStaticTestRoute(
-					parameters.schema,
-					parameters.callback
-				);
+				executeStaticTestRoute(parameters.schema, parameters.callback);
 				break;
 			case 'remoteControlManager':
 				new remoteControlManagerGen({
@@ -332,7 +348,7 @@ const moduleFunction = function(args) {
 					compileScript,
 					helixAccessParms
 				});
-				
+
 				const invalid = helixEngineInstance3.validateSchema(parameters);
 				if (invalid) {
 					callback(new Error(invalid));
@@ -342,7 +358,9 @@ const moduleFunction = function(args) {
 				helixEngineInstance3.execute(libraryScriptName, parameters);
 				break;
 			default:
-				parameters.callback(`unknown libraryScriptName type '${libraryScriptName}' in helixConnector.js`);
+				parameters.callback(
+					`unknown libraryScriptName type '${libraryScriptName}' in helixConnector.js`
+				);
 				break;
 		}
 	};
@@ -405,15 +423,15 @@ const moduleFunction = function(args) {
 		control = qtools.getSurePath(parameters, 'schema.staticTestRequestFlag')
 			? 'staticTest'
 			: control;
-		
+
 		if (!['staticTest', 'remoteControl', 'helixAccess'].includes(schemaType)) {
 			parameters.callback(new Error(`unknown schemaType '${schemaType}'`));
 			return;
 		}
-		
-		const localCallback=(err, result)=>{
-		parameters.callback(err, result)
-		}
+
+		const localCallback = (err, result) => {
+			parameters.callback(err, result);
+		};
 		executeProcess(control, parameters, localCallback);
 	};
 
@@ -466,6 +484,13 @@ const moduleFunction = function(args) {
 	
 	this.validateUserTokenUnitTestEndpoint = validateUserToken; //for unit testing
 	
+	this.checkUserPool = callback => {
+		new helixAccessManagerGen({
+			getScript,
+			compileScript,
+			helixAccessParms: args.helixAccessParms
+		}).checkUserPool(callback);
+	};
 
 	return this;
 };

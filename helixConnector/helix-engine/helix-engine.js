@@ -319,6 +319,10 @@ var moduleFunction = function(args) {
 	);
 
 	this.validateSchema = validateSchema;
+	
+	this.checkUserPool=callback=>{
+		hxPoolUserAccessor.checkUserPool(callback);
+	}
 
 	!this.initCallback || this.initCallback();
 

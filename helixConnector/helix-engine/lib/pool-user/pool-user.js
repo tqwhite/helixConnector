@@ -15,7 +15,6 @@ var moduleFunction = function(args) {
 		self.helixRelationList = [];
 		//self.openDatabaseFunctionNames = ['openTestDb'];
 		//self.systemParms = {};
-		self.userPoolOk = '';
 		self.leaseUserName = '';
 	};
 
@@ -32,8 +31,8 @@ var moduleFunction = function(args) {
 		}
 
 		var helixSchema = {
-			internalSchema:true,
-			schemaName:'listRelations',
+			internalSchema: true,
+			schemaName: 'listRelations',
 			relation: '',
 			view: '',
 			fieldSequenceList: [relationFieldName],
@@ -64,20 +63,7 @@ var moduleFunction = function(args) {
 	};
 
 	var initUserPoolIfNeeded = (args, callback) => {
-		const { processName, helixAccessParms, relationsList } = args;
-		switch (processName) {
-			case 'openTestDb':
-				callback();
-				return false;
-				break;
-			case 'kill':
-			case 'quitHelixNoSave':
-				this.userPoolOk = false;
-				break;
-			default:
-				this.userPoolOk = true;
-				break;
-		}
+		const { helixAccessParms, relationsList } = args;
 
 		const helixRelationList = relationsList.map(item => item.nativeName);
 
@@ -131,7 +117,7 @@ var moduleFunction = function(args) {
 			return;
 		}
 
-		if (allPresent && this.userPoolOk && !this.leaseUserName) {
+		if (allPresent && !this.leaseUserName) {
 			callback('', 'passed initUserPool()');
 			return;
 		} else {
@@ -150,44 +136,7 @@ var moduleFunction = function(args) {
 
 		const leasePoolUserFieldName = 'leaseUserName';
 		const leasePoolPasswordFieldName = 'leasePassword';
-
-		taskList.push((args, next) => {
-			const localCallback = (err, relationsList) => {
-				args.relationsList = relationsList;
-				next(err, args);
-			};
-
-			const helixSchema = {
-			internalSchema:true,
-				schemaName:'listRelations',
-				debug: false,
-				returnsJson: true,
-				relation: '',
-				view: '',
-				fieldSequenceList: [],
-				mapping: {}
-			};
-			hxScriptRunner('listRelations', {
-				schema: helixSchema,
-				callback: localCallback
-			});
-		});
-
-		taskList.push((args, next) => {
-			const localCallback = (err, relationCheckResult) => {
-				if (err) {
-					callback(new Error(err));
-					return;
-				}
-				args.relationCheckResult = relationCheckResult;
-				next(err, args);
-			};
-			initUserPoolIfNeeded(
-				{ processName, helixAccessParms, relationsList: args.relationsList },
-				localCallback
-			);
-		});
-
+		
 		taskList.push((args, next) => {
 			const localCallback = (err, poolUserObject) => {
 				if (err) {
@@ -208,8 +157,8 @@ var moduleFunction = function(args) {
 			};
 
 			const helixSchema = {
-			internalSchema:true,
-				schemaName:'poolUserLease',
+				internalSchema: true,
+				schemaName: 'poolUserLease',
 				debug: false,
 				returnsJson: true,
 				relation: '',
@@ -222,22 +171,6 @@ var moduleFunction = function(args) {
 				schema: helixSchema,
 				callback: localCallback
 			});
-		});
-
-		taskList.push((args, next) => {
-			const localCallback = (err, localResult2) => {
-				args.localResult2 = localResult2;
-				next(err, args);
-			};
-			localCallback('', 'localResult2');
-		});
-
-		taskList.push((args, next) => {
-			const localCallback = (err, localResult2) => {
-				args.localResult2 = localResult2;
-				next(err, args);
-			};
-			localCallback('', 'localResult2');
 		});
 
 		const initialData = typeof inData != 'undefined' ? inData : {};
@@ -269,8 +202,8 @@ var moduleFunction = function(args) {
 			};
 
 			const helixSchema = {
-			internalSchema:true,
-				schemaName:'poolUserRelease',
+				internalSchema: true,
+				schemaName: 'poolUserRelease',
 				debug: false,
 				returnsJson: true,
 				relation: '',
@@ -302,6 +235,67 @@ var moduleFunction = function(args) {
 		helixAccessParms,
 		hxScriptRunner
 	});
+	
+	this.checkUserPool = callback => {
+		const taskList = new taskListPlus();
+		taskList.push((args, next) => {
+		
+			if (helixAccessParms.skipUserPoolEntirely){
+			args.processResult.push("User Pool Disabled. skipUserPoolEntirely=true");
+				next('skipRestOfPipe', args);
+			}
+			else{
+				next('', args);
+			}
+		
+		});
+		taskList.push((args, next) => {
+			const localCallback = (err, relationsList) => {
+				args.relationsList = relationsList;
+
+				next(err, args);
+			};
+
+			const helixSchema = {
+				internalSchema: true,
+				schemaName: 'listRelations',
+				debug: false,
+				returnsJson: true,
+				relation: '',
+				view: '',
+				fieldSequenceList: [],
+				mapping: {}
+			};
+			hxScriptRunner('listRelations', {
+				schema: helixSchema,
+				callback: localCallback
+			});
+		});
+
+		taskList.push((args, next) => {
+			const localCallback = (err, relationCheckResult) => {
+				if (err) {
+					callback(new Error(err));
+					return;
+				}
+				args.processResult.push('Pool User tables valid in Helix');
+				next(err, args);
+			};
+			initUserPoolIfNeeded(
+				{ helixAccessParms, relationsList: args.relationsList },
+				localCallback
+			);
+		});
+
+		const initialData = {processResult:[]};
+		asynchronousPipe(taskList.getList(), initialData, (err, result) => {
+			if (!err || err=='skipRestOfPipe') {
+				callback('', result.processResult);
+			} else {
+				callback(err);
+			}
+		});
+	};
 
 	//INITIALIZATION ====================================
 
