@@ -245,11 +245,16 @@ const moduleFunction = function(args) {
 
 		for (var i in inData) {
 			var element = inData[i];
-			for (var j in element) {
-				const detail = element[j];
-				element[j] =
-					typeof detail == 'string' ? detail.replace(/\"/g, '\\"') : detail;
+			
+			if(typeof(element)=='string'){
+				inData[i]=element.replace(/\"/g, '\\"');
 			}
+			
+// 			for (var j in element) {
+// 				const detail = element[j];
+// 				element[j] =
+// 					typeof detail == 'string' ? detail.replace(/\"/g, '\\"') : detail;
+// 			}
 		}
 
 		const replaceObject = qtools.extend(
