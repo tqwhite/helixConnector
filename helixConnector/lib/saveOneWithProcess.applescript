@@ -9,7 +9,7 @@ tell application "<!applicationName!>"
 	set responseRelation to "<!response.relation!>"
 	set responseView to "<!response.view!>"
 	
-	set myData to {<!dataString!>}
+	set myData to {"<!dataString!>"}
 	
 	set theResult to ""
 	
