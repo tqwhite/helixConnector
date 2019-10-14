@@ -222,8 +222,6 @@ var moduleFunction = function(args) {
 			typeof parameters.schema != 'undefined'
 				? parameters.schema.schemaName
 				: 'NO HELIX SCHEMA';
-				
-		qtools.logMilestone(`applescript name/view: ${processName}/${tmp}`);
 
 		if (scriptElement.err) {
 			!parameters.callback || parameters.callback(scriptElement.err);
