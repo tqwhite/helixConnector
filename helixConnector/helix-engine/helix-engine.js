@@ -2,6 +2,11 @@
 const qtoolsGen = require('qtools');
 const qtools = new qtoolsGen(module, { updatePrototypes: true });
 const async = require('async');
+	
+const asynchronousPipePlus = new require('asynchronous-pipe-plus')();
+const asynchronousPipe = asynchronousPipePlus.asynchronousPipe;
+const taskListPlus = asynchronousPipePlus.taskListPlus;
+	
 const helixDataGen = require('helixdata');
 const helixData = new helixDataGen();
 
@@ -33,7 +38,7 @@ var moduleFunction = function(args) {
 		]
 	});
 
-	//LOCAL VARIABLES ====================================
+	const { getScript, compileScript } = args;
 
 	//LOCAL FUNCTIONS ====================================
 
@@ -97,9 +102,36 @@ var moduleFunction = function(args) {
 		}
 	};
 	
-	const asynchronousPipePlus = new require('asynchronous-pipe-plus')();
-	const asynchronousPipe = asynchronousPipePlus.asynchronousPipe;
-	const taskListPlus = asynchronousPipePlus.taskListPlus;
+	const executeHelixOperation = function(processName, parameters) {};
+
+	const executeOsaScript = (script, parms, callback) => {
+		const localCallback = (err, result) => {
+			callback(err, result);
+		};
+
+		const exec = require('child_process').exec;
+		const osaScript = require('osascript').eval;
+
+		const workingParms = qtools.clone(parms);
+		workingParms.type = workingParms.type.toLowerCase();
+
+		switch (workingParms.type) {
+			case 'applescript':
+				osaScript(script, parms, localCallback);
+				break;
+			case 'bash':
+				qtools.die({ 'workingParms.typeA': workingParms.type });
+				exec(script, localCallback);
+				break;
+			default: //osascript default is javascript
+			case 'jax':
+				workingParms.type = 'javascript';
+				osaScript(script, parms, localCallback);
+				break;
+		}
+	};
+
+	//WORKING FUNCTIONS ====================================
 
 	const executeActual = (
 		hxScriptRunner,
@@ -190,8 +222,6 @@ var moduleFunction = function(args) {
 			typeof parameters.schema != 'undefined'
 				? parameters.schema.schemaName
 				: 'NO HELIX SCHEMA';
-				
-		qtools.logMilestone(`applescript name/view: ${processName}/${tmp}`);
 
 		if (scriptElement.err) {
 			!parameters.callback || parameters.callback(scriptElement.err);
@@ -263,42 +293,7 @@ var moduleFunction = function(args) {
 		);
 	};
 
-	//METHODS AND PROPERTIES ====================================
-
 	//API ENDPOINTS ====================================
-
-	const executeHelixOperation = function(processName, parameters) {};
-
-	//INITIALIZATION ====================================
-
-	const executeOsaScript = (script, parms, callback) => {
-		const localCallback = (err, result) => {
-			callback(err, result);
-		};
-
-		const exec = require('child_process').exec;
-		const osaScript = require('osascript').eval;
-
-		const workingParms = qtools.clone(parms);
-		workingParms.type = workingParms.type.toLowerCase();
-
-		switch (workingParms.type) {
-			case 'applescript':
-				osaScript(script, parms, localCallback);
-				break;
-			case 'bash':
-				qtools.die({ 'workingParms.typeA': workingParms.type });
-				exec(script, localCallback);
-				break;
-			default: //osascript default is javascript
-			case 'jax':
-				workingParms.type = 'javascript';
-				osaScript(script, parms, localCallback);
-				break;
-		}
-	};
-
-	const { getScript, compileScript } = args;
 
 	const hxScriptRunner = hxScriptRunnerActual({
 		executeOsaScript,
@@ -324,6 +319,8 @@ var moduleFunction = function(args) {
 	this.checkUserPool=callback=>{
 		hxPoolUserAccessor.checkUserPool(callback);
 	}
+
+	//INITIALIZATION ====================================
 
 	!this.initCallback || this.initCallback();
 
