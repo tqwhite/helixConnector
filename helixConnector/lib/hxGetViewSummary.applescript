@@ -20,14 +20,18 @@ set myUser to "<!user!>"
 set myPassword to "<!password!>"
 
 
+
 --swap out as necessary
-tell application "<!applicationName!>"
+tell application "Helix Server"
 	tell collection 1
 		set appendedText to ""
 		set appendedText2 to ""
 		set theSQLResult to ""
 		set theHelixResult to ""
 		set allTheRectangles to {}
+		
+		login myUser password myPassword
+		
 		set theRelationName to name of relation myRelation
 		set theRelationCustomName to the custom name of relation myRelation
 		
@@ -64,9 +68,14 @@ tell application "<!applicationName!>"
 									
 									tell theRectObject
 										set theFieldIcon to the field icon
-										set theAbacusIcon to the abacus icon
+										set fieldIconClass to the class of the theFieldIcon
 										
-										if (theFieldIcon is not null) then
+										set theAbacusIcon to the abacus icon
+										set theAbacusIconClass to the class of theAbacusIcon
+										
+										if (fieldIconClass is not object) then
+											
+											--if (theFieldIcon is not null) then
 											tell theFieldIcon
 												set theFieldType to data type
 												set theFieldFormat to the format
@@ -81,10 +90,12 @@ tell application "<!applicationName!>"
 													set theHelixResult to my formatFlag(theFieldIcon, "field")
 												else if (theFieldType is text type) then
 													set theHelixResult to my formatText(theFieldIcon, "field")
+												else if (theFieldType is styled text type) then
+													set theHelixResult to my formatText(theFieldIcon, "field")
 												end if
 											end tell
 											
-										else if (theAbacusIcon is not null) then
+										else if (theAbacusIconClass is not object) then
 											tell theAbacusIcon
 												set theAbacusType to data type
 												set theAbacusFormat to the format
@@ -98,6 +109,8 @@ tell application "<!applicationName!>"
 												else if (theAbacusType is flag type) then
 													set theHelixResult to my formatFlag(theAbacusIcon, "abacus")
 												else if (theAbacusType is text type) then
+													set theHelixResult to my formatText(theAbacusIcon, "abacus")
+												else if (theAbacusType is styled text type) then
 													set theHelixResult to my formatText(theAbacusIcon, "abacus")
 												end if
 												
@@ -167,7 +180,7 @@ on formatFixedPoint(hxIconObject, hxIconType)
 		end tell
 	end tell
 	
-	if (customName is not "") then
+	if (customName is "") then
 		set customName to fieldName
 	end if
 	
@@ -197,7 +210,7 @@ on formatNumber(hxIconObject, hxIconType)
 		end tell
 	end tell
 	
-	if (customName is not "") then
+	if (customName is "") then
 		set customName to fieldName
 	end if
 	
@@ -223,7 +236,7 @@ on formatDateTime(hxIconObject, hxIconType)
 		end tell
 	end tell
 	
-	if (customName is not "") then
+	if (customName is "") then
 		set customName to fieldName
 	end if
 	
@@ -251,7 +264,7 @@ on formatFlag(hxIconObject, hxIconType)
 		end tell
 	end tell
 	
-	if (customName is not "") then
+	if (customName is "") then
 		set customName to fieldName
 	end if
 	
@@ -275,7 +288,7 @@ on formatText(hxIconObject, hxIconType)
 		end tell
 	end tell
 	
-	if (customName is not "") then
+	if (customName is "") then
 		set customName to fieldName
 	end if
 	
@@ -363,11 +376,40 @@ on convertToJsonObject(propertyList)
 	
 end convertToJsonObject
 
+
+
+on stringReplace(theText, theSearchString, theReplacementString)
+	--thanks: https://developer.apple.com/library/archive/documentation/LanguagesUtilities/Conceptual/MacAutomationScriptingGuide/ManipulateText.html#//apple_ref/doc/uid/TP40016239-CH33-SW4
+	
+	try
+		set AppleScript's text item delimiters to theSearchString
+	on error
+		return theText
+	end try
+	
+	try
+		set theTextItems to every text item of theText
+	on error
+		set theTextItems to ""
+	end try
+	
+	set AppleScript's text item delimiters to theReplacementString
+	set theText to theTextItems as string
+	set AppleScript's text item delimiters to ""
+	return theText
+end stringReplace
+
+
 on q(inString)
 	set dq to character id 34
+	set backslash to character id 92
+	--set inString to my stringReplace(inString, dq, backslash & dq)
+	set inString to my stringReplace(inString, dq, "QUOTE")
 	return dq & inString & dq
 	
 end q
+
+
 
 
 
@@ -385,16 +427,15 @@ on retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
 		
 		set myRelation to "085" --this is the !-Custom Names Relation
 		set myView to "retrievePrimaryKeyName"
-		
+		--local theResult
 		set processID to utilize {referenceCollection, myUser, myPassword, myRelation, myView} to create process for retrieve
 		set theResult to utilize {referenceCollection, myUser, myPassword, myRelation, myView} to retrieve records as list
 		set theDisconnect to utilize {processID} to close process
 		
-		set primaryKeyName to the helix record of item 1 of theResult
+		set primaryKeyName to item 1 of the helix record of item 1 of theResult
 	end tell
 	
 	return primaryKeyName
 	
 	
 end retrievePrimaryKey
-

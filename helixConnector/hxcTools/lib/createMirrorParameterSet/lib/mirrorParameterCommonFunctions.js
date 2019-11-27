@@ -71,7 +71,7 @@ var moduleFunction = function(args) {
 	this.convertName = badName => {
 		return badName
 			.replace(/\#$/, ' number')
-			.replace(/\W|_/g, ' ')
+			.replace(/\W/g, ' ')
 			.trim()
 			.toLowerCase()
 			.replace(/ (\w)/g, item => item.toUpperCase())
@@ -84,7 +84,8 @@ var moduleFunction = function(args) {
 			['flag type']: 'TINYTEXT',
 			['number type']: 'DECIMAL',
 			['text type']: 'MEDIUMTEXT',
-			['fixed point type']: 'DECIMAL'
+			['fixed point type']: 'DECIMAL',
+			['styled text type']: 'MEDIUMTEXT'
 		};
 
 		return functionMap[meta.fieldType];

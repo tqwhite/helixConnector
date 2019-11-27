@@ -37,11 +37,17 @@ var moduleFunction = function(args) {
 		const definitionBlock = Object.assign(
 			{},
 			{
+				debugData:false,
+				debug:false,
 				fieldSequenceList,
 				mapping,
 				primaryKey: primaryKey,
 				nativeRelationName: viewSummary.context.nativeRelationName,
-				mysqlTableName:tableName
+				mysqlTableName:tableName,
+				"separators": {
+					"field": "\t",
+					"record": "\n"
+				}
 			},
 			createControlProperties(viewSummary.context)
 		);

@@ -237,6 +237,7 @@ const moduleFunction = function(args) {
 
 		const workingHelixAccessParms = qtools.clone(helixAccessParms);
 
+		//substitute pool user credentials into the replaceObject
 		if (parameters.poolUserObject && parameters.poolUserObject.leaseUserName) {
 			workingHelixAccessParms.user = parameters.poolUserObject.leaseUserName;
 			workingHelixAccessParms.password =

@@ -198,6 +198,7 @@ var moduleFunction = function(args) {
 			return;
 		}
 
+		//compileScript() is actually helixData.makeApplescriptDataString()
 		const finalScript = compileScript({
 				scriptElement,
 				processName,
