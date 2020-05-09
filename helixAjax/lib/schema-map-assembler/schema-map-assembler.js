@@ -39,11 +39,12 @@ var moduleFunction = function(args) {
 
 
 		const schemaMapJson = qtools.fs.readFileSync(schemaMapPath);
+
 		try {
 			schemaMap = JSON.parse(schemaMapJson);
 		} catch (e) {
-			console.log('failed to parse ' + schemaMap);
-			throw 'schemaMap file failed to parse';
+			console.log('schemaMap main file failed to parse: ' + schemaMapPath);
+			throw 'schemaMap main file failed to parse';
 		}
 
 
@@ -63,8 +64,8 @@ var moduleFunction = function(args) {
 				try {
 					include = JSON.parse(includeJson);
 				} catch (e) {
-					console.log('failed to parse ' + includePath);
-					throw `schemaInclude file failed to parse ${includePath}`;
+					console.log('schemaMap include fil to parse: ' + includePath);
+					throw 'schemaMap include file failed to parse';
 				}
 
 				if (typeof(include)=='object'){
