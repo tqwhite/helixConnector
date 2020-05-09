@@ -13,6 +13,7 @@ use scripting additions
 --there are other formatting specifics, such as Groups (a comma) and Dollar signs - do you need these?
 
 
+
 set myCollection to "<!collection!>"
 set myRelation to "<!nativeRelationName!>"
 set myView to "<!viewName!>"
@@ -22,7 +23,7 @@ set myPassword to "<!password!>"
 
 
 --swap out as necessary
-tell application "Helix Server"
+tell application "<!applicationName!>"
 	tell collection 1
 		set appendedText to ""
 		set appendedText2 to ""
@@ -32,7 +33,18 @@ tell application "Helix Server"
 		
 		login myUser password myPassword
 		
-		set theRelationName to name of relation myRelation
+		set theRelationName to ""
+		try
+			set theRelationName to name of relation myRelation
+		end try
+		
+		if (theRelationName is "") then
+			set nativeName to my getNativeNameFromCustom(myRelation)
+			
+			set myRelation to nativeName
+			set theRelationName to nativeName
+		end if
+		
 		set theRelationCustomName to the custom name of relation myRelation
 		
 		if (myView is not "") then
@@ -439,3 +451,35 @@ on retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
 	
 	
 end retrievePrimaryKey
+
+on getNativeNameFromCustom(customNameIn)
+	
+	
+	set myCollection to "<!collection!>"
+	set myUser to "<!user!>"
+	set myPassword to "<!password!>"
+	
+	tell application "<!applicationName!>"
+		tell collection 1
+			login myUser password myPassword
+			
+			set allMyRelations to every relation
+			
+			repeat with i in allMyRelations
+				
+				set theRelation to i
+				
+				tell theRelation
+					set theName to name
+					set theCustomName to custom name
+					
+					if (theCustomName is customNameIn) then
+						set theResult to theName
+						exit repeat
+					end if
+				end tell
+			end repeat
+		end tell
+		return theResult
+	end tell
+end getNativeNameFromCustom
