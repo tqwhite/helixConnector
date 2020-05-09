@@ -43,29 +43,39 @@
 		
 		}
 	},
-		"hxGetViewSummary":{
+		"hxListRelationNames":{
 			"debug":"false",
+		"skipPoolUser":true,
 			"schemaType":"remoteControl",
-			"scriptName": "utilGetViewSummary",
+			"scriptName": "hxListRelationNames",
 			"arguments": {},
 			"conversion":{
 				"functionName":"cleanToJson",
 				"parameters":{}
-			},
-			"debug":true
+			}
 			
+		},
+		"hxGetViewSummary":{
+			"debug":"false",
+		"skipPoolUser":true,
+			"schemaType":"remoteControl",
+			"scriptName": "hxGetViewSummary",
+			"arguments": {},
+			"conversion":{
+				"functionName":"cleanToJson",
+				"parameters":{}
+			}
 		},
 		"hxListAllRelationsForCollection":{
 			"debug":"false",
+		"skipPoolUser":true,
 			"schemaType":"remoteControl",
 			"scriptName": "hxListAllRelationsForCollection",
 			"arguments": {},
 			"conversion":{
 				"functionName":"cleanToJson",
 				"parameters":{}
-			},
-			"debug":true
-			
+			}
 		},
 		"hxListViewsForRelation":{
 			"debug":"false",
@@ -75,9 +85,7 @@
 			"conversion":{
 				"functionName":"cleanToJson",
 				"parameters":{}
-			},
-			"debug":true
-			
+			}
 		},
 
 		"getViewSummaryHOLD":{
@@ -91,9 +99,7 @@
 					"fieldSep":"\t",
 					"recordSep":"\r"
 				}
-			},
-			"debug":true
-			
+			}
 		},
 
 		"poolUserRelease":{
