@@ -78,7 +78,7 @@ var moduleFunction = function(args) {
 				) {
 					return 'Record data must be supplied for this schema (emptyRecordsAllowed)';
 				}
-
+				
 				for (let j in element) {
 					if (element[j] && element[j] !== '') {
 						foundData = true;
@@ -228,7 +228,7 @@ var moduleFunction = function(args) {
 			return;
 		}
 
-		//compileScript() is actually helixData.makeApplescriptDataString()
+		//compileScript() is actually helixConnector.compileScriptActual which calla helixData.makeApplescriptDataString()
 		const finalScript = compileScript({
 				scriptElement,
 				processName,
@@ -265,6 +265,9 @@ var moduleFunction = function(args) {
 	if (qtools.isTrue(parameters.schema.debugData) && parameters.schema.schemaName){
 			const filePath=`${process.env.HOME}/Desktop/tmp/file_FromHelix_${new Date().getTime()}_${parameters.schema.schemaName}.txt`;
 			qtools.logWarn(`WRITING received helix data to file: ${filePath}`);
+			console.dir({"data [helix-engine.js.moduleFunction]":data});
+
+
 			qtools.writeSureFile(filePath, data);
 	}	
 				data = data.replace(/([^\n])\n$/, '$1');
