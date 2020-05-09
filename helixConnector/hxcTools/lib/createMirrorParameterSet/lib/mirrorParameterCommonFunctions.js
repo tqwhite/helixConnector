@@ -30,6 +30,7 @@ var moduleFunction = function(args) {
 		viewSummary.fieldData.forEach(item => {
 			const name = item.meta.customName || item.meta.nativeName;
 
+			//const newFieldName = this.convertName(name);
 			const newFieldName = this.convertName(name);
 
 			if (dupeSuppress.has(newFieldName)) {
@@ -114,14 +115,14 @@ var moduleFunction = function(args) {
 					item.meta.customName ? item.meta.customName : item.meta.nativeName
 			);
 
-		if (!primaryKeyList.length) {
-			reportErrorsAndDieMaybe(
-				`Primary key (${
-					viewSummary.context.primaryKeyName
-				}) is not a column in ${viewSummary.context.nativeRelationName}`
-			);
-			process.exit(1);
-		}
+// 		if (!primaryKeyList.length) {
+// 			reportErrorsAndDieMaybe(
+// 				`Primary key (${
+// 					viewSummary.context.primaryKeyName
+// 				}) is not a column in ${viewSummary.context.nativeRelationName}`
+// 			);
+// 			process.exit(1);
+// 		}
 
 		if (!primaryKeyList.length > 1) {
 			reportErrorsAndDieMaybe(

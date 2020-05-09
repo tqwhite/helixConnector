@@ -26,9 +26,7 @@ var moduleFunction = function(args) {
 		const tableName = commonFunctions.getTableName(viewSummary);
 
 		const fieldSequenceList = viewSummary.fieldData.map(item =>
-			convertName(
-				item.meta.customName ? item.meta.customName : item.meta.nativeName
-			)
+			item.meta.customName ? item.meta.customName : item.meta.nativeName
 		);
 		const mapping = viewSummary.fieldData.map(item =>
 			getMappingElement(item.meta)
