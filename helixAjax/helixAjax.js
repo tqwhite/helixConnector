@@ -148,17 +148,13 @@ var moduleFunction = function(args) {
 	
 	
 	let schemaMapPath;
-	const schemaMapDirectoryPath=qtools.getSurePath(newConfig, 'system.schemaMapDirectoryPath');
-	if (schemaMapDirectoryPath){
-
-		schemaMapPath =
-			schemaMapDirectoryPath +
-			'/' +
-			schemaMapName +
-			'.json';
-	}
-	else{
-
+	const schemaMapDirectoryPath = qtools.getSurePath(
+		newConfig,
+		'system.schemaMapDirectoryPath'
+	);
+	if (schemaMapDirectoryPath) {
+		schemaMapPath = schemaMapDirectoryPath + '/' + schemaMapName + '.json';
+	} else {
 		schemaMapPath =
 			process.env.helixProjectPath +
 			'configs/' +
@@ -334,14 +330,13 @@ var moduleFunction = function(args) {
 			args.processResult.push(result);
 			next(err, args);
 		};
-		if (false){
-		qtools.logMilestone('Initiating startup check for: Pool User Tables');
-		var helixConnector = new helixConnectorGenerator({
-			helixAccessParms: helixParms
-		});
+		if (false) {
+			qtools.logMilestone('Initiating startup check for: Pool User Tables');
+			var helixConnector = new helixConnectorGenerator({
+				helixAccessParms: helixParms
+			});
 			helixConnector.checkUserPool(localCallback);
-		}
-		else{
+		} else {
 			qtools.logMilestone('SKIPPING startup check for: Pool User Tables');
 			localCallback();
 		}
@@ -431,7 +426,11 @@ var moduleFunction = function(args) {
 		}
 
 		res.send(
-			`hxConnector!!! is alive and responded to ${req.protocol}://${req.host}:${req.headers['q-original-port']}/${req.path} proxied to port ${req.headers['q-destination-port']} (this is a built-in endpoint)`
+			`hxConnector!!! is alive and responded to ${req.protocol}://${req.host}:${
+				req.headers['q-original-port']
+			}/${req.path} proxied to port ${
+				req.headers['q-destination-port']
+			} (this is a built-in endpoint)`
 		);
 	});
 
@@ -470,8 +469,8 @@ var moduleFunction = function(args) {
 		const schema = getSchema(helixParms, schemaName);
 
 		const testHxServerAliveSchema = getSchema(helixParms, 'testHxServerAlive');
-		testHxServerAliveSchema.schema='testHxServerAliveSchema';
-		testHxServerAliveSchema.original=qtools.clone(testHxServerAliveSchema);
+		testHxServerAliveSchema.schema = 'testHxServerAliveSchema';
+		testHxServerAliveSchema.original = qtools.clone(testHxServerAliveSchema);
 
 		if (!schema) {
 			send500(res, req, `Schema '${schemaName}' not defined`);
@@ -479,16 +478,13 @@ var moduleFunction = function(args) {
 		}
 
 		schema.schemaName = schemaName; //I don't trust myself not to forget to include this when I define an endpoint
-		
-		if (!schema.original){
-			schema.original=qtools.clone(schema);
-		}
-		
 
-		if (qtools.isTrue(schema.schemaType=='remoteControl')){
-		
+		if (!schema.original) {
+			schema.original = qtools.clone(schema);
 		}
-		else if (dynamicTest) {
+
+		if (qtools.isTrue(schema.schemaType == 'remoteControl')) {
+		} else if (dynamicTest) {
 			const viewName = schema.testViewName;
 
 			if (!viewName) {
@@ -536,56 +532,43 @@ var moduleFunction = function(args) {
 		schema.schemaType = schema.schemaType ? schema.schemaType : 'helixAccess'; //just for completeness, I made it the default when I was young and stupid
 
 		var helixConnector = fabricateConnector(req, res, schema);
-		const runRealSchema=(err, result)=>{
-
-
-if (!result.match(/true/) || err){
-
-
-sendResult(res, req, next, helixConnector)(err?err.toString():'Helix is not running');
-return;
-}
-
-		
-		if (helixConnector) {
-			switch (schema.schemaType) {
-				case 'remoteControl':
-					remoteControl(
-						helixConnector,
-						schema,
-						req.query,
-						sendResult(res, req, next, helixConnector)
-					);
-					break;
-
-				case 'helixAccess':
-				default:
-					retrieveRecords(
-						helixConnector,
-						schema,
-						req.query,
-						sendResult(res, req, next, helixConnector)
-					);
+		const runRealSchema = (err, result) => {
+			if (!result.match(/true/) || err) {
+				sendResult(res, req, next, helixConnector)(
+					err ? err.toString() : 'Helix is not running'
+				);
+				return;
 			}
-		}
-		}
-		
-		
-		
 
-					remoteControl(
-						helixConnector,
-						testHxServerAliveSchema,
-						req.query,
-						runRealSchema
-					);
-		
-		
-		
-		
-		
-		
-		
+			if (helixConnector) {
+				switch (schema.schemaType) {
+					case 'remoteControl':
+						remoteControl(
+							helixConnector,
+							schema,
+							req.query,
+							sendResult(res, req, next, helixConnector)
+						);
+						break;
+
+					case 'helixAccess':
+					default:
+						retrieveRecords(
+							helixConnector,
+							schema,
+							req.query,
+							sendResult(res, req, next, helixConnector)
+						);
+				}
+			}
+		};
+
+		remoteControl(
+			helixConnector,
+			testHxServerAliveSchema,
+			req.query,
+			runRealSchema
+		);
 	});
 
 	router.post(/generateToken/, function(req, res, next) {

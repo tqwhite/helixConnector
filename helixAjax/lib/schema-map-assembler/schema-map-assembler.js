@@ -2,7 +2,7 @@
 const qtoolsGen = require('qtools');
 const qtools = new qtoolsGen(module, { updatePrototypes: true });
 const async = require('async');
-const path=require('path');
+const path = require('path');
 
 //START OF moduleFunction() ============================================================
 
@@ -36,8 +36,7 @@ var moduleFunction = function(args) {
 			return message;
 		}
 		let schemaMap;
-
-
+		
 		const schemaMapJson = qtools.fs.readFileSync(schemaMapPath);
 
 		try {
@@ -45,19 +44,12 @@ var moduleFunction = function(args) {
 		} catch (e) {
 			console.log('schemaMap main file failed to parse: ' + schemaMapPath);
 			throw 'schemaMap main file failed to parse';
-		}
-
-
-
-		if (schemaMap.includes && schemaMap.includes.length){
-
-
-
-			schemaMap.includes.reduce((result, item)=>{
-
-
-
-				const includePath=path.join(schemaMapPath, '../', item);
+		} 
+		 if (schemaMap.includes && schemaMap.includes.length) {
+			 
+			schemaMap.includes.reduce((result, item) => {
+				 
+				const includePath = path.join(schemaMapPath, '../', item);
 				const includeJson = qtools.fs.readFileSync(includePath);
 
 				let include;
@@ -68,18 +60,14 @@ var moduleFunction = function(args) {
 					throw 'schemaMap include file failed to parse';
 				}
 
-				if (typeof(include)=='object'){
-					result.schemaMap=Object.assign({}, result.schemaMap, include);
+				if (typeof include == 'object') {
+					result.schemaMap = Object.assign({}, result.schemaMap, include);
 				}
 
-			return result;
+				return result;
 			}, schemaMap);
-
-		}
-
-
-
-		return schemaMap;
+		} 
+		 return schemaMap;
 	};
 
 	//API ENDPOINTS ====================================

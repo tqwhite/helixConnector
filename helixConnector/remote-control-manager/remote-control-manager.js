@@ -36,9 +36,12 @@ var moduleFunction = function(args) {
 
 	const executeActual = args => (libraryScriptName, parameters) => {
 		const { processor, getScript, compileScript } = args;
-
-
-		const helixSchema = Object.assign({}, parameters.schema, parameters.otherParms);
+		
+		const helixSchema = Object.assign(
+			{},
+			parameters.schema,
+			parameters.otherParms
+		);
 		const scriptElement = getScript(libraryScriptName);
 		const tmp = parameters.schema ? parameters.schema.scriptName : 'NO SCRIPT';
 		qtools.logDetail(
@@ -57,36 +60,42 @@ var moduleFunction = function(args) {
 		}
 
 		var finalScript = compileScript({
-				scriptElement,
-				libraryScriptName,
-				parameters:parameters.schema,
-				helixSchema
-			});
+			scriptElement,
+			libraryScriptName,
+			parameters: parameters.schema,
+			helixSchema
+		});
 		const callback = parameters.callback || function() {};
 
 		if (helixSchema.debug === 'true' || helixSchema.debug === true) {
-			console.log('finalScript=\n\n' + finalScript+"\n\n=================(remoteControlManager.js)\n");
+			console.log(
+				'finalScript=\n\n' +
+					finalScript +
+					'\n\n=================(remoteControlManager.js)\n'
+			);
 		}
-		
-		const localCallback=(err, result)=>{
-			
-			if (helixSchema.conversion){
-			
-				const conversionFunction = helixData.remoteControlConversionList[helixSchema.conversion.functionName];
-				
-				if (!conversionFunction){
-					callback(`Conversion function '${helixSchema.conversion.functionName}' is missing`);
+
+		const localCallback = (err, result) => {
+			if (helixSchema.conversion) {
+				const conversionFunction =
+					helixData.remoteControlConversionList[
+						helixSchema.conversion.functionName
+					];
+
+				if (!conversionFunction) {
+					callback(
+						`Conversion function '${
+							helixSchema.conversion.functionName
+						}' is missing`
+					);
 					return;
 				}
-				
-				conversionFunction(helixSchema.conversion, result, callback)
 
+				conversionFunction(helixSchema.conversion, result, callback);
+			} else {
+				callback(err, result);
 			}
-			else{
-			callback(err, result);
-		}
-		
-		}
+		};
 
 		processor(
 			finalScript,

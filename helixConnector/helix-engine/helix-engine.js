@@ -2,11 +2,11 @@
 const qtoolsGen = require('qtools');
 const qtools = new qtoolsGen(module, { updatePrototypes: true });
 const async = require('async');
-	
+
 const asynchronousPipePlus = new require('asynchronous-pipe-plus')();
 const asynchronousPipe = asynchronousPipePlus.asynchronousPipe;
 const taskListPlus = asynchronousPipePlus.taskListPlus;
-	
+
 const helixDataGen = require('helixdata');
 const helixData = new helixDataGen();
 
@@ -78,7 +78,7 @@ var moduleFunction = function(args) {
 				) {
 					return 'Record data must be supplied for this schema (emptyRecordsAllowed)';
 				}
-				
+
 				for (let j in element) {
 					if (element[j] && element[j] !== '') {
 						foundData = true;
@@ -140,7 +140,7 @@ var moduleFunction = function(args) {
 	) => (processName, parameters) => {
 		const callback = parameters.callback;
 		const taskList = new taskListPlus();
-		
+
 		if (
 			parameters.schema.skipPoolUser !== 'true' &&
 			parameters.schema.skipPoolUser !== true
@@ -171,33 +171,36 @@ var moduleFunction = function(args) {
 			if (args.poolUserObject) {
 				parameters.poolUserObject = args.poolUserObject;
 			}
-			const workingParameters=qtools.clone(parameters);
-			parameters.callback=localCallback;
+			const workingParameters = qtools.clone(parameters);
+			parameters.callback = localCallback;
 			hxScriptRunner(processName, parameters);
 		});
 		if (
 			parameters.schema.skipPoolUser !== 'true' &&
 			parameters.schema.skipPoolUser !== true
 		) {
-
-		taskList.push((args, next) => {
-			const localCallback = (err, releaseStatus) => {
-				args.releaseStatus = releaseStatus;
-				next(err, args);
-			};
-			if (args.poolUserObject) {
-				parameters.poolUserObject = args.poolUserObject;
-			}
-			hxPoolUserAccessor.releasePoolUserObject(
-					{ processName, helixAccessParms, poolUserObject:args.poolUserObject},
+			taskList.push((args, next) => {
+				const localCallback = (err, releaseStatus) => {
+					args.releaseStatus = releaseStatus;
+					next(err, args);
+				};
+				if (args.poolUserObject) {
+					parameters.poolUserObject = args.poolUserObject;
+				}
+				hxPoolUserAccessor.releasePoolUserObject(
+					{
+						processName,
+						helixAccessParms,
+						poolUserObject: args.poolUserObject
+					},
 					localCallback
 				);
-		});
+			});
 		}
 
 		const initialData = typeof inData != 'undefined' ? inData : {};
 		asynchronousPipe(taskList.getList(), initialData, (err, finalResult) => {
-			if (err){
+			if (err) {
 				callback(new Error(err));
 				return;
 			}
@@ -262,11 +265,18 @@ var moduleFunction = function(args) {
 					return;
 				}
 
-	if (qtools.isTrue(parameters.schema.debugData) && parameters.schema.schemaName){
-			const filePath=`${process.env.HOME}/Desktop/tmp/file_FromHelix_${new Date().getTime()}_${parameters.schema.schemaName}.txt`;
-			qtools.logWarn(`WRITING received helix data to file: ${filePath}`);
-			qtools.writeSureFile(filePath, data);
-	}	
+				if (
+					qtools.isTrue(parameters.schema.debugData) &&
+					parameters.schema.schemaName
+				) {
+					const filePath = `${
+						process.env.HOME
+					}/Desktop/tmp/file_FromHelix_${new Date().getTime()}_${
+						parameters.schema.schemaName
+					}.txt`;
+					qtools.logWarn(`WRITING received helix data to file: ${filePath}`);
+					qtools.writeSureFile(filePath, data);
+				}
 				data = data.replace(/([^\n])\n$/, '$1');
 
 				let workingSchema = helixSchema;
@@ -316,9 +326,9 @@ var moduleFunction = function(args) {
 
 	this.validateSchema = validateSchema;
 	
-	this.checkUserPool=callback=>{
+	this.checkUserPool = callback => {
 		hxPoolUserAccessor.checkUserPool(callback);
-	}
+	};
 
 	//INITIALIZATION ====================================
 

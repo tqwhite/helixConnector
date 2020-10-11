@@ -35,7 +35,6 @@ var moduleFunction = function(args) {
 		helixSchema,
 		helixAccessParms
 	) => {
-		
 		const makeArray = (inData, fieldSep, recordSep) => {
 			fieldSep ||
 				qtools.logWarn('helix schema has no separators.field property');
@@ -46,7 +45,7 @@ var moduleFunction = function(args) {
 				.split(recordSep)
 				.map(recordString => recordString.split(fieldSep));
 		};
-		
+
 		let maybeFunc = '';
 		try {
 			maybeFunc = eval(staticTestData);
@@ -71,8 +70,7 @@ var moduleFunction = function(args) {
 
 			if (outData && helixSchema.fieldSequenceList[0] == outData[0][0]) {
 				outData = outData.slice(1, outData.length);
-			}  
-			
+			}
 		} else {
 			outData = staticTestData;
 		}

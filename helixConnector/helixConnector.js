@@ -194,8 +194,8 @@ const moduleFunction = function(args) {
 			}
 		};
 		const scriptElement = getScriptPathParameters(functionName);
-		
-		if (!scriptElement){
+
+		if (!scriptElement) {
 			qtools.logError(`missing scriptElement for ${functionName}`);
 			return;
 		}
@@ -246,16 +246,16 @@ const moduleFunction = function(args) {
 
 		for (var i in inData) {
 			var element = inData[i];
-			
-			if(typeof(element)=='string'){
-				inData[i]=element.replace(/\"/g, '\\"');
+
+			if (typeof element == 'string') {
+				inData[i] = element.replace(/\"/g, '\\"');
 			}
-			
-// 			for (var j in element) {
-// 				const detail = element[j];
-// 				element[j] =
-// 					typeof detail == 'string' ? detail.replace(/\"/g, '\\"') : detail;
-// 			}
+
+			// 			for (var j in element) {
+			// 				const detail = element[j];
+			// 				element[j] =
+			// 					typeof detail == 'string' ? detail.replace(/\"/g, '\\"') : detail;
+			// 			}
 		}
 
 		const replaceObject = qtools.extend(
