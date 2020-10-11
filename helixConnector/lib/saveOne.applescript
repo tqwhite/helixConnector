@@ -10,11 +10,13 @@ tell application "<!applicationName!>"
 --<!processName!> - <!callingProcess!>
 	
 	tell collection 1
+		with timeout of 3600 seconds
 		--set myProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve
 		--log (myProcessID)
 		--set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to get view summary
 		
 		set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView, myData} to store one record
 		
+		end timeout
 	end tell
 end tell

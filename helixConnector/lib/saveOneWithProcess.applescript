@@ -16,6 +16,7 @@ tell application "<!applicationName!>"
 --HELLO <!processName!> - <!processIndicator!>
 	
 	tell collection 1
+		with timeout of 3600 seconds
 		
 --		set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve
 --		set viewSummary to utilize {theProcessID} to get view summary --gets us {record count, field delimiter, record delimiter}
@@ -35,6 +36,7 @@ tell application "<!applicationName!>"
 		
 		set theClose to utilize theProcessID to close process
 		
+		end timeout
 
 	end tell
 	
