@@ -37,8 +37,6 @@ var moduleFunction = function(args) {
 	const executeActual = args => (libraryScriptName, parameters) => {
 		const { processor, getScript, compileScript } = args;
 
-console.log(`\n=-=============   executeActual  ========================= [remote-control-manager.js.moduleFunction]\n`);
-
 
 		const helixSchema = Object.assign({}, parameters.schema, parameters.otherParms);
 		const scriptElement = getScript(libraryScriptName);
