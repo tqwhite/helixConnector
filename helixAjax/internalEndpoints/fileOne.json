@@ -1,138 +1,171 @@
 {
 	"WARNING": "THIS FILE IS OVERWRITTEN BY TQ'S DEVELOPMENT PROCESS.",
 	"WARNING2": "ALL CHANGES MUST BE STORED ON TQ'S DEVELOPMENT SYSTEM.",
-	"includes":[
-	],
+	"includes": [],
 	"schemaMap": {
-"internalLibTest1":{
-	"relation": "025",
-	"view": "025-100",
-		"remoteControl": false,
-		"emptyRecordsAllowed": true,
-		"private": false,
-		"separators": {
-			"field": "\t",
-			"record": "\n"
-		},
-		"mapping": {
-			"unused1": "helixFilePath",
-			"unused2": "helixBoolean",
-			"unused3": "helixDateTime",
-			"unused4": "helixNumber"
-		},
-		"fieldSequenceList": [
-		"customPercent",
-		"entityNo",
-		"SKU",
-		"customPrice"
-		],
-		"staticTestData": [],
-		"mysql":{
-			"tableName":"hx_100_025",
-			"description":"InventoryPriceCustomizedByEntity",
-			"fieldMapping":[
-				{
-					"helixName":"DSFDS",
-					"mysqlName":"SDFDSF",
-					"helixType":"asdfsf",
-					"mysqlType":"DSsdfas"
-				}
-			
-			
-			]
-		
-		}
-	},
-		"hxListRelationNames":{
-			"debug":"false",
-		"skipPoolUser":true,
+		"testHxServerAlive": {
+			"debug":true,
+			"scriptName": "testHxServerAlive",
 			"schemaType":"remoteControl",
+			"arguments":{  
+				"hello":"goodbye I do not think this gets carried through yet",
+				"orange":"black"
+			}
+		},
+		
+		
+		
+		"ping": {
+			"emptyRecordsAllowed": true,
+			"view": "static-only",
+			"separators": {
+				"field": "\t",
+				"record": "\n"
+			},
+			"fieldSequenceList": [
+				"INDICIA",
+				"CALL",
+				"RESPONSE"
+			],
+			"staticTestData": [
+				[
+					"record one of three",
+					"orange",
+					"black"
+				],
+				[
+					"record two of three",
+					"hello",
+					"goodbye"
+				],
+				[
+					"record three of three",
+					"fish",
+					"bird"
+				]
+			]
+		},
+		
+		"internalLibTest1": {
+			"relation": "025",
+			"view": "025-100",
+			"remoteControl": false,
+			"emptyRecordsAllowed": true,
+			"private": false,
+			"separators": {
+				"field": "\t",
+				"record": "\n"
+			},
+			"mapping": {
+				"unused1": "helixFilePath",
+				"unused2": "helixBoolean",
+				"unused3": "helixDateTime",
+				"unused4": "helixNumber"
+			},
+			"fieldSequenceList": [
+				"customPercent",
+				"entityNo",
+				"SKU",
+				"customPrice"
+			],
+			"staticTestData": [],
+			"mysql": {
+				"tableName": "hx_100_025",
+				"description": "InventoryPriceCustomizedByEntity",
+				"fieldMapping": [
+					{
+						"helixName": "DSFDS",
+						"mysqlName": "SDFDSF",
+						"helixType": "asdfsf",
+						"mysqlType": "DSsdfas"
+					}
+				]
+			}
+		},
+		"hxListRelationNames": {
+			"debug": "false",
+			"skipPoolUser": true,
+			"schemaType": "remoteControl",
 			"scriptName": "hxListRelationNames",
 			"arguments": {},
-			"conversion":{
-				"functionName":"cleanToJson",
-				"parameters":{}
+			"conversion": {
+				"functionName": "cleanToJson",
+				"parameters": {}
 			}
-			
 		},
-		"hxGetViewSummary":{
-			"debug":"false",
-		"skipPoolUser":true,
-			"schemaType":"remoteControl",
+		"hxGetViewSummary": {
+			"debug": "false",
+			"skipPoolUser": true,
+			"schemaType": "remoteControl",
 			"scriptName": "hxGetViewSummary",
 			"arguments": {},
-			"conversion":{
-				"functionName":"cleanToJson",
-				"parameters":{}
+			"conversion": {
+				"functionName": "cleanToJson",
+				"parameters": {}
 			}
 		},
-		"hxListAllRelationsForCollection":{
-			"debug":"false",
-		"skipPoolUser":true,
-			"schemaType":"remoteControl",
+		"hxListAllRelationsForCollection": {
+			"debug": "false",
+			"skipPoolUser": true,
+			"schemaType": "remoteControl",
 			"scriptName": "hxListAllRelationsForCollection",
 			"arguments": {},
-			"conversion":{
-				"functionName":"cleanToJson",
-				"parameters":{}
+			"conversion": {
+				"functionName": "cleanToJson",
+				"parameters": {}
 			}
 		},
-		"hxListViewsForRelation":{
-			"debug":"false",
-			"schemaType":"remoteControl",
+		"hxListViewsForRelation": {
+			"debug": "false",
+			"schemaType": "remoteControl",
 			"scriptName": "hxListViewsForRelation",
 			"arguments": {},
-			"conversion":{
-				"functionName":"cleanToJson",
-				"parameters":{}
+			"conversion": {
+				"functionName": "cleanToJson",
+				"parameters": {}
 			}
 		},
-
-		"getViewSummaryHOLD":{
-			"debug":"false",
-			"schemaType":"remoteControl",
+		"getViewSummaryHOLD": {
+			"debug": "false",
+			"schemaType": "remoteControl",
 			"scriptName": "utilGetViewSummary",
 			"arguments": {},
-			"conversion":{
-				"functionName":"stringToJson",
-				"parameters":{
-					"fieldSep":"\t",
-					"recordSep":"\r"
+			"conversion": {
+				"functionName": "stringToJson",
+				"parameters": {
+					"fieldSep": "\t",
+					"recordSep": "\r"
 				}
 			}
 		},
-
-		"poolUserRelease":{
-			"debug":"false",
-			"schemaType":"remoteControl",
+		"poolUserRelease": {
+			"debug": "false",
+			"schemaType": "remoteControl",
 			"scriptName": "utilPoolUserRelease",
 			"arguments": {}
-			
 		},
-
-		"tqTest":{
-			"debug":"false",
-			"schemaType":"remoteControl",
+		"tqTest": {
+			"debug": false,
+			"schemaType": "remoteControl",
 			"scriptName": "testTqVariable",
-			"arguments": {"orange":"black"},
-			"conversion":{
-				"functionName":"stringToJson",
-				"parameters":{
-					"fieldSep":"\t",
-					"recordSep":"\n"
-				}
+			"arguments": {
+				"orange": "black"
 			},
-			"debug":false
-			
+			"conversion": {
+				"functionName": "stringToJson",
+				"parameters": {
+					"fieldSep": "\t",
+					"recordSep": "\n"
+				}
+			}
 		},
-
 		"HELLO": {
 			"remoteControl": false,
 			"emptyRecordsAllowed": true,
 			"private": false,
 			"relation": "049",
 			"view": "049-100-debug",
-			"testViewName":"049-100-debug",
+			"testViewName": "049-100-debug",
 			"fieldSequenceList": [
 				"id",
 				"parentStringId",
@@ -148,9 +181,5 @@
 				"record": "\r"
 			}
 		}
-		
-		
-		
-		
 	}
 }
