@@ -260,7 +260,7 @@ const moduleFunction = function(args) {
 
 		const replaceObject = qtools.extend(
 				{},
-				helixAccessParms,
+				workingHelixAccessParms,
 				helixSchema,
 				inData,
 				otherParms,
