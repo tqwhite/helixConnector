@@ -265,9 +265,6 @@ var moduleFunction = function(args) {
 	if (qtools.isTrue(parameters.schema.debugData) && parameters.schema.schemaName){
 			const filePath=`${process.env.HOME}/Desktop/tmp/file_FromHelix_${new Date().getTime()}_${parameters.schema.schemaName}.txt`;
 			qtools.logWarn(`WRITING received helix data to file: ${filePath}`);
-			console.dir({"data [helix-engine.js.moduleFunction]":data});
-
-
 			qtools.writeSureFile(filePath, data);
 	}	
 				data = data.replace(/([^\n])\n$/, '$1');
