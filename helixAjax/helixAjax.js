@@ -145,14 +145,30 @@ var moduleFunction = function(args) {
 		'staticPageDispatch',
 		{}
 	);
+	
+	
+	let schemaMapPath;
+	const schemaMapDirectoryPath=qtools.getSurePath(newConfig, 'system.schemaMapDirectoryPath');
+	if (schemaMapDirectoryPath){
 
-	const schemaMapPath =
-		process.env.helixProjectPath +
-		'configs/' +
-		hxConnectorUser +
-		'/' +
-		schemaMapName +
-		'.json';
+		schemaMapPath =
+			schemaMapDirectoryPath +
+			'/' +
+			schemaMapName +
+			'.json';
+	}
+	else{
+
+		schemaMapPath =
+			process.env.helixProjectPath +
+			'configs/' +
+			hxConnectorUser +
+			'/' +
+			schemaMapName +
+			'.json';
+	}
+	
+
 	const schemaMapAssembler = new schemaMapAssemblerGen();
 	const schemaMap = schemaMapAssembler.getSchemaMap(schemaMapPath);
 
@@ -407,6 +423,18 @@ var moduleFunction = function(args) {
 		};
 	};
 
+	router.get(/ping/, function(req, res, next) {
+		res.status('200');
+		let showPort = staticPageDispatchConfig.port;
+		if (req.protocol == 'https') {
+			showPort = staticPageDispatchConfig.sslPort;
+		}
+
+		res.send(
+			`hxConnector!!! is alive and responded to ${req.protocol}://${req.host}:${req.headers['q-original-port']}/${req.path} proxied to port ${req.headers['q-destination-port']} (this is a built-in endpoint)`
+		);
+	});
+
 	router.get(/hxConnectorCheck/, function(req, res, next) {
 		res.status('200');
 		let showPort = staticPageDispatchConfig.port;
@@ -440,6 +468,10 @@ var moduleFunction = function(args) {
 		const noPost = tmp[0] == '/noPost';
 
 		const schema = getSchema(helixParms, schemaName);
+
+		const testHxServerAliveSchema = getSchema(helixParms, 'testHxServerAlive');
+		testHxServerAliveSchema.schema='testHxServerAliveSchema';
+		testHxServerAliveSchema.original=qtools.clone(testHxServerAliveSchema);
 
 		if (!schema) {
 			send500(res, req, `Schema '${schemaName}' not defined`);
@@ -504,6 +536,17 @@ var moduleFunction = function(args) {
 		schema.schemaType = schema.schemaType ? schema.schemaType : 'helixAccess'; //just for completeness, I made it the default when I was young and stupid
 
 		var helixConnector = fabricateConnector(req, res, schema);
+		const runRealSchema=(err, result)=>{
+
+
+if (!result.match(/true/) || err){
+
+
+sendResult(res, req, next, helixConnector)(err?err.toString():'Helix is not running');
+return;
+}
+
+		
 		if (helixConnector) {
 			switch (schema.schemaType) {
 				case 'remoteControl':
@@ -525,6 +568,24 @@ var moduleFunction = function(args) {
 					);
 			}
 		}
+		}
+		
+		
+		
+
+					remoteControl(
+						helixConnector,
+						testHxServerAliveSchema,
+						req.query,
+						runRealSchema
+					);
+		
+		
+		
+		
+		
+		
+		
 	});
 
 	router.post(/generateToken/, function(req, res, next) {
@@ -667,7 +728,7 @@ var moduleFunction = function(args) {
 			app.listen(staticPageDispatchConfig.port);
 
 			qtools.log(
-				`${new Date().toLocaleTimeString()}: Magic happens on port ${
+				`ENDPOINTS DIRECTORY: ${schemaMapPath}\n\n${new Date().toLocaleTimeString()}: Magic happens on port ${
 					staticPageDispatchConfig.port
 				}${sslAnnotation}.`
 			);
