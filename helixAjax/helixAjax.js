@@ -249,7 +249,7 @@ var moduleFunction = function(args) {
 	var bodyParser = require('body-parser');
 
 	app.use(function(req, res, next) {
-		console.log(`hxC request path: ${req.path}`);
+		console.log(`hxC REQUEST URL: ${req.protocol}://${req.hostname}/${req.url} (${req.method}) ${new Date().toLocaleString()}`);
 		next();
 	});
 	
@@ -297,15 +297,6 @@ var moduleFunction = function(args) {
 	);
 
 	//STATIC PAGE DISPATCH =======================================================
-
-	router.use((req, res, next) => {
-		if (!['/hxConnectorCheck'].includes(req.path)) {
-			qtools.logMilestone(
-				`req.path: ${req.path} ${new Date().toLocaleString()}`
-			);
-		}
-		next();
-	});
 
 	var staticPageDispatch = require('staticpagedispatch');
 	staticPageDispatch = new staticPageDispatch({
@@ -413,6 +404,7 @@ var moduleFunction = function(args) {
 				responsesource: 'helixConnector',
 				connection: 'Close'
 			});
+
 			res.json(result);
 			helixConnector.close();
 		};
@@ -470,8 +462,15 @@ var moduleFunction = function(args) {
 
 		const testHxServerAliveSchema = getSchema(helixParms, 'testHxServerAlive');
 		testHxServerAliveSchema.schema = 'testHxServerAliveSchema';
-		testHxServerAliveSchema.original = qtools.clone(testHxServerAliveSchema);
 
+		try{
+			testHxServerAliveSchema.original = qtools.clone(testHxServerAliveSchema);
+			}
+			catch (err){
+				send500(res, req, `Schema '${schemaName}' CRASH CRASH CRASH`);
+				process.exit(1)
+			}
+		
 		if (!schema) {
 			send500(res, req, `Schema '${schemaName}' not defined`);
 			return;
@@ -532,7 +531,7 @@ var moduleFunction = function(args) {
 		schema.schemaType = schema.schemaType ? schema.schemaType : 'helixAccess'; //just for completeness, I made it the default when I was young and stupid
 
 		var helixConnector = fabricateConnector(req, res, schema);
-		const runRealSchema = (err, result) => {
+		const runRealSchema = (err, result='') => {
 			if (!result.match(/true/) || err) {
 				sendResult(res, req, next, helixConnector)(
 					err ? err.toString() : 'Helix is not running'
@@ -715,6 +714,7 @@ var moduleFunction = function(args) {
 					staticPageDispatchConfig.port
 				}${sslAnnotation}.`
 			);
+			console.error(`helixAjax startup: ${new Date().toLocaleString()}`);
 			reminder(`hxConnector Restart Complete`);
 		}
 	};
