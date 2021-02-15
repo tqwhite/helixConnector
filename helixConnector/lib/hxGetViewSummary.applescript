@@ -60,11 +60,16 @@ tell application "<!applicationName!>"
 			set thisView to x
 			tell thisView
 				set theRealViewName to the name
-				set viewTemplate to the view template
+				set theRealViewCustomName to the custom name
+				
+				
+				if (theRealViewCustomName is not "") then
+					set theRealViewName to theRealViewCustomName
+				end if
 				
 				--confirm you have the right view - only way to ignore it if it hasn't been created yet
 				if (theRealViewName is viewName) then
-					
+					set viewTemplate to the view template
 					tell viewTemplate
 						set thePageRect to the page rectangle
 						
@@ -183,7 +188,7 @@ end tell
 
 --FIELD TYPE CONVERTERS =====================================================================
 on formatFixedPoint(hxIconObject, hxIconType)
-	tell application "Helix Server"
+	tell application "<!applicationName!>"
 		tell hxIconObject
 			set customName to custom name
 			set fieldName to name
@@ -196,7 +201,7 @@ on formatFixedPoint(hxIconObject, hxIconType)
 		set customName to fieldName
 	end if
 	
-	tell application "Helix Server"
+	tell application "<!applicationName!>"
 		tell hxObject
 			set the decimalsOut to decimal places
 			set the commasOut to commas
@@ -213,7 +218,7 @@ end formatFixedPoint
 
 --===========================================
 on formatNumber(hxIconObject, hxIconType)
-	tell application "Helix Server"
+	tell application "<!applicationName!>"
 		tell hxIconObject
 			set customName to custom name
 			set fieldName to name
@@ -227,7 +232,7 @@ on formatNumber(hxIconObject, hxIconType)
 	end if
 	
 	
-	tell application "Helix Server"
+	tell application "<!applicationName!>"
 		set the decimalsOut to decimal places of hxObject
 	end tell
 	set propertyList to {{"decimals", decimalsOut}}
@@ -239,7 +244,7 @@ end formatNumber
 
 --===========================================
 on formatDateTime(hxIconObject, hxIconType)
-	tell application "Helix Server"
+	tell application "<!applicationName!>"
 		tell hxIconObject
 			set customName to custom name
 			set fieldName to name
@@ -252,7 +257,7 @@ on formatDateTime(hxIconObject, hxIconType)
 		set customName to fieldName
 	end if
 	
-	tell application "Helix Server"
+	tell application "<!applicationName!>"
 		set the dateStyleOut to the date style of hxObject
 		set the hasSecondsOut to the include seconds of hxObject
 		set the hasLeadingZeroOut to the leading zero of hxObject
@@ -267,7 +272,7 @@ end formatDateTime
 
 --===========================================
 on formatFlag(hxIconObject, hxIconType)
-	tell application "Helix Server"
+	tell application "<!applicationName!>"
 		tell hxIconObject
 			set customName to custom name
 			set fieldName to name
@@ -280,7 +285,7 @@ on formatFlag(hxIconObject, hxIconType)
 		set customName to fieldName
 	end if
 	
-	tell application "Helix Server"
+	tell application "<!applicationName!>"
 	end tell
 	set propertyList to {}
 	
@@ -291,7 +296,7 @@ end formatFlag
 
 --===========================================
 on formatText(hxIconObject, hxIconType)
-	tell application "Helix Server"
+	tell application "<!applicationName!>"
 		tell hxIconObject
 			set customName to custom name
 			set fieldName to name
@@ -304,7 +309,7 @@ on formatText(hxIconObject, hxIconType)
 		set customName to fieldName
 	end if
 	
-	tell application "Helix Server"
+	tell application "<!applicationName!>"
 	end tell
 	set propertyList to {}
 	
@@ -432,7 +437,7 @@ on retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
 	set myView to "sqlMirrorCriterionForm02"
 	set myData to theRelationCustomName
 	
-	tell application "Helix Server"
+	tell application "<!applicationName!>"
 		
 		set theResult to utilize {referenceCollection, myUser, myPassword, myRelation, myView, myData} to store one record
 		
