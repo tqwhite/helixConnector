@@ -1,5 +1,5 @@
 
-set everyProcess to "nothing yet"
+set everyProcess to {}
 
 try
 	with timeout of 10 seconds
