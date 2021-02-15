@@ -136,7 +136,7 @@ var moduleFunction = function(args) {
 
 		const leasePoolUserFieldName = 'leaseUserName';
 		const leasePoolPasswordFieldName = 'leasePassword';
-		
+
 		taskList.push((args, next) => {
 			const localCallback = (err, poolUserObject) => {
 				if (err) {
@@ -210,11 +210,25 @@ var moduleFunction = function(args) {
 				view: '',
 				mapping: {}
 			};
+			const delayReleasePoolUser = helixAccessParms.qtGetSurePath(
+				'helixEngine.delayReleasePoolUser'
+			);
 
-			hxScriptRunner('poolUserRelease', {
-				schema: Object.assign(helixSchema, args.poolUserObject),
-				callback: localCallback
-			});
+			if (delayReleasePoolUser) {
+				setTimeout(
+					() =>
+						hxScriptRunner('poolUserRelease', {
+							schema: Object.assign(helixSchema, args.poolUserObject),
+							callback: localCallback
+						}),
+					delayReleasePoolUser
+				);
+			} else {
+				hxScriptRunner('poolUserRelease', {
+					schema: Object.assign(helixSchema, args.poolUserObject),
+					callback: localCallback
+				});
+			}
 		});
 
 		const initialData = typeof inData != 'undefined' ? inData : {};
@@ -239,15 +253,14 @@ var moduleFunction = function(args) {
 	this.checkUserPool = callback => {
 		const taskList = new taskListPlus();
 		taskList.push((args, next) => {
-		
-			if (helixAccessParms.skipUserPoolEntirely){
-			args.processResult.push("User Pool Disabled. skipUserPoolEntirely=true");
+			if (helixAccessParms.skipUserPoolEntirely) {
+				args.processResult.push(
+					'User Pool Disabled. skipUserPoolEntirely=true'
+				);
 				next('skipRestOfPipe', args);
-			}
-			else{
+			} else {
 				next('', args);
 			}
-		
 		});
 		taskList.push((args, next) => {
 			const localCallback = (err, relationsList) => {
@@ -287,9 +300,9 @@ var moduleFunction = function(args) {
 			);
 		});
 
-		const initialData = {processResult:[]};
+		const initialData = { processResult: [] };
 		asynchronousPipe(taskList.getList(), initialData, (err, result) => {
-			if (!err || err=='skipRestOfPipe') {
+			if (!err || err == 'skipRestOfPipe') {
 				callback('', result.processResult);
 			} else {
 				callback(err);
@@ -298,6 +311,9 @@ var moduleFunction = function(args) {
 	};
 
 	//INITIALIZATION ====================================
+	
+	// prettier-ignore
+	qtools.logMilestone(`helixEngine.delayReleasePoolUser=${helixAccessParms.qtGetSurePath( 'helixEngine.delayReleasePoolUser' )}`);
 
 	!this.initCallback || this.initCallback();
 
