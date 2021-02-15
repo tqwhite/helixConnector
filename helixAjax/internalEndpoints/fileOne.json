@@ -4,7 +4,7 @@
 	"includes": [],
 	"schemaMap": {
 		"testHxServerAlive": {
-			"debug":true,
+			"debug":false,
 			"scriptName": "testHxServerAlive",
 			"schemaType":"remoteControl",
 			"arguments":{  
