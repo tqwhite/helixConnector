@@ -48,7 +48,9 @@ var moduleFunction = function(args) {
 				}
 			});
 
-		console.log(`added ${count} items from ${autoIncludeDirectoryPath}`);
+		console.log(
+			`added ${count} items from autoIncludeDirectoryPath: ${autoIncludeDirectoryPath}`
+		);
 
 		return outObj;
 	};
@@ -79,7 +81,7 @@ var moduleFunction = function(args) {
 				try {
 					include = JSON.parse(includeJson);
 				} catch (e) {
-					console.log('schemaMap include fil to parse: ' + includePath);
+					console.log('schemaMap include file to parse: ' + includePath);
 					throw 'schemaMap include file failed to parse';
 				}
 
@@ -104,6 +106,27 @@ var moduleFunction = function(args) {
 					...schemaMap.schemaMap,
 					...autoIncludeSchemaItems
 				};
+			} else if (
+				typeof schemaMap.autoIncludeDirectoryPath == 'object' &&
+				schemaMap.autoIncludeDirectoryPath.length
+			) {
+				schemaMap.autoIncludeDirectoryPath.forEach(
+					autoIncludeDirectoryPathItem => {
+						const autoIncludeDirectoryPath = path.join(
+							schemaMapPath,
+							'../',
+							autoIncludeDirectoryPathItem
+						);
+						const autoIncludeSchemaItems = getAutoIncludeDirectoryItems(
+							autoIncludeDirectoryPath
+						);
+
+						schemaMap.schemaMap = {
+							...schemaMap.schemaMap,
+							...autoIncludeSchemaItems
+						};
+					}
+				);
 			}
 		}
 

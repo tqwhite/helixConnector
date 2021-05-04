@@ -312,8 +312,6 @@ var moduleFunction = function(args) {
 
 	//INITIALIZATION ====================================
 	
-	// prettier-ignore
-	qtools.logMilestone(`helixEngine.delayReleasePoolUser=${helixAccessParms.qtGetSurePath( 'helixEngine.delayReleasePoolUser' )}`);
 
 	!this.initCallback || this.initCallback();
 

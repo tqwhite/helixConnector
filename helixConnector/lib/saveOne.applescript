@@ -8,6 +8,7 @@ tell application "<!applicationName!>"
 	set myData to ("<!dataString!>")
 	
 --<!processName!> - <!callingProcess!>
+-- <!schemaName!>
 	
 	tell collection 1
 		with timeout of 3600 seconds

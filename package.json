@@ -1,0 +1,23 @@
+{
+  "name": "hx-connector",
+  "version": "1.0.0",
+  "description": "binding between Helix database and http/json",
+  "main": "lastRsyncUpdate.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tqwhite/helixConnector.git"
+  },
+  "author": "TQ White II",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tqwhite/helixConnector/issues"
+  },
+  "homepage": "https://github.com/tqwhite/helixConnector#readme",
+  "dependencies": {
+    "qtools-functional-library": "^1.1.4",
+    "qtools-parse-command-line": "^1.0.5"
+  }
+}

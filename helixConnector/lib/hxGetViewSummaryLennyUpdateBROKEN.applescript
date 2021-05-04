@@ -1,6 +1,8 @@
 use AppleScript version "2.4" -- Yosemite (10.10) or later
 use scripting additions
 
+--NEWER VERSION DOES NOT WORK RIGHT WITH CUSTOM RELATION NAMES
+
 --http://192.168.0.50:9000/getViewSummary?nativeRelationName=General%20Ledger%20Accounts&viewName=008_sync_mySQL-debug
 
 --this presupposes that there is only an abacus or a field in the rectangle
@@ -13,14 +15,11 @@ use scripting additions
 --there are other formatting specifics, such as Groups (a comma) and Dollar signs - do you need these?
 
 
-
 set myCollection to "<!collection!>"
 set myRelation to "<!nativeRelationName!>"
 set myView to "<!viewName!>"
 set myUser to "<!user!>"
 set myPassword to "<!password!>"
-
-
 
 --swap out as necessary
 tell application "<!applicationName!>"
@@ -33,18 +32,7 @@ tell application "<!applicationName!>"
 		
 		login myUser password myPassword
 		
-		set theRelationName to ""
-		try
-			set theRelationName to name of relation myRelation
-		end try
-		
-		if (theRelationName is "") then
-			set nativeName to my getNativeNameFromCustom(myRelation)
-			
-			set myRelation to nativeName
-			set theRelationName to nativeName
-		end if
-		
+		set theRelationName to name of relation myRelation
 		set theRelationCustomName to the custom name of relation myRelation
 		
 		if (myView is not "") then
@@ -53,97 +41,94 @@ tell application "<!applicationName!>"
 			set viewName to (theRelationCustomName & "_sync_mySQL")
 		end if
 		
-		set allViews to every view of relation myRelation
+		
+		set thisView to view viewName of relation theRelationName
+		--set allViews to every view of relation myRelation
 		
 		--retrieve all the views in the relation
-		repeat with x in allViews
-			set thisView to x
-			tell thisView
-				set theRealViewName to the name
-				set theRealViewCustomName to the custom name
-				
-				
-				if (theRealViewCustomName is not "") then
-					set theRealViewName to theRealViewCustomName
-				end if
-				
-				--confirm you have the right view - only way to ignore it if it hasn't been created yet
-				if (theRealViewName is viewName) then
-					set viewTemplate to the view template
-					tell viewTemplate
-						set thePageRect to the page rectangle
-						
-						--get all the rectangles
-						tell thePageRect
-							set allTheRectangles to every template rectangle
-							
-							repeat with theRect from 1 to (count allTheRectangles)
-								set theRectObject to item theRect
-								set theRectObjectClass to (class of item theRect)
-								
-								if (theRectObjectClass is data rectangle) then
-									
-									tell theRectObject
-										set theFieldIcon to the field icon
-										set fieldIconClass to the class of the theFieldIcon
-										
-										set theAbacusIcon to the abacus icon
-										set theAbacusIconClass to the class of theAbacusIcon
-										
-										if (fieldIconClass is not object) then
-											
-											--if (theFieldIcon is not null) then
-											tell theFieldIcon
-												set theFieldType to data type
-												set theFieldFormat to the format
-												
-												if (theFieldType is fixed point type) then
-													set theHelixResult to my formatFixedPoint(theFieldIcon, "field")
-												else if (theFieldType is number type) then
-													set theHelixResult to my formatNumber(theFieldIcon, "field")
-												else if (theFieldType is date time type) then
-													set theHelixResult to my formatDateTime(theFieldIcon, "field")
-												else if (theFieldType is flag type) then
-													set theHelixResult to my formatFlag(theFieldIcon, "field")
-												else if (theFieldType is text type) then
-													set theHelixResult to my formatText(theFieldIcon, "field")
-												else if (theFieldType is styled text type) then
-													set theHelixResult to my formatText(theFieldIcon, "field")
-												end if
-											end tell
-											
-										else if (theAbacusIconClass is not object) then
-											tell theAbacusIcon
-												set theAbacusType to data type
-												set theAbacusFormat to the format
-												
-												if (theAbacusType is fixed point type) then
-													set theHelixResult to my formatFixedPoint(theAbacusIcon, "abacus")
-												else if (theAbacusType is number type) then
-													set theHelixResult to my formatNumber(theAbacusIcon, "abacus")
-												else if (theAbacusType is date time type) then
-													set theHelixResult to my formatDateTime(theAbacusIcon, "abacus")
-												else if (theAbacusType is flag type) then
-													set theHelixResult to my formatFlag(theAbacusIcon, "abacus")
-												else if (theAbacusType is text type) then
-													set theHelixResult to my formatText(theAbacusIcon, "abacus")
-												else if (theAbacusType is styled text type) then
-													set theHelixResult to my formatText(theAbacusIcon, "abacus")
-												end if
-												
-											end tell
-											
-										end if
-										set appendedText2 to (appendedText2 & theHelixResult & ",")
-									end tell
-								end if
-							end repeat
-						end tell
-					end tell
-				end if
-			end tell
+		--repeat with x in allViews
+		--	set thisView to x
+		tell thisView
+			--set theRealViewName to the name
+			set viewTemplate to the view template
 			
-		end repeat
+			--confirm you have the right view - only way to ignore it if it hasn't been created yet
+			--	if (theRealViewName is viewName) then
+			
+			tell viewTemplate
+				set thePageRect to the page rectangle
+				
+				--get all the rectangles
+				tell thePageRect
+					set allTheRectangles to every template rectangle
+					
+					repeat with theRect from 1 to (count allTheRectangles)
+						set theRectObject to item theRect
+						set theRectObjectClass to (class of item theRect)
+						
+						if (theRectObjectClass is data rectangle) then
+							
+							tell theRectObject
+								set theFieldIcon to the field icon
+								set fieldIconClass to the class of the theFieldIcon
+								
+								set theAbacusIcon to the abacus icon
+								set theAbacusIconClass to the class of theAbacusIcon
+								
+								if (fieldIconClass is not object) then
+									
+									--if (theFieldIcon is not null) then
+									tell theFieldIcon
+										set theFieldType to data type
+										set theFieldFormat to the format
+										
+										if (theFieldType is fixed point type) then
+											set theHelixResult to my formatFixedPoint(theFieldIcon, "field")
+										else if (theFieldType is number type) then
+											set theHelixResult to my formatNumber(theFieldIcon, "field")
+										else if (theFieldType is date time type) then
+											set theHelixResult to my formatDateTime(theFieldIcon, "field")
+										else if (theFieldType is flag type) then
+											set theHelixResult to my formatFlag(theFieldIcon, "field")
+										else if (theFieldType is text type) then
+											set theHelixResult to my formatText(theFieldIcon, "field")
+										else if (theFieldType is styled text type) then
+											set theHelixResult to my formatText(theFieldIcon, "field")
+										end if
+									end tell
+									
+								else if (theAbacusIconClass is not object) then
+									tell theAbacusIcon
+										set theAbacusType to data type
+										set theAbacusFormat to the format
+										
+										if (theAbacusType is fixed point type) then
+											set theHelixResult to my formatFixedPoint(theAbacusIcon, "abacus")
+										else if (theAbacusType is number type) then
+											set theHelixResult to my formatNumber(theAbacusIcon, "abacus")
+										else if (theAbacusType is date time type) then
+											set theHelixResult to my formatDateTime(theAbacusIcon, "abacus")
+										else if (theAbacusType is flag type) then
+											set theHelixResult to my formatFlag(theAbacusIcon, "abacus")
+										else if (theAbacusType is text type) then
+											set theHelixResult to my formatText(theAbacusIcon, "abacus")
+										else if (theAbacusType is styled text type) then
+											set theHelixResult to my formatText(theAbacusIcon, "abacus")
+										end if
+										
+									end tell
+									
+								end if
+								set appendedText2 to (appendedText2 & theHelixResult & ",")
+							end tell
+						end if
+					end repeat
+				end tell
+			end tell
+			--end if
+		end tell
+		
+		--end repeat
 		
 		
 		
@@ -456,35 +441,3 @@ on retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
 	
 	
 end retrievePrimaryKey
-
-on getNativeNameFromCustom(customNameIn)
-	
-	
-	set myCollection to "<!collection!>"
-	set myUser to "<!user!>"
-	set myPassword to "<!password!>"
-	
-	tell application "<!applicationName!>"
-		tell collection 1
-			login myUser password myPassword
-			
-			set allMyRelations to every relation
-			
-			repeat with i in allMyRelations
-				
-				set theRelation to i
-				
-				tell theRelation
-					set theName to name
-					set theCustomName to custom name
-					
-					if (theCustomName is customNameIn) then
-						set theResult to theName
-						exit repeat
-					end if
-				end tell
-			end repeat
-		end tell
-		return theResult
-	end tell
-end getNativeNameFromCustom

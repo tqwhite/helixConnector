@@ -5,6 +5,8 @@ set myRelation to "<!userPoolLeaseRelation!>"
 set myView to "<!userPoolLeaseView!>"
 set myUser to "<!user!>"
 set myPassword to "<!password!>"	
+
+-- <!schemaName!>
 	
 tell application "<!applicationName!>"
 	

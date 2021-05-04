@@ -20,6 +20,9 @@ const asynchronousPipePlus = new require('asynchronous-pipe-plus')();
 const pipeRunner = asynchronousPipePlus.pipeRunner;
 const taskListPlus = asynchronousPipePlus.taskListPlus;
 
+const qt = require('qtools-functional-library')
+
+
 //START OF moduleFunction() ============================================================
 
 var moduleFunction = function(args) {
@@ -204,6 +207,13 @@ var moduleFunction = function(args) {
 
 		if (schema.criterionSchemaName) {
 			var criterionSchema = helixParms.schemaMap[schema.criterionSchemaName];
+			
+			if (!criterionSchema){
+				callback(`BAD ENDPOINT CONSTRUCTION. Criterion endpoint: ${schema.criterionSchemaName} is not defined.`);
+				return;
+			}
+			
+			
 			retrievalParms.helixSchema.criterion = criterionSchema;
 			retrievalParms.criterion = {};
 			retrievalParms.criterion.data = criterion;
@@ -249,7 +259,11 @@ var moduleFunction = function(args) {
 	var bodyParser = require('body-parser');
 
 	app.use(function(req, res, next) {
-		console.log(`hxC REQUEST URL: ${req.protocol}://${req.hostname}/${req.url} (${req.method}) ${new Date().toLocaleString()}`);
+		console.log(
+			`hxC REQUEST URL: ${req.protocol}://${req.hostname}/${req.url} (${
+				req.method
+			}) ${new Date().toLocaleString()}`
+		);
 		next();
 	});
 	
@@ -305,7 +319,7 @@ var moduleFunction = function(args) {
 	});
 
 	const endpointList = generateEndpointList(helixParms);
-	qtools.logMilestone(`Endpoints:\n\t${endpointList.join('\n\t')}`);
+	qtools.logMilestone(`Endpoints:\n\t${endpointList.join('\n\t')}\n[endpoint listing from: hexlixAjax.js]`);
 
 	//START SERVER AUTHENTICATION =======================================================
 
@@ -463,14 +477,13 @@ var moduleFunction = function(args) {
 		const testHxServerAliveSchema = getSchema(helixParms, 'testHxServerAlive');
 		testHxServerAliveSchema.schema = 'testHxServerAliveSchema';
 
-		try{
+		try {
 			testHxServerAliveSchema.original = qtools.clone(testHxServerAliveSchema);
-			}
-			catch (err){
-				send500(res, req, `Schema '${schemaName}' CRASH CRASH CRASH`);
-				process.exit(1)
-			}
-		
+		} catch (err) {
+			send500(res, req, `Schema '${schemaName}' CRASH CRASH CRASH`);
+			process.exit(1);
+		}
+
 		if (!schema) {
 			send500(res, req, `Schema '${schemaName}' not defined`);
 			return;
@@ -531,7 +544,7 @@ var moduleFunction = function(args) {
 		schema.schemaType = schema.schemaType ? schema.schemaType : 'helixAccess'; //just for completeness, I made it the default when I was young and stupid
 
 		var helixConnector = fabricateConnector(req, res, schema);
-		const runRealSchema = (err, result='') => {
+		const runRealSchema = (err, result = '') => {
 			if (!result.match(/true/) || err) {
 				sendResult(res, req, next, helixConnector)(
 					err ? err.toString() : 'Helix is not running'
@@ -709,13 +722,16 @@ var moduleFunction = function(args) {
 
 			app.listen(staticPageDispatchConfig.port);
 
+			console.error(`helixAjax startup: ${new Date().toLocaleString()}`); //it's very helpful to have this annotation in the error log
+			// prettier-ignore
 			qtools.log(
-				`ENDPOINTS DIRECTORY: ${schemaMapPath}\n\n${new Date().toLocaleTimeString()}: Magic happens on port ${
-					staticPageDispatchConfig.port
-				}${sslAnnotation}.`
+`NOTE: helixEngine.delayReleasePoolUser=${helixParms.qtGetSurePath( 'helixEngine.delayReleasePoolUser' )}
+ENDPOINTS DIRECTORY: ${schemaMapPath}\n\n${new Date().toLocaleTimeString()}: Magic happens on port ${
+staticPageDispatchConfig.port
+}${sslAnnotation}.`
 			);
-			console.error(`helixAjax startup: ${new Date().toLocaleString()}`);
-			reminder(`hxConnector Restart Complete`);
+
+			reminder(`hxConnector Restart Complete`); //shows macos notification
 		}
 	};
 

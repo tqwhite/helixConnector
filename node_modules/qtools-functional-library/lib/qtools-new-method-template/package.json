@@ -1,0 +1,11 @@
+{
+  "name": "qtools-new-method-template",
+  "version": "1.0.0",
+  "description": "Barest bones new qtLib method to start building a real one. DON'T EVER OVERWRITE THIS.",
+  "main": "qtools-new-method-template.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

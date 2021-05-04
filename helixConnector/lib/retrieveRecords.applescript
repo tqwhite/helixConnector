@@ -10,6 +10,7 @@ tell application "<!applicationName!>"
 	set criterionData to "<!criterion.dataString!>"
 	
 --<!processName!> - <!callingProcess!>	
+-- <!schemaName!>
 	
 	tell collection 1
 		with timeout of 3600 seconds

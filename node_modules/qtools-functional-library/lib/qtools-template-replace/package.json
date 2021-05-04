@@ -1,0 +1,11 @@
+{
+  "name": "qtools-template-replace",
+  "version": "1.0.0",
+  "description": "Replaces <!tag!> tags based on properties in objects.",
+  "main": "qtools-template-replace.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

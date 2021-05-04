@@ -14,6 +14,7 @@ tell application "<!applicationName!>"
 	set theResult to ""
 	
 --HELLO <!processName!> - <!processIndicator!>
+-- <!schemaName!>
 	
 	tell collection 1
 		with timeout of 3600 seconds

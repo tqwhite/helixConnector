@@ -8,6 +8,8 @@ tell application "<!applicationName!>"
 	set myPassword to "<!password!>"
 	set myLeasedUser to "<!leaseUserName!>"
 	
+-- <!schemaName!>
+	
 	try
 		
 		set theLeaseCount to 0

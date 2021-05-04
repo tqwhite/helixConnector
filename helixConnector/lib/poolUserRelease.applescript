@@ -9,6 +9,7 @@ tell application "<!applicationName!>"
 	set myLeasedUser to "<!leaseUserName!>"
 	
 --<!processName!> - <!callingProcess!>
+-- <!schemaName!>
 	
 	set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView, myLeasedUser} to store one record
 
