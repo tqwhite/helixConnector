@@ -79,7 +79,14 @@ var moduleFunction = function(args) {
 		let schema = helixParms.schemaMap[schemaName];
 		if (typeof schema == 'string') {
 			const libPath = path.join(helixParms.configDirPath, schema);
-			const json = qtools.fs.readFileSync(libPath).toString();
+			let json;
+			try {
+			json = qtools.fs.readFileSync(libPath).toString();
+			}
+			catch(e){
+				qtools.logError(`ERROR: no such file: ${libPath}`);
+				return;
+			}
 			schema = JSON.parse(json);
 		}
 		return schema;
@@ -89,6 +96,11 @@ var moduleFunction = function(args) {
 		const endpointList = [];
 		for (var schemaName in helixParms.schemaMap) {
 			var element = getSchema(helixParms, schemaName);
+			if (!element){
+				qtools.logWarn(`MISSING SCHEMA FILE: No ${schemaMap} found`);
+				continue;
+			}
+			
 			const dyn = element.testViewName ? `, dynamicTest/${schemaName}, ` : '';
 			const stat = element.staticTestData ? `, staticTest/${schemaName}` : '';
 			const noPost = element.noPostViewName ? `, noPost/${schemaName}` : '';
@@ -122,12 +134,14 @@ var moduleFunction = function(args) {
 		process.env.helixProjectPath + 'configs/' + hxConnectorUser);
 
 	var configPath = configDirPath + '/systemParameters.ini';
-
+	
 	if (!qtools.realPath(configPath)) {
 		var message = 'configuration file ' + configPath + ' is missing';
 		qtools.logError(message);
 		return message;
 	}
+	
+	qtools.logMilestone(`configuration file found: ${configPath}`);
 
 	var helixConnectorPath = process.env.helixConnectorPath + 'helixConnector.js';
 	if (!qtools.realPath(helixConnectorPath)) {
@@ -312,7 +326,7 @@ var moduleFunction = function(args) {
 
 	//STATIC PAGE DISPATCH =======================================================
 
-	var staticPageDispatch = require('staticpagedispatch');
+	var staticPageDispatch = require('./lib/static-page-dispatch');
 	staticPageDispatch = new staticPageDispatch({
 		router: router,
 		filePathList: [process.env.helixAjaxPagesPath]

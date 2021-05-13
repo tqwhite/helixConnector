@@ -2,7 +2,7 @@
 const qtoolsGen = require('qtools');
 const qtools = new qtoolsGen(module, { updatePrototypes: true });
 const async = require('async');
-const helixDataGen = require('helixdata');
+const helixDataGen = require('../lib/helix-data');
 const helixData = new helixDataGen();
 
 //START OF moduleFunction() ============================================================

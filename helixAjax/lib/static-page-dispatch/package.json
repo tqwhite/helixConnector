@@ -1,0 +1,11 @@
+{
+  "name": "static-page-dispatch",
+  "version": "1.0.0",
+  "description": "attaches html pages to express app, allows access by name as rest-like path",
+  "main": "static-page-dispatch.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

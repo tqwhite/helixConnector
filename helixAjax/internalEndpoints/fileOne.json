@@ -15,7 +15,7 @@
 		
 		
 		
-		"ping": {
+		"staticTest1": {
 			"emptyRecordsAllowed": true,
 			"view": "static-only",
 			"separators": {

@@ -7,7 +7,7 @@ const asynchronousPipePlus = new require('asynchronous-pipe-plus')();
 const asynchronousPipe = asynchronousPipePlus.asynchronousPipe;
 const taskListPlus = asynchronousPipePlus.taskListPlus;
 
-const helixDataGen = require('helixdata');
+const helixDataGen = require('../lib/helix-data');
 const helixData = new helixDataGen();
 
 const poolUserGen = require('./lib/pool-user');

@@ -9,10 +9,16 @@ const remoteControlManagerGen = require('./remote-control-manager');
 const helixAccessManagerGen = require('./helix-engine');
 const staticDataGen = require('./static-data');
 
-const helixDataGen = require('helixdata');
+const helixDataGen = require('./lib/helix-data');
 const helixData = new helixDataGen();
 
+console.log(`\n=-=============   qtools-functional-library  ========================= [helixConnector.js.]\n`);
+
+
 const qt = require('qtools-functional-library')
+console.log(`\n=-=============   qtools-functional-library  ========================= [helixConnector.js.]\n`);
+
+
 
 //START OF moduleFunction() ============================================================
 
@@ -111,7 +117,7 @@ const moduleFunction = function(args) {
 
 	const getScriptActual = remoteControlDirectoryPath => functionName => {
 		const getScriptPathParameters = functionName => {
-			const libDir = __dirname + '/lib/';
+			const libDir = __dirname + '/interfaceLibrary/';
 
 			const scriptNameMap = {
 				save: {
@@ -134,7 +140,7 @@ const moduleFunction = function(args) {
 				return scriptElement;
 			}
 
-			const internalLibPath = __dirname + '/lib/';
+			const internalLibPath = __dirname + '/interfaceLibrary/';
 
 			if (remoteControlDirectoryPath) {
 				scriptElement = {

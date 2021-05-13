@@ -20,7 +20,8 @@
   },
   "homepage": "https://github.com/tqwhite/helixConnector",
   "dependencies": {
-    "lodash.ismatch": "^3.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "lodash.ismatch": "latest",
     "moment": "latest",
     "osascript": "latest"
   }
