@@ -18,6 +18,7 @@
   "homepage": "https://github.com/tqwhite/helixConnector#readme",
   "dependencies": {
     "qtools-functional-library": "^1.1.4",
-    "qtools-parse-command-line": "^1.0.5"
+    "qtools-parse-command-line": "^1.0.5",
+    "qtools": ""
   }
 }

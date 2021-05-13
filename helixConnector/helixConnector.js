@@ -11,14 +11,7 @@ const staticDataGen = require('./static-data');
 
 const helixDataGen = require('./lib/helix-data');
 const helixData = new helixDataGen();
-
-console.log(`\n=-=============   qtools-functional-library  ========================= [helixConnector.js.]\n`);
-
-
 const qt = require('qtools-functional-library')
-console.log(`\n=-=============   qtools-functional-library  ========================= [helixConnector.js.]\n`);
-
-
 
 //START OF moduleFunction() ============================================================
 

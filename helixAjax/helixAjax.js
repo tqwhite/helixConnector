@@ -744,6 +744,8 @@ ENDPOINTS DIRECTORY: ${schemaMapPath}\n\n${new Date().toLocaleTimeString()}: Mag
 staticPageDispatchConfig.port
 }${sslAnnotation}.`
 			);
+			
+			console.dir(require.resolve('qtools'));
 
 			reminder(`hxConnector Restart Complete`); //shows macos notification
 		}
