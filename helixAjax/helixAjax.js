@@ -446,10 +446,10 @@ var moduleFunction = function(args) {
 		}
 
 		res.send(
-			`hxConnector!!! is alive and responded to ${req.protocol}://${req.host}:${
-				req.headers['q-original-port']
-			}/${req.path} proxied to port ${
-				req.headers['q-destination-port']
+			`hxConnector!!! is alive and responded to ${escape(req.protocol)}://${escape(req.host)}:${
+				escape(req.headers['q-original-port'])
+			}/${escape(req.path)} proxied to port ${
+				escape(req.headers['q-destination-port'])
 			} (this is a built-in endpoint)`
 		);
 	});
