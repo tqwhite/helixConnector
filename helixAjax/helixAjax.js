@@ -641,7 +641,7 @@ var moduleFunction = function(args) {
 
 		const schema = getSchema(helixParms, schemaName);
 		if (!schema) {
-			res.status(500).send(`Schema '${schemaName}' not defined`);
+			res.status(500).send(`Schema '${escape(schemaName)}' not defined`);
 			return;
 		}
 		schema.schemaName = schemaName;
