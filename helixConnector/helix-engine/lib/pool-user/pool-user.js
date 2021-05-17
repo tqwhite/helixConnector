@@ -2,7 +2,7 @@
 const qtoolsGen = require('qtools');
 const qtools = new qtoolsGen(module, { updatePrototypes: true });
 const async = require('async');
-const asynchronousPipePlus = new require('asynchronous-pipe-plus')();
+const asynchronousPipePlus = new require('qtools-asynchronous-pipe-plus')();
 const asynchronousPipe = asynchronousPipePlus.asynchronousPipe;
 
 //START OF moduleFunction() ============================================================
