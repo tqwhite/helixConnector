@@ -91,7 +91,7 @@ var moduleFunction = function(args) {
 		}
 
 		var html = qtools.fs.readFileSync(
-			path.join(fileDirectoryPath, `${fileName}.html`)
+			path.join(escape(fileDirectoryPath), `${fileName}.html`)
 		); //escaped for snyk
 		
 		html = qtools.templateReplace({
