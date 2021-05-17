@@ -5,7 +5,7 @@ var qtools = require('qtools'),
 	events = require('events'),
 	util = require('util');
 
-var express = require('express');
+var express = require('express'); //powered by header removed below for snyk
 var app = express();
 const https = require('https');
 
@@ -20,8 +20,9 @@ const asynchronousPipePlus = new require('qtools-asynchronous-pipe-plus')();
 const pipeRunner = asynchronousPipePlus.pipeRunner;
 const taskListPlus = asynchronousPipePlus.taskListPlus;
 
-const qt = require('qtools-functional-library')
+const qt = require('qtools-functional-library');
 
+const rateLimit = require('express-rate-limit'); //added becasue snyk worries about denial of service attacks
 
 //START OF moduleFunction() ============================================================
 
@@ -81,9 +82,9 @@ var moduleFunction = function(args) {
 			const libPath = path.join(helixParms.configDirPath, schema);
 			let json;
 			try {
-			json = qtools.fs.readFileSync(libPath).toString();
-			}
-			catch(e){
+				json = qtools.fs.readFileSync(libPath).toString();
+				//snyk is wrong: libPath is the result of a lookup in a table. An invalid req.path will find no result and an error will be thrown.
+			} catch (e) {
 				qtools.logError(`ERROR: no such file: ${libPath}`);
 				return;
 			}
@@ -96,11 +97,11 @@ var moduleFunction = function(args) {
 		const endpointList = [];
 		for (var schemaName in helixParms.schemaMap) {
 			var element = getSchema(helixParms, schemaName);
-			if (!element){
+			if (!element) {
 				qtools.logWarn(`MISSING SCHEMA FILE: No ${schemaMap} found`);
 				continue;
 			}
-			
+
 			const dyn = element.testViewName ? `, dynamicTest/${schemaName}, ` : '';
 			const stat = element.staticTestData ? `, staticTest/${schemaName}` : '';
 			const noPost = element.noPostViewName ? `, noPost/${schemaName}` : '';
@@ -221,13 +222,16 @@ var moduleFunction = function(args) {
 
 		if (schema.criterionSchemaName) {
 			var criterionSchema = helixParms.schemaMap[schema.criterionSchemaName];
-			
-			if (!criterionSchema){
-				callback(`BAD ENDPOINT CONSTRUCTION. Criterion endpoint: ${schema.criterionSchemaName} is not defined.`);
+
+			if (!criterionSchema) {
+				callback(
+					`BAD ENDPOINT CONSTRUCTION. Criterion endpoint: ${
+						schema.criterionSchemaName
+					} is not defined.`
+				);
 				return;
 			}
-			
-			
+
 			retrievalParms.helixSchema.criterion = criterionSchema;
 			retrievalParms.criterion = {};
 			retrievalParms.criterion.data = criterion;
@@ -280,6 +284,18 @@ var moduleFunction = function(args) {
 		);
 		next();
 	});
+
+	app.use(function(req, res, next) {
+		res.removeHeader('X-Powered-By'); //snyk hates this header.
+		next();
+	});
+	
+	app.use(
+		rateLimit({
+			windowMs: 15 * 60 * 1000, // 15 minutes
+			max: 100 // limit each IP to 100 requests per windowMs
+		})
+	); //snyk worries about denial of service attacks.
 	
 	app.use(
 		bodyParser.json({
@@ -333,7 +349,11 @@ var moduleFunction = function(args) {
 	});
 
 	const endpointList = generateEndpointList(helixParms);
-	qtools.logMilestone(`Endpoints:\n\t${endpointList.join('\n\t')}\n[endpoint listing from: hexlixAjax.js]`);
+	qtools.logMilestone(
+		`Endpoints:\n\t${endpointList.join(
+			'\n\t'
+		)}\n[endpoint listing from: hexlixAjax.js]`
+	);
 
 	//START SERVER AUTHENTICATION =======================================================
 
@@ -363,13 +383,15 @@ var moduleFunction = function(args) {
 
 	var fabricateConnector = function(req, res, schema) {
 		var headerAuth = req.headers ? req.headers.authorization : '';
-		var bodyAuth = req.body ? req.body.authorization : '';
 
 		var tmp = headerAuth ? headerAuth.split(' ') : [];
-		if (tmp.length < 1) {
-			tmp = bodyAuth ? bodyAuth.split(' ') : [];
-			delete req.body.authorization;
-		}
+
+		//This is a feature that I never have used. Snyk thinks it's a bad idea.
+		// 		if (tmp.length < 1) {
+		//			var bodyAuth = req.body ? req.body.authorization : '';
+		// 			tmp = bodyAuth ? bodyAuth.split(' ') : [];
+		// 			delete req.body.authorization;
+		// 		}
 
 		/*
 			tmp[2] (instanceId) was added 1/2018 to make it easier to identify which 
@@ -446,11 +468,13 @@ var moduleFunction = function(args) {
 		}
 
 		res.send(
-			`hxConnector!!! is alive and responded to ${escape(req.protocol)}://${escape(req.host)}:${
-				escape(req.headers['q-original-port'])
-			}/${escape(req.path)} proxied to port ${
-				escape(req.headers['q-destination-port'])
-			} (this is a built-in endpoint)`
+			`hxConnector!!! is alive and responded to ${escape(
+				req.protocol
+			)}://${escape(req.host)}:${escape(
+				req.headers['q-original-port']
+			)}/${escape(req.path)} proxied to port ${escape(
+				req.headers['q-destination-port']
+			)} (this is a built-in endpoint)`
 		);
 	});
 
@@ -559,7 +583,10 @@ var moduleFunction = function(args) {
 
 		var helixConnector = fabricateConnector(req, res, schema);
 		const runRealSchema = (err, result = '') => {
-			if (schema.schemaType=='helixAccess' && (!result.match(/true/) || err)) {
+			if (
+				schema.schemaType == 'helixAccess' &&
+				(!result.match(/true/) || err)
+			) {
 				sendResult(res, req, next, helixConnector)(
 					err ? err.toString() : 'Helix is not running'
 				);
@@ -744,7 +771,7 @@ ENDPOINTS DIRECTORY: ${schemaMapPath}\n\n${new Date().toLocaleTimeString()}: Mag
 staticPageDispatchConfig.port
 }${sslAnnotation}.`
 			);
-			
+
 			console.dir(require.resolve('qtools'));
 
 			reminder(`hxConnector Restart Complete`); //shows macos notification

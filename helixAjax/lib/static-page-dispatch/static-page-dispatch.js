@@ -58,6 +58,7 @@ var moduleFunction = function(args) {
 	var helixParms = config.getHelixParms();
 
 	var sendTestInputPage = function(req, res, next) {
+		//snyk worries about denial of service attacks. express-rate-limit was added to helixAjax.js for throttling.
 		var pageIndex = escape(req.path.match(/(\w+).*$/)[1]);
 
 		if (!self.pageList[pageIndex]) {
@@ -91,8 +92,8 @@ var moduleFunction = function(args) {
 		}
 
 		var html = qtools.fs.readFileSync(
-			path.join(escape(fileDirectoryPath), `${fileName}.html`)
-		); //escaped for snyk
+			fileDirectoryPath + '/' + fileName + '.html'
+		); //snyk is wrong: fileDirectoryPath is result of a lookup using req.path as an index. req.path is not part of the resulting file path.
 		
 		html = qtools.templateReplace({
 			template: html.toString(),
@@ -106,6 +107,7 @@ var moduleFunction = function(args) {
 	};
 
 	var sendOtherFileType = function(req, res, next) {
+		//snyk worries about denial of service attacks. express-rate-limit was added to helixAjax.js for throttling.
 		var pageIndex = escape(req.path.match(/(\w+.\w+)$/)[1]);
 		if (!self.pageList[pageIndex]) {
 			res.status('404').send(new Buffer('req.path not found'));
@@ -118,6 +120,7 @@ var moduleFunction = function(args) {
 		const extension = path.extname(fileName).replace(/\./, '');
 
 		var html = qtools.fs.readFileSync(fileDirectoryPath + '/' + fileName);
+		//snyk is wrong: fileDirectoryPath is result of a lookup using req.path as an index. req.path is not part of the resulting file path.
 
 		res.set('Content-Type', supportedMimeTypes[extension]);
 		res.status('200').send(new Buffer(html));
