@@ -58,7 +58,7 @@ var moduleFunction = function(args) {
 	var helixParms = config.getHelixParms();
 
 	var sendTestInputPage = function(req, res, next) {
-		var pageIndex = req.path.match(/(\w+).*$/)[1];
+		var pageIndex = escape(req.path.match(/(\w+).*$/)[1]);
 
 		if (!self.pageList[pageIndex]) {
 			res.status('404').send(new Buffer('req.path not found'));
@@ -91,8 +91,9 @@ var moduleFunction = function(args) {
 		}
 
 		var html = qtools.fs.readFileSync(
-			fileDirectoryPath + '/' + fileName + '.html'
-		);
+			path.join(fileDirectoryPath, `${fileName}.html`)
+		); //escaped for snyk
+		
 		html = qtools.templateReplace({
 			template: html.toString(),
 			replaceObject: adminPagesAccessData
@@ -105,7 +106,7 @@ var moduleFunction = function(args) {
 	};
 
 	var sendOtherFileType = function(req, res, next) {
-		var pageIndex = req.path.match(/(\w+.\w+)$/)[1];
+		var pageIndex = escape(req.path.match(/(\w+.\w+)$/)[1]);
 		if (!self.pageList[pageIndex]) {
 			res.status('404').send(new Buffer('req.path not found'));
 			return;

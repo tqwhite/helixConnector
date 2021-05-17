@@ -16,7 +16,7 @@ const path = require('path');
 const schemaMapAssemblerGen = require('./lib/schema-map-assembler');
 
 const notifier = require('node-notifier'); //https://www.npmjs.com/package/node-notifier
-const asynchronousPipePlus = new require('asynchronous-pipe-plus')();
+const asynchronousPipePlus = new require('qtools-asynchronous-pipe-plus')();
 const pipeRunner = asynchronousPipePlus.pipeRunner;
 const taskListPlus = asynchronousPipePlus.taskListPlus;
 
@@ -410,7 +410,7 @@ var moduleFunction = function(args) {
 
 	var send500 = (res, req, message) => {
 		qtools.logError(`500 error: ${req.path}=>${message}`);
-		res.status(500).send(message);
+		res.status(500).send(escape(message));
 	};
 
 	var sendResult = function(res, req, next, helixConnector) {
@@ -559,7 +559,7 @@ var moduleFunction = function(args) {
 
 		var helixConnector = fabricateConnector(req, res, schema);
 		const runRealSchema = (err, result = '') => {
-			if (!result.match(/true/) || err) {
+			if (schema.schemaType=='helixAccess' && (!result.match(/true/) || err)) {
 				sendResult(res, req, next, helixConnector)(
 					err ? err.toString() : 'Helix is not running'
 				);
