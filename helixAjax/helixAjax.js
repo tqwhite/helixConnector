@@ -24,6 +24,13 @@ const qt = require('qtools-functional-library');
 
 const rateLimit = require('express-rate-limit'); //added becasue snyk worries about denial of service attacks
 
+qtools.logWarn('Freezing Object.prototype');
+Object.freeze(Object.prototype);
+
+
+
+
+
 //START OF moduleFunction() ============================================================
 
 var moduleFunction = function(args) {
@@ -348,12 +355,17 @@ var moduleFunction = function(args) {
 		filePathList: [process.env.helixAjaxPagesPath]
 	});
 
+	if (false){
 	const endpointList = generateEndpointList(helixParms);
 	qtools.logMilestone(
 		`Endpoints:\n\t${endpointList.join(
 			'\n\t'
 		)}\n[endpoint listing from: hexlixAjax.js]`
 	);
+	}
+	else{
+		qtools.logMilestone('turn on [endpoint listing from: hexlixAjax.js] by setting SDFDS');
+	}
 
 	//START SERVER AUTHENTICATION =======================================================
 
