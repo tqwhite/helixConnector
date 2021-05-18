@@ -2,8 +2,21 @@
 var qtools = require('qtools'),
 	qtools = new qtools(module),
 	events = require('events'),
-	util = require('util'),
-	moment = require('moment');
+	util = require('util');
+
+
+const toHelix = inDateObj=>inDateObj.toLocaleTimeString('en-US', {
+	month: '2-digit',
+	day: '2-digit',
+	year: 'numeric',
+	hour12: true
+});
+
+const toMysql =inDateObj=>
+	inDateObj.toISOString().slice(0, 10) +
+	' ' +
+	inDateObj.toLocaleTimeString('en-US', { hour12: false });
+
 
 //START OF moduleFunction() ============================================================
 
@@ -42,11 +55,11 @@ var moduleFunction = function(args) {
 		}
 
 		if (inDate.constructor == Date) {
-			var result = moment(inDate).format('MM/DD/YY hh:mm:ss A');
+			var result = toHelix(inDate);
 		} else {
-			var result = new Date(inDate);
-			if (result == 'Invalid Date') {
-				return inDate;
+			var tmp = new Date(inDate);
+			if (tmp != 'Invalid Date') {
+				return toHelix(tmp);
 			}
 		}
 
@@ -148,7 +161,7 @@ var moduleFunction = function(args) {
 	};
 	
 	self.mysqlTimeStamp = function(inData) {
-		return moment(Date.now()).format('YYYY-MM-DD HH:mm:ss');
+		return toMysql(Date.now());
 	};
 	
 	self.toHelixDateTime = function(inDate) {
@@ -159,11 +172,11 @@ var moduleFunction = function(args) {
 		}
 
 		if (inDate.constructor == Date) {
-			var result = moment(inDate).format('MM/DD/YY hh:mm:ss A');
+			var result = toHelix(inDate);
 		} else {
-			var result = moment(new Date(inDate)).format('MM/DD/YY hh:mm:ss A');
-			if (result == 'Invalid Date') {
-				return inDate;
+			var tmp = new Date(inDate);
+			if (tmp != 'Invalid Date') {
+				return toHelix(tmp);
 			}
 		}
 
