@@ -28,6 +28,10 @@ var moduleFunction = function(args) {
 			{
 				name: 'filePathList',
 				optional: false
+			},
+			{
+				name: 'suppressLogEndpointsAtStartup',
+				optional: true
 			}
 		]
 	});
@@ -136,7 +140,9 @@ var moduleFunction = function(args) {
 		fileDirectoryPath = fileDirectoryPath.replace(/.*\/\.js$/, '');
 		var files = fs.readdirSync(fileDirectoryPath);
 
-		qtools.logMilestone(`Web Pages:`);
+		self.suppressLogEndpointsAtStartup || qtools.logMilestone(`Web Pages:`);
+		self.suppressLogEndpointsAtStartup && qtools.logMilestone(`Turn on web page list from staticPageDispatch.js by setting system.suppressLogEndpointsAtStartup=false in config`);
+
 		for (var j = 0, len2 = files.length; j < len2; j++) {
 			var element = files[j];
 			if (element.match(/.html$/)) {
@@ -146,7 +152,7 @@ var moduleFunction = function(args) {
 					fileDirectoryPath: fileDirectoryPath
 				};
 
-				qtools.logMilestone(`\t/${fileName}`);
+				self.suppressLogEndpointsAtStartup || qtools.logMilestone(`\t/${fileName}`);
 
 				self.router.get(new RegExp('/' + fileName+'$'), function(req, res, next) {
 					sendTestInputPage(req, res, next);
@@ -160,7 +166,7 @@ var moduleFunction = function(args) {
 					fileName: fileName,
 					fileDirectoryPath: fileDirectoryPath
 				};
-				qtools.logMilestone(`\t/${fileName}`);
+				self.suppressLogEndpointsAtStartup || qtools.logMilestone(`\t/${fileName}`);
 
 				self.router.get(new RegExp('/' + fileName), function(req, res, next) {
 					sendOtherFileType(req, res, next);

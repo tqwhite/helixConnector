@@ -24,13 +24,10 @@ const qt = require('qtools-functional-library');
 
 const rateLimit = require('express-rate-limit'); //added becasue snyk worries about denial of service attacks
 
+const mergeDeep = require('merge-deep');
+
 qtools.logWarn('Freezing Object.prototype');
 Object.freeze(Object.prototype);
-
-
-
-
-
 //START OF moduleFunction() ============================================================
 
 var moduleFunction = function(args) {
@@ -100,7 +97,7 @@ var moduleFunction = function(args) {
 		return schema;
 	};
 
-	const generateEndpointList = helixParms => {
+	const generateEndpointDisplayList = helixParms => {
 		const endpointList = [];
 		for (var schemaName in helixParms.schemaMap) {
 			var element = getSchema(helixParms, schemaName);
@@ -138,10 +135,18 @@ var moduleFunction = function(args) {
 
 	const hxConnectorUser = process.env.HXCONNECTORUSER || process.env.USER;
 
-	const configDirPath = (configPath =
-		process.env.helixProjectPath + 'configs/' + hxConnectorUser);
+	const configDirPath = (configPath = path.join(
+		process.env.helixProjectPath,
+		'configs/',
+		hxConnectorUser
+	));
 
-	var configPath = configDirPath + '/systemParameters.ini';
+	var configPath = path.join(configDirPath, '/systemParameters.ini');
+	
+	const configOverridePath = path.join(
+		configDirPath,
+		'/systemParametersOverride.ini'
+	);
 	
 	if (!qtools.realPath(configPath)) {
 		var message = 'configuration file ' + configPath + ' is missing';
@@ -150,7 +155,7 @@ var moduleFunction = function(args) {
 	}
 	
 	qtools.logMilestone(`configuration file found: ${configPath}`);
-
+	
 	var helixConnectorPath = process.env.helixConnectorPath + 'helixConnector.js';
 	if (!qtools.realPath(helixConnectorPath)) {
 		var message =
@@ -159,7 +164,26 @@ var moduleFunction = function(args) {
 		return message;
 	}
 
-	const newConfig = qtools.configFileProcessor.getConfig(configPath);
+	const tmpConfig = qtools.configFileProcessor.getConfig(configPath);
+	let newConfig = tmpConfig;
+
+	if (qtools.realPath(configOverridePath)) {
+		const overrideConfig = qtools.configFileProcessor.getConfig(
+			configOverridePath
+		);
+		qtools.logMilestone(
+			`ALERT: OVERRIDE config file found: ${configOverridePath}`
+		);
+		newConfig = mergeDeep(newConfig, overrideConfig);
+	}
+	
+	qtools.log(
+		`instanceId ${newConfig.system.instanceId} using ${
+			newConfig.system.applicationName
+		} on collection ${newConfig.system.collection}`
+	);
+
+	//ORGANIZE SCHEMA MAP ============================================================
 
 	const collectionName = qtools.getSurePath(newConfig, 'system.collection');
 	const schemaMapName =
@@ -178,30 +202,33 @@ var moduleFunction = function(args) {
 		'system.schemaMapDirectoryPath'
 	);
 	if (schemaMapDirectoryPath) {
-		schemaMapPath = schemaMapDirectoryPath + '/' + schemaMapName + '.json';
+		schemaMapPath = path.join(schemaMapDirectoryPath, `${schemaMapName}.json`);
 	} else {
-		schemaMapPath =
-			process.env.helixProjectPath +
-			'configs/' +
-			hxConnectorUser +
-			'/' +
-			schemaMapName +
-			'.json';
+		schemaMapPath = path.join(
+			process.env.helixProjectPath,
+			'configs',
+			hxConnectorUser,
+			`${schemaMapName}.json`
+		);
 	}
 	
 
 	const schemaMapAssembler = new schemaMapAssemblerGen();
 	const schemaMap = schemaMapAssembler.getSchemaMap(schemaMapPath);
 
+	//START CONNECTOR ============================================================
+
 	const helixConnectorGenerator = require(helixConnectorPath);
 
+	//ORGANIZE HELIXPARMS ============================================================
+
 	const helixParms = qtools.getSurePath(newConfig, 'system');
+
+	global.applicationLoggingIdString = helixParms.instanceId;
 
 	helixParms.schemaMap = addInternalEndpoints(schemaMap.schemaMap);
 
 	helixParms.configDirPath = configDirPath;
-
-	global.applicationLoggingIdString = helixParms.instanceId;
 
 	helixParms.schemaMap.generateToken = {
 		emptyRecordsAllowed: true
@@ -217,6 +244,9 @@ var moduleFunction = function(args) {
 		};
 		helixConnector.process('remoteControlManager', retrievalParms);
 	};
+
+	//EXECUTION FUNCTIONS ============================================================
+	
 	var retrieveRecords = function(helixConnector, schema, criterion, callback) {
 		var retrievalParms = {
 			authToken: 'hello',
@@ -248,15 +278,7 @@ var moduleFunction = function(args) {
 	};
 
 	var sendRcData = function(helixConnector, schema, testRecordData, callback) {
-		callback('post/sendRcData() is not implemented for helixAjax.js');
-		// helixConnector.process('saveOneWithProcess', {
-		// 	authToken: 'hello',
-		// 	helixSchema: schema,
-		// 	otherParms: {},
-		// 	debug: false,
-		// 	inData: testRecordData,
-		// 	callback: callback
-		// });
+		callback('POST/sendRcData() is not implemented for helixAjax.js');
 	};
 
 	var saveRecords = function(helixConnector, schema, testRecordData, callback) {
@@ -264,6 +286,14 @@ var moduleFunction = function(args) {
 			var responseSchema = helixParms.schemaMap[schema.responseSchemaName];
 			schema.response = responseSchema;
 		}
+
+		/* NEXT
+		
+		Figure out how to get req.body to here and pass it through to verify 
+		
+		
+		*/
+
 		helixConnector.process('saveOneWithProcess', {
 			authToken: 'hello',
 			helixSchema: schema,
@@ -352,28 +382,30 @@ var moduleFunction = function(args) {
 	var staticPageDispatch = require('./lib/static-page-dispatch');
 	staticPageDispatch = new staticPageDispatch({
 		router: router,
-		filePathList: [process.env.helixAjaxPagesPath]
+		filePathList: [process.env.helixAjaxPagesPath],
+		suppressLogEndpointsAtStartup: qtools.getSurePath(
+			newConfig,
+			'system.suppressLogEndpointsAtStartup'
+		)
 	});
-
-	if (false){
-	const endpointList = generateEndpointList(helixParms);
-	qtools.logMilestone(
-		`Endpoints:\n\t${endpointList.join(
-			'\n\t'
-		)}\n[endpoint listing from: hexlixAjax.js]`
-	);
+	
+	if (!qtools.getSurePath(newConfig, 'system.suppressLogEndpointsAtStartup')) {
+		const endpointDisplayList = generateEndpointDisplayList(helixParms);
+		qtools.logMilestone(
+			`Endpoints:\n\t${endpointDisplayList.join(
+				'\n\t'
+			)}\n[endpoint listing from: hexlixAjax.js]`
+		);
+	} else {
+		qtools.logMilestone(
+			'Turn on endpoint listing from helixAjax.js by setting system.suppressLogEndpointsAtStartup=false in config'
+		);
 	}
-	else{
-		qtools.logMilestone('turn on [endpoint listing from: hexlixAjax.js] by setting SDFDS');
-	}
 
-	//START SERVER AUTHENTICATION =======================================================
+	//INITIALIZATION FUNCTIONS =======================================================
 
-	//router.use(function(req, res, next) {});
 
-	//START SERVER ROUTING FUNCTION =======================================================
-
-	var verifyConnector = helixParms => (args, next) => {
+	var verifyRelationHasPoolUsersInstalled = helixParms => (args, next) => {
 		const localCallback = (err, result) => {
 			if (!args.processResult) {
 				args.processResult = [];
@@ -383,10 +415,10 @@ var moduleFunction = function(args) {
 		};
 		if (false) {
 			qtools.logMilestone('Initiating startup check for: Pool User Tables');
-			var helixConnector = new helixConnectorGenerator({
+			var localSpecialHxConnector = new helixConnectorGenerator({
 				helixAccessParms: helixParms
 			});
-			helixConnector.checkUserPool(localCallback);
+			localSpecialHxConnector.checkUserPool(localCallback);
 		} else {
 			qtools.logMilestone('SKIPPING startup check for: Pool User Tables');
 			localCallback();
@@ -407,7 +439,7 @@ var moduleFunction = function(args) {
 
 		/*
 			tmp[2] (instanceId) was added 1/2018 to make it easier to identify which 
-			system a token works for. It is option and purely for helping users and is a decoration.
+			system a token works for. It is optional and purely for helping users and is a decoration.
 		*/
 
 		var authGoodies = {
@@ -415,10 +447,13 @@ var moduleFunction = function(args) {
 			userId: tmp[0] ? tmp[0] : ''
 		};
 
+
+
 		try {
 			var helixConnector = new helixConnectorGenerator({
 				helixAccessParms: helixParms,
-				authGoodies: authGoodies
+				authGoodies: authGoodies,
+				req
 			});
 		} catch (err) {
 			qtools.logError(qtools.dump(err, true));
@@ -441,6 +476,8 @@ var moduleFunction = function(args) {
 			callback(err, finalResult);
 		});
 	};
+
+	//HTTP OUTPUT FUNCTIONS =======================================================
 
 	var send500 = (res, req, message) => {
 		qtools.logError(`500 error: ${req.path}=>${message}`);
@@ -472,6 +509,8 @@ var moduleFunction = function(args) {
 		};
 	};
 
+	//START SERVER ROUTING =======================================================
+
 	router.get(/ping/, function(req, res, next) {
 		res.status('200');
 		let showPort = staticPageDispatchConfig.port;
@@ -500,6 +539,36 @@ var moduleFunction = function(args) {
 		res.send(
 			`<div class='connectorStatus'>hxConnector on host <span style='color:green;'>${os.hostname()}:${showPort}</span><br/>last restart: <span style='color:green;'>${lastRestartTime}</span> <br/>status: <span style='color:green;'>active</span><br/>helix server status: <span style='color:gray;'>[check disabled]</span></div>`
 		);
+	});
+
+	router.post(/generateToken/, function(req, res, next) {
+		var tmp = req.path.match(/\/(\w+)/),
+			schemaName = tmp ? tmp[1] : '',
+			schema = helixParms.schemaMap[schemaName];
+		var userId = req.body.userId;
+
+		const privilegedHosts = qtools.convertNumericObjectToArray(
+			qtools.getSurePath(newConfig, 'system.privilegedHosts', [])
+		);
+		if (!privilegedHosts.includes(req.ip)) {
+			qtools.logWarn(`generateTokenRequest made from unauthorized '${req.ip}'`);
+			res.status('401').send('request made from unauthorized host');
+			return;
+		}
+
+		if (!userId) {
+			res.status('400').send('userId must be specified');
+			return;
+		}
+
+		var helixConnector = fabricateConnector(req, res, schema);
+		helixConnector.generateAuthToken(req.body, function(err, result) {
+			res.status('200').send({
+				userId: userId,
+				authToken: result,
+				instanceId: helixParms.instanceId
+			});
+		});
 	});
 
 	router.get(/.*/, function(req, res, next) {
@@ -636,35 +705,6 @@ var moduleFunction = function(args) {
 		);
 	});
 
-	router.post(/generateToken/, function(req, res, next) {
-		var tmp = req.path.match(/\/(\w+)/),
-			schemaName = tmp ? tmp[1] : '',
-			schema = helixParms.schemaMap[schemaName];
-		var userId = req.body.userId;
-
-		const privilegedHosts = qtools.convertNumericObjectToArray(
-			qtools.getSurePath(newConfig, 'system.privilegedHosts', [])
-		);
-		if (!privilegedHosts.includes(req.hostname)) {
-			res.status('401').send('request not made from authorized host');
-			return;
-		}
-
-		if (!userId) {
-			res.status('400').send('userId must be specified');
-			return;
-		}
-
-		var helixConnector = fabricateConnector(req, res, schema);
-		helixConnector.generateAuthToken(userId, function(err, result) {
-			res.status('200').send({
-				userId: userId,
-				authToken: result,
-				instanceId: helixParms.instanceId
-			});
-		});
-	});
-
 	router.post(/.*/, function(req, res, next) {
 		const tmp = req.path.match(/\/([\w-.]+)/g);
 		let schemaName;
@@ -790,7 +830,10 @@ staticPageDispatchConfig.port
 		}
 	};
 
-	verifySystemForStartup([verifyConnector(helixParms)], startServer);
+	verifySystemForStartup(
+		[verifyRelationHasPoolUsersInstalled(helixParms)],
+		startServer
+	);
 
 	return this;
 };

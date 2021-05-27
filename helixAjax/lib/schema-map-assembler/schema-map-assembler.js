@@ -110,6 +110,8 @@ var moduleFunction = function(args) {
 				typeof schemaMap.autoIncludeDirectoryPath == 'object' &&
 				schemaMap.autoIncludeDirectoryPath.length
 			) {
+schemaMap.autoIncludeDirectoryPath.qtDump({label:"schemaMap.autoIncludeDirectoryPath"});
+
 				schemaMap.autoIncludeDirectoryPath.forEach(
 					autoIncludeDirectoryPathItem => {
 						const autoIncludeDirectoryPath = path.join(
@@ -117,6 +119,8 @@ var moduleFunction = function(args) {
 							'../',
 							autoIncludeDirectoryPathItem
 						);
+autoIncludeDirectoryPath.qtDump({label:"autoIncludeDirectoryPath"});
+
 						const autoIncludeSchemaItems = getAutoIncludeDirectoryItems(
 							autoIncludeDirectoryPath
 						);

@@ -6,12 +6,14 @@ const path = require('path');
 const osascript = require('osascript').eval;
 
 const remoteControlManagerGen = require('./remote-control-manager');
-const helixAccessManagerGen = require('./helix-engine');
+const helixEngineGen = require('./helix-engine');
 const staticDataGen = require('./static-data');
 
 const helixDataGen = require('./lib/helix-data');
 const helixData = new helixDataGen();
-const qt = require('qtools-functional-library')
+const qt = require('qtools-functional-library');
+
+const authenticationHandlerGen = require('./lib/authentication-handler');
 
 //START OF moduleFunction() ============================================================
 
@@ -34,12 +36,16 @@ const moduleFunction = function(args) {
 				{
 					name: 'authGoodies',
 					optional: true
+				},
+				{
+					name: 'req',
+					optional: false
 				}
 			]
 		},
 		true
 	); //this is a server component, don't die on error
-	
+
 	const { hxScriptRunner } = args;
 
 	if (argsErrorList) {
@@ -47,7 +53,15 @@ const moduleFunction = function(args) {
 	}
 	const self = this;
 	self.helixAccessParms = qtools.clone(self.helixAccessParms);
-	
+
+	const authenticationHandler = new authenticationHandlerGen({
+		authKey: args.helixAccessParms.authKey,
+		instanceId: args.helixAccessParms.instanceId,
+		req:this.req
+	});
+
+	this.authGoodies = this.authGoodies ? this.authGoodies : {};
+
 
 	//LOCAL FUNCTIONS ====================================
 	const exitEventHandler = () => {
@@ -57,55 +71,10 @@ const moduleFunction = function(args) {
 
 	const cancelExitEventHandlers = () => {
 		process.removeListener('exit', exitEventHandler);
-	};
+	};   
 
 	//METHODS AND PROPERTIES ====================================
 
-	const jwt = require('jsonwebtoken');
-
-	const generateAuthTokenActual = (authKey, instanceId) => (
-		userId,
-		callback
-	) => {
-		const token = jwt.sign(
-			{
-				userId: userId,
-				instanceId: instanceId
-			},
-			authKey
-		);
-		callback('', token);
-	};
-	
-	const validateUserTokenActual = (jwt, authKey, instanceId) => authGoodies => {
-		const { userId, authToken } = authGoodies;
-
-		let decoded;
-		try {
-			decoded = jwt.verify(authToken, authKey);
-		} catch (e) {
-			return e.toString();
-		}
-
-		//console.log(`\n=-=============   validateUserTokenActual  ========================= [helixConnector.js.moduleFunction]\n`);
-
-		//
-		// console.dir({"decoded [helixConnector.js.moduleFunction]":decoded});
-		// console.log("instanceId="+instanceId+" [helixConnector.js.moduleFunction]");
-		// console.log(`\n=-=============   instanceId  ========================= [helixConnector.js.moduleFunction]\n`);
-
-		if (decoded.instanceId != instanceId) {
-			qtools.logMilestone(`auth failed (1) for: ${userId}`);
-			return 'instanceId does not match';
-		}
-		if (decoded.userId != userId) {
-			qtools.logMilestone(`auth failed (2) for: ${userId}`);
-			return 'userId does not match';
-		}
-		qtools.logMilestone(`got auth for: ${userId}`);
-		return decoded;
-	};
-	
 	//DISPATCH ====================================
 
 	const getScriptActual = remoteControlDirectoryPath => functionName => {
@@ -211,8 +180,7 @@ const moduleFunction = function(args) {
 
 		return scriptElement;
 	};
-	
-	
+
 	const getCriterion = (parentSchema, schema) => {
 		if (typeof schema == 'string') {
 			const libPath = path.join(this.helixAccessParms.configDirPath, schema);
@@ -319,7 +287,7 @@ const moduleFunction = function(args) {
 		compileScript,
 		executeStaticTestRoute,
 		remoteControlManagerGen,
-		helixAccessManagerGen,
+		helixEngineGen,
 		helixAccessParms
 	) => (libraryScriptName, parameters, callback) => {
 		if (!parameters.schema) {
@@ -331,7 +299,7 @@ const moduleFunction = function(args) {
 		switch (libraryScriptName) {
 			case 'kill':
 			case 'quitHelixNoSave':
-				new helixAccessManagerGen({
+				new helixEngineGen({
 					getScript,
 					compileScript,
 					helixAccessParms
@@ -350,7 +318,7 @@ const moduleFunction = function(args) {
 			case 'retrieveRecords':
 			case 'saveOneWithProcess':
 			case 'testOpenTestDb':
-				const helixEngineInstance3 = new helixAccessManagerGen({
+				const helixEngineInstance3 = new helixEngineGen({
 					getScript,
 					compileScript,
 					helixAccessParms
@@ -371,7 +339,7 @@ const moduleFunction = function(args) {
 				break;
 		}
 	};
-	
+
 	const executeStaticTestRouteActual = staticDataGen => (
 		helixSchema,
 		callback
@@ -396,7 +364,7 @@ const moduleFunction = function(args) {
 
 		executeStaticTest(helixSchema, staticDataGen, callback);
 	};
-	
+
 	this.process = (control, parameters) => {
 		const publicEndpoint = qtools.getSurePath(
 			parameters,
@@ -405,7 +373,9 @@ const moduleFunction = function(args) {
 		);
 
 		if (!publicEndpoint) {
-			const errorMessage = validateUserToken(this.authGoodies);
+			const errorMessage = authenticationHandler.validateUserToken(
+				this.authGoodies
+			);
 			if (typeof errorMessage == 'string') {
 				parameters.callback(errorMessage);
 				return;
@@ -447,17 +417,7 @@ const moduleFunction = function(args) {
 	};
 
 	//INITIALIZATION ====================================
-	
 
-	this.authGoodies = this.authGoodies ? this.authGoodies : {};
-
-	this.forceEvent = (eventName, outData) => {
-		this.emit(eventName, {
-			eventName: eventName,
-			data: outData
-		});
-	};
-	
 	const getScript = getScriptActual(
 		self.helixAccessParms.remoteControlDirectoryPath
 	);
@@ -466,37 +426,34 @@ const moduleFunction = function(args) {
 		this.helixAccessParms,
 		helixData.makeApplescriptDataString
 	);
-	
+
 	const executeStaticTestRoute = executeStaticTestRouteActual(staticDataGen);
 	const executeProcess = executeProcessActual(
 		getScript,
 		compileScript,
 		executeStaticTestRoute,
 		remoteControlManagerGen,
-		helixAccessManagerGen,
+		helixEngineGen,
 		this.helixAccessParms
 	);
 
-	const validateUserToken = validateUserTokenActual(
-		jwt,
-		args.helixAccessParms.authKey,
-		args.helixAccessParms.instanceId
-	);
-	
-	this.generateAuthToken = generateAuthTokenActual(
-		args.helixAccessParms.authKey,
-		args.helixAccessParms.instanceId
-	);
-	
-	
-	this.validateUserTokenUnitTestEndpoint = validateUserToken; //for unit testing
-	
+	this.generateAuthToken = authenticationHandler.generateAuthToken; //generateAuthToken() called from helixAjax
+
 	this.checkUserPool = callback => {
-		new helixAccessManagerGen({
+		new helixEngineGen({
 			getScript,
 			compileScript,
 			helixAccessParms: args.helixAccessParms
 		}).checkUserPool(callback);
+	};
+
+	//DISCARD ====================================
+
+	this.forceEvent = (eventName, outData) => {
+		this.emit(eventName, {
+			eventName: eventName,
+			data: outData
+		});
 	};
 
 	return this;
