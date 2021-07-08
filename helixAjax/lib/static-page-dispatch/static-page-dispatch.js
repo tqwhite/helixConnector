@@ -141,7 +141,7 @@ var moduleFunction = function(args) {
 		var files = fs.readdirSync(fileDirectoryPath);
 
 		self.suppressLogEndpointsAtStartup || qtools.logMilestone(`Web Pages:`);
-		self.suppressLogEndpointsAtStartup && qtools.logMilestone(`Turn on web page list from staticPageDispatch.js by setting system.suppressLogEndpointsAtStartup=false in config`);
+		self.suppressLogEndpointsAtStartup && qtools.logMilestone(`TURN ON web page list from staticPageDispatch.js by setting system.suppressLogEndpointsAtStartup=false in config`);
 
 		for (var j = 0, len2 = files.length; j < len2; j++) {
 			var element = files[j];

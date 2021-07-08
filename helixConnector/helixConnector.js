@@ -197,8 +197,7 @@ const moduleFunction = function(args) {
 			scriptElement,
 			processName,
 			parameters,
-			helixSchema,
-			poolUserObject
+			helixSchema
 		} = args;
 
 		const inData = qtools.clone(parameters.inData) || {};

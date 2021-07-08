@@ -35,20 +35,20 @@ var moduleFunction = function(args) {
 		autoIncludeItems
 			.filter(fileName => fileName.match(/\.json$/))
 			.forEach(fileName => {
-				const itemPath = path.join(autoIncludeDirectoryPath, fileName);
+				const endpointFilePath = path.join(autoIncludeDirectoryPath, fileName);
 				try {
-					const contents = qtools.fs.readFileSync(itemPath).toString();
+					const contents = qtools.fs.readFileSync(endpointFilePath).toString();
 					const element = JSON.parse(contents);
 
-					outObj = { ...outObj, ...element };
+					outObj = { ...outObj, ...element, endpointFilePath };
 
 					count++;
 				} catch (e) {
-					console.log(`BAD JSON ${itemPath}`);
+					console.log(`BAD JSON ${endpointFilePath}`);
 				}
 			});
 
-		console.log(
+		qtools.logMilestone(
 			`added ${count} items from autoIncludeDirectoryPath: ${autoIncludeDirectoryPath}`
 		);
 
@@ -93,6 +93,7 @@ var moduleFunction = function(args) {
 			}, schemaMap);
 
 			if (typeof schemaMap.autoIncludeDirectoryPath == 'string') {
+				qtools.logMilestone(`autoIncludeDirectoryPath=${autoIncludeDirectoryPath}`);
 				const autoIncludeDirectoryPath = path.join(
 					schemaMapPath,
 					'../',
@@ -110,8 +111,7 @@ var moduleFunction = function(args) {
 				typeof schemaMap.autoIncludeDirectoryPath == 'object' &&
 				schemaMap.autoIncludeDirectoryPath.length
 			) {
-schemaMap.autoIncludeDirectoryPath.qtDump({label:"schemaMap.autoIncludeDirectoryPath"});
-
+				qtools.logMilestone(`autoIncludeDirectoryPath=[${schemaMap.autoIncludeDirectoryPath.join(', ')}] (defined in ${schemaMapPath}`);
 				schemaMap.autoIncludeDirectoryPath.forEach(
 					autoIncludeDirectoryPathItem => {
 						const autoIncludeDirectoryPath = path.join(
@@ -119,7 +119,6 @@ schemaMap.autoIncludeDirectoryPath.qtDump({label:"schemaMap.autoIncludeDirectory
 							'../',
 							autoIncludeDirectoryPathItem
 						);
-autoIncludeDirectoryPath.qtDump({label:"autoIncludeDirectoryPath"});
 
 						const autoIncludeSchemaItems = getAutoIncludeDirectoryItems(
 							autoIncludeDirectoryPath

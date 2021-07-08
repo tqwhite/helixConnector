@@ -26,8 +26,14 @@ const rateLimit = require('express-rate-limit'); //added becasue snyk worries ab
 
 const mergeDeep = require('merge-deep');
 
+const summarizeConfig=require('./lib/summarize-config');
+
+
+qtools.logMilestone('\nStarting hxAjax *************************');
+console.error(`helixAjax startup beginning: ${new Date().toLocaleString()}`); //it's very helpful to have this annotation in the error log
 qtools.logWarn('Freezing Object.prototype');
-Object.freeze(Object.prototype);
+Object.freeze(Object.prototype); //must come after qtFunctionalLibrary which updates prototypes
+
 //START OF moduleFunction() ============================================================
 
 var moduleFunction = function(args) {
@@ -47,7 +53,8 @@ var moduleFunction = function(args) {
 			});
 		};
 
-	//LOCAL FUNCTIONS ====================================
+	//UTILITY FUNCTIONS ====================================
+	
 	const reminder = (message, title = 'hxConnector Update') => {
 		notifier.notify(
 			{
@@ -114,6 +121,8 @@ var moduleFunction = function(args) {
 		return endpointList;
 	};
 
+	//ENVIRONMENT AND CONFIG ====================================
+
 	if (!process.env.helixProjectPath) {
 		var message = 'there must be an environment variable: helixProjectPath';
 		qtools.logError(message);
@@ -166,6 +175,7 @@ var moduleFunction = function(args) {
 
 	const tmpConfig = qtools.configFileProcessor.getConfig(configPath);
 	let newConfig = tmpConfig;
+	qtools.putSurePath(newConfig, 'system.hxConnectorUser', hxConnectorUser);
 
 	if (qtools.realPath(configOverridePath)) {
 		const overrideConfig = qtools.configFileProcessor.getConfig(
@@ -176,12 +186,6 @@ var moduleFunction = function(args) {
 		);
 		newConfig = mergeDeep(newConfig, overrideConfig);
 	}
-	
-	qtools.log(
-		`instanceId ${newConfig.system.instanceId} using ${
-			newConfig.system.applicationName
-		} on collection ${newConfig.system.collection}`
-	);
 
 	//ORGANIZE SCHEMA MAP ============================================================
 
@@ -230,6 +234,7 @@ var moduleFunction = function(args) {
 
 	helixParms.configDirPath = configDirPath;
 
+	//I believe this is unused and should be discarded. tqii, 7/7/21
 	helixParms.schemaMap.generateToken = {
 		emptyRecordsAllowed: true
 	}; //my node object doesn't provide for static methods, which this should be
@@ -304,10 +309,6 @@ var moduleFunction = function(args) {
 		});
 	};
 
-	//METHODS AND PROPERTIES ====================================
-
-	//INITIALIZATION ====================================
-
 	//SET UP SERVER =======================================================
 
 	var router = express.Router();
@@ -358,24 +359,6 @@ var moduleFunction = function(args) {
 
 	app.use('/', router);
 
-	//LOG CONFIGURATION =======================================================
-
-	qtools.logMilestone('Starting hxAjax *************************');
-
-	qtools.logMilestone(
-		`$HXCONNECTORUSER=${
-			hxConnectorUser ? hxConnectorUser : '(not specified, running as $USER)'
-		}`
-	);
-	qtools.logMilestone(`**configPath=${configPath}`);
-	qtools.logMilestone(`**schemaMapPath=${schemaMapPath}`);
-	qtools.logMilestone(`helixAjaxPagesPath=${process.env.helixAjaxPagesPath}`);
-	qtools.logMilestone(
-		`remoteControlDirectoryPath=${helixParms.remoteControlDirectoryPath}`
-	);
-	qtools.logMilestone(
-		`staticDataDirectoryPath=${helixParms.staticDataDirectoryPath}`
-	);
 
 	//STATIC PAGE DISPATCH =======================================================
 
@@ -398,7 +381,7 @@ var moduleFunction = function(args) {
 		);
 	} else {
 		qtools.logMilestone(
-			'Turn on endpoint listing from helixAjax.js by setting system.suppressLogEndpointsAtStartup=false in config'
+			'TURN ON endpoint listing from helixAjax.js by setting system.suppressLogEndpointsAtStartup=false in config'
 		);
 	}
 
@@ -471,7 +454,7 @@ var moduleFunction = function(args) {
 
 	const verifySystemForStartup = (taskList, callback) => {
 		const initialData = typeof inData != 'undefined' ? inData : {};
-		qtools.logMilestone('\n\nExecuting system startup validation checks');
+		qtools.logMilestone('Executing system startup validation checks');
 		pipeRunner(taskList, initialData, (err, finalResult) => {
 			callback(err, finalResult);
 		});
@@ -480,8 +463,22 @@ var moduleFunction = function(args) {
 	//HTTP OUTPUT FUNCTIONS =======================================================
 
 	var send500 = (res, req, message) => {
-		qtools.logError(`500 error: ${req.path}=>${message}`);
+		qtools.logWarn(`500 error: ${req.path}=>${message}`);
 		res.status(500).send(escape(message));
+	};
+	
+	const send200= (res, req, result) => {
+
+			res.status('200');
+			res.set({
+				'content-type': 'application/json;charset=ISO-8859-1',
+				messageid: qtools.newGuid(),
+				messagetype: 'RESPONSE',
+				responsesource: 'helixConnector',
+				connection: 'Close'
+			});
+
+			res.json(result);
 	};
 
 	var sendResult = function(res, req, next, helixConnector) {
@@ -491,20 +488,7 @@ var moduleFunction = function(args) {
 				helixConnector.close();
 				return;
 			}
-
-			res.status('200');
-			res.set({
-				'content-type': 'application/json;charset=ISO-8859-1',
-				messageid: qtools.newGuid(),
-				messagetype: 'RESPONSE',
-				// 			 navigationcount: '100',
-				// 			 navigationpage: '1',
-				// 			 navigationpagesize: '10',
-				responsesource: 'helixConnector',
-				connection: 'Close'
-			});
-
-			res.json(result);
+			send200(res, req, result)
 			helixConnector.close();
 		};
 	};
@@ -569,6 +553,10 @@ var moduleFunction = function(args) {
 				instanceId: helixParms.instanceId
 			});
 		});
+	});
+
+	router.get(/hxDetails/, function(req, res, next) {
+		send200(res, req, summarizeConfig({newConfig}).relationsAndViews({resultFormat:'jsObj'}));
 	});
 
 	router.get(/.*/, function(req, res, next) {
@@ -720,7 +708,7 @@ var moduleFunction = function(args) {
 
 		const schema = getSchema(helixParms, schemaName);
 		if (!schema) {
-			res.status(500).send(`Schema '${escape(schemaName)}' not defined`);
+			send500(res, req, `Schema '${escape(schemaName)}' not defined`);
 			return;
 		}
 		schema.schemaName = schemaName;
@@ -783,9 +771,9 @@ var moduleFunction = function(args) {
 				result.processResult &&
 				typeof result.processResult.join == 'function'
 			) {
-				qtools.logMilestone(`valid system: ${result.processResult.join('\n')}`);
+				qtools.logMilestone(`listener startup complete: ${result.processResult.join('\n')}`);
 			} else if (result && result.processResult) {
-				qtools.logMilestone(`valid system: ${result.processResult.toString()}`);
+				qtools.logMilestone(`listener startup finished: ${result.processResult.toString()}`);
 			}
 
 			let sslAnnotation = '';
@@ -815,17 +803,17 @@ var moduleFunction = function(args) {
 
 			app.listen(staticPageDispatchConfig.port);
 
-			console.error(`helixAjax startup: ${new Date().toLocaleString()}`); //it's very helpful to have this annotation in the error log
 			// prettier-ignore
 			qtools.log(
-`NOTE: helixEngine.delayReleasePoolUser=${helixParms.qtGetSurePath( 'helixEngine.delayReleasePoolUser' )}
-ENDPOINTS DIRECTORY: ${schemaMapPath}\n\n${new Date().toLocaleTimeString()}: Magic happens on port ${
+`${summarizeConfig({newConfig}).system()}
+${summarizeConfig({newConfig}).endpointOverview()}
+note: helixEngine.delayReleasePoolUser=${helixParms.qtGetSurePath( 'helixEngine.delayReleasePoolUser' )}
+endpoints directory: ${schemaMapPath}
+${new Date().toLocaleTimeString()}: Magic happens on port ${
 staticPageDispatchConfig.port
-}${sslAnnotation}.`
+}${sslAnnotation}. ----------------------------------------------------------`
 			);
-
-			console.dir(require.resolve('qtools'));
-
+			console.error(`helixAjax startup complete: ${new Date().toLocaleString()}`); //it's very helpful to have this annotation in the error log
 			reminder(`hxConnector Restart Complete`); //shows macos notification
 		}
 	};
@@ -834,6 +822,7 @@ staticPageDispatchConfig.port
 		[verifyRelationHasPoolUsersInstalled(helixParms)],
 		startServer
 	);
+	
 
 	return this;
 };

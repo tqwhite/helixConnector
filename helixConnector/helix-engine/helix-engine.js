@@ -239,8 +239,6 @@ var moduleFunction = function(args) {
 				helixSchema
 			}),
 			callback = parameters.callback || function() {};
-finalScript.qtDump({label:"finalScript"});
-
 
 		if (helixSchema.debug === 'true' || helixSchema.debug === true) {
 			console.log(
