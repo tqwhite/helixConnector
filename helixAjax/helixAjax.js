@@ -649,6 +649,18 @@ var moduleFunction = function(args) {
 		}
 
 		schema.schemaType = schema.schemaType ? schema.schemaType : 'helixAccess'; //just for completeness, I made it the default when I was young and stupid
+		
+		if (
+			qtools.isTrue(schema.debugData) &&
+			schema.schemaName
+		) {
+			qtools.logWarn(`debugData=true on schema ${schemaName}, writing files to /tmp`);
+			const filePath = `/tmp/hxc_Get_RequestQuery_${new Date().getTime()}_${
+				schema.schemaName
+			}.txt`;
+			qtools.logWarn(`WRITING get request query: ${filePath} (debugData=true)`);
+			qtools.writeSureFile(filePath, JSON.stringify(req.query));
+		}
 
 		var helixConnector = fabricateConnector(req, res, schema);
 		const runRealSchema = (err, result = '') => {
@@ -726,6 +738,21 @@ var moduleFunction = function(args) {
 			helixConnector.close();
 			return;
 		}
+
+		
+		if (
+			qtools.isTrue(schema.debugData) &&
+			schema.schemaName
+		) {
+			qtools.logWarn(`debugData=true on schema ${schemaName}, writing files to /tmp`);
+			const filePath = `/tmp/hxc_Post_RequestBody_${new Date().getTime()}_${
+				schema.schemaName
+			}.txt`;
+			qtools.logWarn(`WRITING post request body: ${filePath} (debugData=true)`);
+			qtools.writeSureFile(filePath, JSON.stringify(req.body));
+		}
+					
+					
 		var helixConnector = fabricateConnector(req, res, schema);
 		if (helixConnector) {
 			switch (schema.schemaType) {
@@ -809,6 +836,7 @@ var moduleFunction = function(args) {
 ${summarizeConfig({newConfig}).endpointOverview()}
 note: helixEngine.delayReleasePoolUser=${helixParms.qtGetSurePath( 'helixEngine.delayReleasePoolUser' )}
 endpoints directory: ${schemaMapPath}
+reminder: setting debugData=true in endpoint causes helix-data to log JSON to a file in /tmp/...
 ${new Date().toLocaleTimeString()}: Magic happens on port ${
 staticPageDispatchConfig.port
 }${sslAnnotation}. ----------------------------------------------------------`

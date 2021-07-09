@@ -244,6 +244,21 @@ const moduleFunction = function(args) {
 			inData,
 			helixSchema.separators
 		);
+
+		if (qtools.isTrue(helixSchema.debugData) && !helixSchema.internalSchema) {
+			const filePath = `/tmp/hxc_HelixReplaceObject_${new Date().getTime()}_${
+				helixSchema.schemaName
+			}.txt`;
+			qtools.logWarn(`WRITING helix replaceObject with helix db output data to file: ${filePath} (debugData=true)`);
+			qtools.writeSureFile(filePath, JSON.stringify({
+				inData,
+				dataString:replaceObject.dataString,
+				processName:replaceObject.processName,
+				helixSchema,
+				otherParms,
+			}, '', '\t'));
+		}
+		
 		if (
 			helixSchema.criterion &&
 			parameters.criterion &&

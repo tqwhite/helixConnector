@@ -269,14 +269,13 @@ var moduleFunction = function(args) {
 					qtools.isTrue(parameters.schema.debugData) &&
 					parameters.schema.schemaName
 				) {
-					const filePath = `${
-						process.env.HOME
-					}/Desktop/tmp/file_FromHelix_${new Date().getTime()}_${
+					const filePath = `/tmp/hxc_FromHelix_${new Date().getTime()}_${
 						parameters.schema.schemaName
 					}.txt`;
-					qtools.logWarn(`WRITING received helix data to file: ${filePath}`);
+					qtools.logWarn(`WRITING raw received from helix data to file (shows separators): ${filePath} (debugData=true)`);
 					qtools.writeSureFile(filePath, data);
 				}
+				
 				data = data.replace(/([^\n])\n$/, '$1');
 
 				let workingSchema = helixSchema;

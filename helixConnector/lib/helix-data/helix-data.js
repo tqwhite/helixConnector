@@ -299,6 +299,7 @@ var moduleFunction = function(args) {
 	
 	//SYSTEM DATA MANIPULATION ====================================
 	
+	
 	//this is called as compileScript() from helixConnector.compileScriptActual() which is called from helix-engine.
 	self.makeApplescriptDataString = function(
 		schema,
@@ -314,16 +315,6 @@ var moduleFunction = function(args) {
 		const fieldSeparator = separators.field
 			? separators.field
 			: String.fromCharCode(9);
-
-		if (qtools.isTrue(schema.debugData) && !schema.internalSchema) {
-			const filePath = `${
-				process.env.HOME
-			}/Desktop/tmp/file_FromJson_${new Date().getTime()}_${
-				schema.schemaName
-			}.txt`;
-			qtools.logWarn(`WRITING received helix data to file: ${filePath}`);
-			qtools.writeSureFile(filePath, JSON.stringify(inData, '', '\t'));
-		}
 
 		switch (qtools.toType(inData)) {
 			case 'array':
@@ -490,7 +481,9 @@ var moduleFunction = function(args) {
 		let fieldName;
 		let mappingElement;
 		let incomingValue;
-		debugInfo += `\n${schema.schemaName} PROCESSING VALUES:\n`;
+		debugInfo += `\n${schema.schemaName} RECORD OBJECT LIST:\n`;
+		debugInfo += `\n${JSON.stringify(recordObjectList)}\n${''.padEnd(50, '=')}\n`;
+		debugInfo += `\n PROCESSING VALUES:\n`;
 		for (var i = 0, len = recordObjectList.length; i < len; i++) {
 			var elementList = recordObjectList[i];
 
@@ -525,7 +518,12 @@ var moduleFunction = function(args) {
 			debugInfo += '\n';
 		}
 		if (qtools.isTrue(schema.debugData) && !schema.internalSchema) {
-			qtools.logDebug(debugInfo + `${schema.schemaName} end\n`);
+			const filePath = `/tmp/hxc_DebugInfo_${new Date().getTime()}_${
+				schema.schemaName
+			}.txt`;
+			qtools.logWarn(`WRITING debugData info to file: ${filePath} (debugData=true)`);
+			qtools.writeSureFile(filePath, debugInfo);
+		
 		}
 		return outArray;
 	};
