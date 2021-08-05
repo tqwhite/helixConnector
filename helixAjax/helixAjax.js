@@ -26,8 +26,7 @@ const rateLimit = require('express-rate-limit'); //added becasue snyk worries ab
 
 const mergeDeep = require('merge-deep');
 
-const summarizeConfig=require('./lib/summarize-config');
-
+const summarizeConfig = require('./lib/summarize-config');
 
 qtools.logMilestone('\nStarting hxAjax *************************');
 console.error(`helixAjax startup beginning: ${new Date().toLocaleString()}`); //it's very helpful to have this annotation in the error log
@@ -358,8 +357,7 @@ var moduleFunction = function(args) {
 	);
 
 	app.use('/', router);
-
-
+	
 	//STATIC PAGE DISPATCH =======================================================
 
 	var staticPageDispatch = require('./lib/static-page-dispatch');
@@ -386,8 +384,7 @@ var moduleFunction = function(args) {
 	}
 
 	//INITIALIZATION FUNCTIONS =======================================================
-
-
+	
 	var verifyRelationHasPoolUsersInstalled = helixParms => (args, next) => {
 		const localCallback = (err, result) => {
 			if (!args.processResult) {
@@ -428,11 +425,8 @@ var moduleFunction = function(args) {
 		var authGoodies = {
 			authToken: tmp[1] ? tmp[1] : '',
 			userId: tmp[0] ? tmp[0] : ''
-		};
-
-
-
-		try {
+		}; 
+		 try {
 			var helixConnector = new helixConnectorGenerator({
 				helixAccessParms: helixParms,
 				authGoodies: authGoodies,
@@ -467,18 +461,17 @@ var moduleFunction = function(args) {
 		res.status(500).send(escape(message));
 	};
 	
-	const send200= (res, req, result) => {
+	const send200 = (res, req, result) => {
+		res.status('200');
+		res.set({
+			'content-type': 'application/json;charset=ISO-8859-1',
+			messageid: qtools.newGuid(),
+			messagetype: 'RESPONSE',
+			responsesource: 'helixConnector',
+			connection: 'Close'
+		});
 
-			res.status('200');
-			res.set({
-				'content-type': 'application/json;charset=ISO-8859-1',
-				messageid: qtools.newGuid(),
-				messagetype: 'RESPONSE',
-				responsesource: 'helixConnector',
-				connection: 'Close'
-			});
-
-			res.json(result);
+		res.json(result);
 	};
 
 	var sendResult = function(res, req, next, helixConnector) {
@@ -488,7 +481,7 @@ var moduleFunction = function(args) {
 				helixConnector.close();
 				return;
 			}
-			send200(res, req, result)
+			send200(res, req, result);
 			helixConnector.close();
 		};
 	};
@@ -556,7 +549,13 @@ var moduleFunction = function(args) {
 	});
 
 	router.get(/hxDetails/, function(req, res, next) {
-		send200(res, req, summarizeConfig({newConfig}).relationsAndViews({resultFormat:'jsObj'}));
+		send200(
+			res,
+			req,
+			summarizeConfig({ newConfig }).relationsAndViews({
+				resultFormat: 'jsObj'
+			})
+		);
 	});
 
 	router.get(/.*/, function(req, res, next) {
@@ -649,12 +648,11 @@ var moduleFunction = function(args) {
 		}
 
 		schema.schemaType = schema.schemaType ? schema.schemaType : 'helixAccess'; //just for completeness, I made it the default when I was young and stupid
-		
-		if (
-			qtools.isTrue(schema.debugData) &&
-			schema.schemaName
-		) {
-			qtools.logWarn(`debugData=true on schema ${schemaName}, writing files to /tmp`);
+
+		if (qtools.isTrue(schema.debugData) && schema.schemaName) {
+			qtools.logWarn(
+				`debugData=true on schema ${schemaName}, writing files to /tmp`
+			);
 			const filePath = `/tmp/hxc_Get_RequestQuery_${new Date().getTime()}_${
 				schema.schemaName
 			}.txt`;
@@ -739,20 +737,17 @@ var moduleFunction = function(args) {
 			return;
 		}
 
-		
-		if (
-			qtools.isTrue(schema.debugData) &&
-			schema.schemaName
-		) {
-			qtools.logWarn(`debugData=true on schema ${schemaName}, writing files to /tmp`);
+		if (qtools.isTrue(schema.debugData) && schema.schemaName) {
+			qtools.logWarn(
+				`debugData=true on schema ${schemaName}, writing files to /tmp`
+			);
 			const filePath = `/tmp/hxc_Post_RequestBody_${new Date().getTime()}_${
 				schema.schemaName
 			}.txt`;
 			qtools.logWarn(`WRITING post request body: ${filePath} (debugData=true)`);
 			qtools.writeSureFile(filePath, JSON.stringify(req.body));
 		}
-					
-					
+
 		var helixConnector = fabricateConnector(req, res, schema);
 		if (helixConnector) {
 			switch (schema.schemaType) {
@@ -798,9 +793,13 @@ var moduleFunction = function(args) {
 				result.processResult &&
 				typeof result.processResult.join == 'function'
 			) {
-				qtools.logMilestone(`listener startup complete: ${result.processResult.join('\n')}`);
+				qtools.logMilestone(
+					`listener startup complete: ${result.processResult.join('\n')}`
+				);
 			} else if (result && result.processResult) {
-				qtools.logMilestone(`listener startup finished: ${result.processResult.toString()}`);
+				qtools.logMilestone(
+					`listener startup finished: ${result.processResult.toString()}`
+				);
 			}
 
 			let sslAnnotation = '';
@@ -830,19 +829,25 @@ var moduleFunction = function(args) {
 
 			app.listen(staticPageDispatchConfig.port);
 
+	
+	if (helixParms.suppressTokenSecurityFeatures){
+		qtools.logWarn(`WARNING: suppressTokenSecurityFeatures=true`);
+	}
 			// prettier-ignore
 			qtools.log(
 `${summarizeConfig({newConfig}).system()}
 ${summarizeConfig({newConfig}).endpointOverview()}
 note: helixEngine.delayReleasePoolUser=${helixParms.qtGetSurePath( 'helixEngine.delayReleasePoolUser' )}
-endpoints directory: ${schemaMapPath}
+endpoints directory: ${schemaMapPath}${helixParms.suppressTokenSecurityFeatures?'\nWARNING: systemParameters.ini/suppressTokenSecurityFeatures=true':''}
 reminder: setting debugData=true in endpoint causes helix-data to log JSON to a file in /tmp/...
 ${new Date().toLocaleTimeString()}: Magic happens on port ${
 staticPageDispatchConfig.port
 }${sslAnnotation}. ----------------------------------------------------------`
 			);
-			console.error(`helixAjax startup complete: ${new Date().toLocaleString()}`); //it's very helpful to have this annotation in the error log
-			reminder(`hxConnector Restart Complete`); //shows macos notification
+			console.error(
+				`helixAjax startup complete: ${new Date().toLocaleString()}`
+			); //it's very helpful to have this annotation IN THE ERROR LOG
+			reminder(`hxConnector Startup Complete`); //shows macos notification
 		}
 	};
 
@@ -852,7 +857,34 @@ staticPageDispatchConfig.port
 	);
 	
 
-	return this;
+	const notifyQuit = type => (exceptionParm='no additional info') => {
+		reminder(`QUITTING ${type}`);
+
+		setTimeout(
+			() => qtools.logMilestone(`QUITTING hxC with interrupt type ${type} ${exceptionParm}`),
+			100
+		);
+	};
+	
+	//do something when app is closing
+	process.on('exit', notifyQuit('exit'));
+
+	//catches ctrl+c event
+	process.on('SIGTERM', notifyQuit('SIGTERM (usually this is from launchctl)'));
+
+	//catches ctrl+c event
+	process.on('SIGINT', notifyQuit('SIGINT'));
+
+	// catches "kill pid" (for example: nodemon restart)
+	process.on('SIGUSR1', notifyQuit('SIGUSR1'));
+	process.on('SIGUSR2', notifyQuit('SIGUSR2'));
+
+	//catches uncaught exceptions
+	process.on(
+		'uncaughtException',
+		notifyQuit('uncaughtException')
+	);    
+	 return this;
 };
 
 //END OF moduleFunction() ============================================================
