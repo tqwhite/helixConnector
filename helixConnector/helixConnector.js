@@ -57,6 +57,7 @@ const moduleFunction = function(args) {
 	const authenticationHandler = new authenticationHandlerGen({
 		authKey: args.helixAccessParms.authKey,
 		instanceId: args.helixAccessParms.instanceId,
+		suppressTokenSecurityFeatures: args.helixAccessParms.suppressTokenSecurityFeatures,
 		req:this.req
 	});
 

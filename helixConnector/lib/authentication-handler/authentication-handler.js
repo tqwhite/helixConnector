@@ -11,7 +11,7 @@ const jwt = require('jsonwebtoken');
 //START OF moduleFunction() ============================================================
 
 const moduleFunction = function(args = {}) {
-	const { authKey, instanceId, req } = args;
+	const { authKey, instanceId, req, suppressTokenSecurityFeatures=false } = args;
 	const {ip:requestingIpAddress}=req;
 	
 	const generateAuthTokenActual = ({ authKey, instanceId }) => (
@@ -41,8 +41,8 @@ const moduleFunction = function(args = {}) {
 			return e.toString();
 		}
 		
-		
-		if (!decoded.allowedRequestIpAddress && !decoded.accessExpirationDate) {
+
+		if (!suppressTokenSecurityFeatures && !decoded.allowedRequestIpAddress && !decoded.accessExpirationDate) {
 			qtools.logMilestone(`invalid token missing both allowedRequestIpAddress  and accessExpirationDate for ${userId} (Q52620214137441374680)`);
 			return 'authentication error Q52620214137441374680';
 		}
