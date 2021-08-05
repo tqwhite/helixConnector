@@ -32,6 +32,9 @@ var moduleFunction = function(args) {
 		const autoIncludeItems = qtools.fs.readdirSync(autoIncludeDirectoryPath);
 		let outObj = {};
 		let count = 0;
+		let duplicateCount=0;
+		const llength=autoIncludeItems
+			.filter(fileName => fileName.match(/\.json$/))
 		autoIncludeItems
 			.filter(fileName => fileName.match(/\.json$/))
 			.forEach(fileName => {
@@ -39,6 +42,13 @@ var moduleFunction = function(args) {
 				try {
 					const contents = qtools.fs.readFileSync(endpointFilePath).toString();
 					const element = JSON.parse(contents);
+
+					const newPropertyName=Object.keys(element).qtLast();
+					
+					if (outObj[newPropertyName]){
+						qtools.logWarn(`Duplicate property name, ${newPropertyName}, found in ${endpointFilePath}`);
+						duplicateCount++;
+					}
 
 					outObj = { ...outObj, ...element, endpointFilePath };
 
@@ -48,8 +58,9 @@ var moduleFunction = function(args) {
 				}
 			});
 
+		const duplicateCountString=duplicateCount?` (including ${duplicateCount} duplicates)`:'';
 		qtools.logMilestone(
-			`added ${count} items from autoIncludeDirectoryPath: ${autoIncludeDirectoryPath}`
+			`added ${count} items${duplicateCountString} from autoIncludeDirectoryPath: ${autoIncludeDirectoryPath}`
 		);
 
 		return outObj;
@@ -91,46 +102,52 @@ var moduleFunction = function(args) {
 
 				return result;
 			}, schemaMap);
+		}
+		if (typeof schemaMap.autoIncludeDirectoryPath == 'string') {
+			qtools.logMilestone(
+				`autoIncludeDirectoryPath=${autoIncludeDirectoryPath}`
+			);
+			const autoIncludeDirectoryPath = schemaMap.autoIncludeDirectoryPath.match(
+				/^\//
+			)
+				? schemaMap.autoIncludeDirectoryPath
+				: path.join(schemaMapPath, '../', schemaMap.autoIncludeDirectoryPath);
 
-			if (typeof schemaMap.autoIncludeDirectoryPath == 'string') {
-				qtools.logMilestone(`autoIncludeDirectoryPath=${autoIncludeDirectoryPath}`);
-				const autoIncludeDirectoryPath = path.join(
-					schemaMapPath,
-					'../',
-					schemaMap.autoIncludeDirectoryPath
-				);
-				const autoIncludeSchemaItems = getAutoIncludeDirectoryItems(
-					autoIncludeDirectoryPath
-				);
+			const autoIncludeSchemaItems = getAutoIncludeDirectoryItems(
+				autoIncludeDirectoryPath
+			);
 
-				schemaMap.schemaMap = {
-					...schemaMap.schemaMap,
-					...autoIncludeSchemaItems
-				};
-			} else if (
-				typeof schemaMap.autoIncludeDirectoryPath == 'object' &&
-				schemaMap.autoIncludeDirectoryPath.length
-			) {
-				qtools.logMilestone(`autoIncludeDirectoryPath=[${schemaMap.autoIncludeDirectoryPath.join(', ')}] (defined in ${schemaMapPath}`);
-				schemaMap.autoIncludeDirectoryPath.forEach(
-					autoIncludeDirectoryPathItem => {
-						const autoIncludeDirectoryPath = path.join(
-							schemaMapPath,
-							'../',
-							autoIncludeDirectoryPathItem
-						);
+			schemaMap.schemaMap = {
+				...schemaMap.schemaMap,
+				...autoIncludeSchemaItems
+			};
+		} else if (
+			typeof schemaMap.autoIncludeDirectoryPath == 'object' &&
+			schemaMap.autoIncludeDirectoryPath.length
+		) {
+			qtools.logMilestone(
+				`autoIncludeDirectoryPath=[${schemaMap.autoIncludeDirectoryPath.join(
+					', '
+				)}] (defined in ${schemaMapPath}`
+			);
+			schemaMap.autoIncludeDirectoryPath.forEach(
+				autoIncludeDirectoryPathItem => {
+					const autoIncludeDirectoryPath = autoIncludeDirectoryPathItem.match(
+						/^\//
+					)
+						? autoIncludeDirectoryPathItem
+						: path.join(schemaMapPath, '../', autoIncludeDirectoryPathItem);
 
-						const autoIncludeSchemaItems = getAutoIncludeDirectoryItems(
-							autoIncludeDirectoryPath
-						);
+					const autoIncludeSchemaItems = getAutoIncludeDirectoryItems(
+						autoIncludeDirectoryPath
+					);
 
-						schemaMap.schemaMap = {
-							...schemaMap.schemaMap,
-							...autoIncludeSchemaItems
-						};
-					}
-				);
-			}
+					schemaMap.schemaMap = {
+						...schemaMap.schemaMap,
+						...autoIncludeSchemaItems
+					};
+				}
+			);
 		}
 
 		return schemaMap;
