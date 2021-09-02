@@ -70,8 +70,8 @@ const moduleFunction = function(args = {}) {
 			return 'authentication error Q52620214291542915814';
 		}
 		
-		
-		qtools.logMilestone(`succesful auth for: ${decoded.userId}, ${decoded.allowedRequestIpAddress}, ${decoded.accessExpirationDate}, ${decoded.instanceId}`);
+		const secretString=`${decoded.userId.substr(0,3)}...${decoded.userId.substr(decoded.userId.length-1, decoded.userId.length)}`;
+		qtools.logMilestone(`succesful auth for: ${secretString}, ${decoded.allowedRequestIpAddress}, ${decoded.accessExpirationDate}, ${decoded.instanceId}`);
 		return decoded;
 	};
 
