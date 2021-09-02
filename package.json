@@ -17,6 +17,8 @@
   },
   "homepage": "https://github.com/tqwhite/helixConnector#readme",
   "dependencies": {
+    "async": "^3.2.0",
+    "osascript": "^1.2.0",
     "qtools": "github:tqwhite/qtoolsLegacyDeprecated",
     "qtools-asynchronous-pipe-plus": "^1.0.1",
     "qtools-functional-library": "^1.1.4",
