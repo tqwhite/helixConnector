@@ -1,1 +1,1 @@
-module.exports="undefined"
+module.exports="hxc090121.0"
