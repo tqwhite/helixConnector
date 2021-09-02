@@ -38,40 +38,40 @@ const moduleFunction = function({ newConfig } = {}) {
 		).reduce((result, item) => {
 					if (isValid(item)) {
 						result.push({
+							endpointName: item.endpointName,
 							relation: item.relation,
 							view: item.endpointName,
 							type: 'primaryEndpoint',
-							endpointName: item.endpointName,
 							nativeRelationName: item.nativeRelationName,
 							
 						});
 					}
 					if (isValid(item) && item.criterionSchemaName) {
 						result.push({
+							endpointName: item.endpointName,
 							relation: item.relation,
 							view: item.criterionSchemaName,
 							type: 'criterionSchemaName',
-							endpointName: item.endpointName,
 							nativeRelationName: item.nativeRelationName,
 							
 						});
 					}
 					if (isValid(item) && item.testViewName) {
 						result.push({
+							endpointName: item.endpointName,
 							relation: item.relation,
 							view: item.testViewName,
 							type: 'testViewName',
-							endpointName: item.endpointName,
 							nativeRelationName: item.nativeRelationName,
 							
 						})
 					}
 					if (isValid(item) && item.noPostViewName) {
 						result.push({
+							endpointName: item.endpointName,
 							relation: item.relation,
 							view: item.noPostViewName,
 							type: 'noPostViewName',
-							endpointName: item.endpointName,
 							nativeRelationName: item.nativeRelationName,
 							
 						});
@@ -79,7 +79,7 @@ const moduleFunction = function({ newConfig } = {}) {
 
 					return result;
 				}, [])
-				.sort(qtools.byObjectProperty('relation'));
+				.sort(qtools.byObjectProperty('endpointName'));
 
 		if (resultFormat=='jsObj') {
 			return result;
