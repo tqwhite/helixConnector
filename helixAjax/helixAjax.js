@@ -28,6 +28,8 @@ const mergeDeep = require('merge-deep');
 
 const summarizeConfig = require('./lib/summarize-config');
 
+const hxcVersion=require('./lib/version');
+
 qtools.logMilestone('\nStarting hxAjax *************************');
 console.error(`helixAjax startup beginning: ${new Date().toLocaleString()}`); //it's very helpful to have this annotation in the error log
 qtools.logWarn('Freezing Object.prototype');
@@ -851,6 +853,7 @@ ${summarizeConfig({newConfig}).endpointOverview()}
 note: helixEngine.delayReleasePoolUser=${helixParms.qtGetSurePath( 'helixEngine.delayReleasePoolUser' )}
 endpoints directory: ${schemaMapPath}${helixParms.suppressTokenSecurityFeatures?'\nWARNING: systemParameters.ini/suppressTokenSecurityFeatures=true':''}
 reminder: setting debugData=true in endpoint causes helix-data to log JSON to a file in /tmp/...
+Code Version: ${hxcVersion}
 ${new Date().toLocaleTimeString()}: Magic happens on port ${
 staticPageDispatchConfig.port
 }${sslAnnotation}. ----------------------------------------------------------`
