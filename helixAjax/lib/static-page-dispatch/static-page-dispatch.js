@@ -32,9 +32,18 @@ var moduleFunction = function(args) {
 			{
 				name: 'suppressLogEndpointsAtStartup',
 				optional: true
+			},
+			{
+				name: 'helixParms',
+				optional: true
+			},
+			{
+				name: 'adminPagesAccessData',
+				optional: true
 			}
 		]
 	});
+
 
 	var self = this,
 		forceEvent = function(eventName, outData) {
@@ -56,10 +65,9 @@ var moduleFunction = function(args) {
 
 	//LOCAL FUNCTIONS ====================================
 	var helixConfigPath = process.env.helixConfigPath,
-		config = require(helixConfigPath),
-		adminPagesAccessData = config.getAdminPagesAccessData();
+		adminPagesAccessData = this.adminPagesAccessData;
 
-	var helixParms = config.getHelixParms();
+	var helixParms = this.helixParms;
 
 	var sendTestInputPage = function(req, res, next) {
 		//snyk worries about denial of service attacks. express-rate-limit was added to helixAjax.js for throttling.

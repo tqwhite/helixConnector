@@ -226,6 +226,10 @@ var moduleFunction = function(args) {
 	//ORGANIZE HELIXPARMS ============================================================
 
 	const helixParms = qtools.getSurePath(newConfig, 'system');
+	const adminPagesAccessData = qtools.getSurePath(
+		newConfig,
+		'adminPagesAccessData'
+	);
 
 	global.applicationLoggingIdString = helixParms.instanceId;
 
@@ -330,7 +334,7 @@ var moduleFunction = function(args) {
 	app.use(
 		rateLimit({
 			windowMs: 15 * 60 * 1000, // 15 minutes
-			max: 100 // limit each IP to 100 requests per windowMs
+			max: 350 // limit each IP to 350 requests per windowMs (mirror processes use this amount)
 		})
 	); //snyk worries about denial of service attacks.
 	
@@ -367,7 +371,9 @@ var moduleFunction = function(args) {
 		suppressLogEndpointsAtStartup: qtools.getSurePath(
 			newConfig,
 			'system.suppressLogEndpointsAtStartup'
-		)
+		),
+		helixParms,
+		adminPagesAccessData
 	});
 	
 	if (!qtools.getSurePath(newConfig, 'system.suppressLogEndpointsAtStartup')) {
@@ -425,8 +431,8 @@ var moduleFunction = function(args) {
 		var authGoodies = {
 			authToken: tmp[1] ? tmp[1] : '',
 			userId: tmp[0] ? tmp[0] : ''
-		}; 
-		 try {
+		};
+		try {
 			var helixConnector = new helixConnectorGenerator({
 				helixAccessParms: helixParms,
 				authGoodies: authGoodies,
@@ -540,22 +546,25 @@ var moduleFunction = function(args) {
 
 		var helixConnector = fabricateConnector(req, res, schema);
 		helixConnector.generateAuthToken(req.body, function(err, result) {
-			res.status('200').send({
-				userId: userId,
-				authToken: result,
-				instanceId: helixParms.instanceId
-			});
+			if (err) {
+				res.status('401').send({
+					message: err
+				});
+			} else {
+				res.status('200').send({
+					userId: userId,
+					authToken: result,
+					instanceId: helixParms.instanceId
+				});
+			}
 		});
 	});
 
 	router.get(/hxDetails/, function(req, res, next) {
-		send200(
-			res,
-			req,
-			summarizeConfig({ newConfig }).relationsAndViews({
-				resultFormat: 'jsObj'
-			})
-		);
+		res.send(summarizeConfig({ newConfig }).relationsAndViews({
+				resultFormat: 'string' //not jsObj
+			}).replace(/\n/g, '<br>')
+		); //this is labeled as Relations and Views on the management page
 	});
 
 	router.get(/.*/, function(req, res, next) {
@@ -667,7 +676,9 @@ var moduleFunction = function(args) {
 				(!result.match(/true/) || err)
 			) {
 				sendResult(res, req, next, helixConnector)(
-					err ? err.toString() : 'Helix is not running'
+					err
+						? err.toString()
+						: `Helix is not running (--NOTE, often this is because there is a 'wants to control' security dialog on the Macintosh screen)'`
 				);
 				return;
 			}
@@ -829,10 +840,10 @@ var moduleFunction = function(args) {
 
 			app.listen(staticPageDispatchConfig.port);
 
-	
-	if (helixParms.suppressTokenSecurityFeatures){
-		qtools.logWarn(`WARNING: suppressTokenSecurityFeatures=true`);
-	}
+			
+			if (helixParms.suppressTokenSecurityFeatures) {
+				qtools.logWarn(`WARNING: suppressTokenSecurityFeatures=true`);
+			}
 			// prettier-ignore
 			qtools.log(
 `${summarizeConfig({newConfig}).system()}
@@ -845,7 +856,7 @@ staticPageDispatchConfig.port
 }${sslAnnotation}. ----------------------------------------------------------`
 			);
 			console.error(
-				`helixAjax startup complete: ${new Date().toLocaleString()}`
+				`helixAjax (version ${hxcVersion}) startup complete: ${new Date().toLocaleString()}`
 			); //it's very helpful to have this annotation IN THE ERROR LOG
 			reminder(`hxConnector Startup Complete`); //shows macos notification
 		}
@@ -857,34 +868,30 @@ staticPageDispatchConfig.port
 	);
 	
 
-	const notifyQuit = type => (exceptionParm='no additional info') => {
-		reminder(`QUITTING ${type}`);
-
-		setTimeout(
-			() => qtools.logMilestone(`QUITTING hxC with interrupt type ${type} ${exceptionParm}`),
-			100
-		);
+	const notifyQuit = type => (exceptionParm = 'no additional info') => {
+		qtools.logMilestone(
+					`QUITTING hxC with interrupt type ${type} ${exceptionParm}`
+				)
 	};
-	
+
+
+//TURNS OUT THAT DOING THIS END OF LIFE PROCESSING IS SLOW. NOT WORTH IT. TQII
 	//do something when app is closing
-	process.on('exit', notifyQuit('exit'));
-
-	//catches ctrl+c event
-	process.on('SIGTERM', notifyQuit('SIGTERM (usually this is from launchctl)'));
-
-	//catches ctrl+c event
-	process.on('SIGINT', notifyQuit('SIGINT'));
-
-	// catches "kill pid" (for example: nodemon restart)
-	process.on('SIGUSR1', notifyQuit('SIGUSR1'));
-	process.on('SIGUSR2', notifyQuit('SIGUSR2'));
+// 	process.on('exit', notifyQuit('exit'));
+// 
+// 	//catches ctrl+c event
+// 	process.on('SIGTERM', notifyQuit('SIGTERM (usually this is from launchctl)'));
+// 
+// 	//catches ctrl+c event
+// 	process.on('SIGINT', notifyQuit('SIGINT'));
+// 
+// 	// catches "kill pid" (for example: nodemon restart)
+// 	process.on('SIGUSR1', notifyQuit('SIGUSR1'));
+// 	process.on('SIGUSR2', notifyQuit('SIGUSR2'));
 
 	//catches uncaught exceptions
-	process.on(
-		'uncaughtException',
-		notifyQuit('uncaughtException')
-	);    
-	 return this;
+	process.on('uncaughtException', notifyQuit('uncaughtException'));
+	return this;
 };
 
 //END OF moduleFunction() ============================================================
