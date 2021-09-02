@@ -217,6 +217,7 @@ var moduleFunction = function(args) {
 			helixAccessParms
 		} = args;
 
+
 		const helixSchema = qtools.clone(parameters.schema) || {};
 		const scriptElement = getScript(processName);
 		const osascript = require('osascript').eval;
@@ -254,7 +255,7 @@ var moduleFunction = function(args) {
 					? ''
 					: scriptElement.language //turns out that osascript won't let you specify, JS is the default
 		};
-
+		
 		executeOsaScript(
 			finalScript,
 			languageSpec,

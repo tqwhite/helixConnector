@@ -57,13 +57,13 @@ const moduleFunction = function(args) {
 	const authenticationHandler = new authenticationHandlerGen({
 		authKey: args.helixAccessParms.authKey,
 		instanceId: args.helixAccessParms.instanceId,
-		suppressTokenSecurityFeatures: args.helixAccessParms.suppressTokenSecurityFeatures,
-		req:this.req
+		suppressTokenSecurityFeatures:
+			args.helixAccessParms.suppressTokenSecurityFeatures,
+		req: this.req
 	});
 
 	this.authGoodies = this.authGoodies ? this.authGoodies : {};
-
-
+	
 	//LOCAL FUNCTIONS ====================================
 	const exitEventHandler = () => {
 		qtools.logMilestone('running exitEventHandler. does nothing');
@@ -72,7 +72,7 @@ const moduleFunction = function(args) {
 
 	const cancelExitEventHandlers = () => {
 		process.removeListener('exit', exitEventHandler);
-	};   
+	};
 
 	//METHODS AND PROPERTIES ====================================
 
@@ -194,12 +194,7 @@ const moduleFunction = function(args) {
 		helixAccessParms,
 		makeApplescriptDataString
 	) => args => {
-		const {
-			scriptElement,
-			processName,
-			parameters,
-			helixSchema
-		} = args;
+		const { scriptElement, processName, parameters, helixSchema } = args;
 
 		const inData = qtools.clone(parameters.inData) || {};
 		const otherParms = parameters.otherParms || {};
@@ -250,16 +245,25 @@ const moduleFunction = function(args) {
 			const filePath = `/tmp/hxc_HelixReplaceObject_${new Date().getTime()}_${
 				helixSchema.schemaName
 			}.txt`;
-			qtools.logWarn(`WRITING helix replaceObject with helix db output data to file: ${filePath} (debugData=true)`);
-			qtools.writeSureFile(filePath, JSON.stringify({
-				inData,
-				dataString:replaceObject.dataString,
-				processName:replaceObject.processName,
-				helixSchema,
-				otherParms,
-			}, '', '\t'));
+			qtools.logWarn(
+				`WRITING helix replaceObject with helix db output data to file: ${filePath} (debugData=true)`
+			);
+			qtools.writeSureFile(
+				filePath,
+				JSON.stringify(
+					{
+						inData,
+						dataString: replaceObject.dataString,
+						processName: replaceObject.processName,
+						helixSchema,
+						otherParms
+					},
+					'',
+					'\t'
+				)
+			);
 		}
-		
+
 		if (
 			helixSchema.criterion &&
 			parameters.criterion &&
@@ -452,7 +456,18 @@ const moduleFunction = function(args) {
 		this.helixAccessParms
 	);
 
-	this.generateAuthToken = authenticationHandler.generateAuthToken; //generateAuthToken() called from helixAjax
+	this.generateAuthToken = (() => {
+		const errorMessage = authenticationHandler.validateUserToken(
+			this.authGoodies
+		);
+		if (typeof errorMessage == 'string') {
+			return (body, callback) => {
+
+				callback(errorMessage);
+			};
+		}
+		return authenticationHandler.generateAuthToken; //generateAuthToken() called from helixAjax
+	})();
 
 	this.checkUserPool = callback => {
 		new helixEngineGen({
