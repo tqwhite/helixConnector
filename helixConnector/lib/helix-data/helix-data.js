@@ -4,19 +4,18 @@ var qtools = require('qtools'),
 	events = require('events'),
 	util = require('util');
 
+const toHelix = inDateObj =>
+	inDateObj.toLocaleTimeString('en-US', {
+		month: '2-digit',
+		day: '2-digit',
+		year: 'numeric',
+		hour12: true
+	});
 
-const toHelix = inDateObj=>inDateObj.toLocaleTimeString('en-US', {
-	month: '2-digit',
-	day: '2-digit',
-	year: 'numeric',
-	hour12: true
-});
-
-const toMysql =inDateObj=>
+const toMysql = inDateObj =>
 	inDateObj.toISOString().slice(0, 10) +
 	' ' +
 	inDateObj.toLocaleTimeString('en-US', { hour12: false });
-
 
 //START OF moduleFunction() ============================================================
 
@@ -36,7 +35,7 @@ var moduleFunction = function(args) {
 				data: outData
 			});
 		};
-	
+
 	//MAPPING HELPERS ====================================
 
 	var helixNumber = function(inData) {
@@ -65,7 +64,7 @@ var moduleFunction = function(args) {
 
 		return result;
 	};
-	
+
 	var helixBoolean = function(item) {
 		if (item === '' || typeof item == 'undefined') {
 			return;
@@ -84,29 +83,28 @@ var moduleFunction = function(args) {
 				break;
 		}
 	};
-	
+
 	const helixFilePath = item =>
 		item ? item.replace(/^\/Volumes\//, '').replace(/\/+/g, ':') : '';
-	
+
 	const zeroMeansBlank = item => (item == 0 ? '' : item);
-	
-	
+
 	//MAPPING PROPERTIES ====================================
-	
+
 	self.booleanToHxString = item => {
 		if (item === '' || typeof item == 'undefined') {
 			return;
 		}
 		return item ? 'Yes' : 'No';
 	};
-	
+
 	self.stringToNumber = item => {
 		if (item === '' || typeof item == 'undefined') {
 			return null;
 		}
 		return +item;
 	};
-	
+
 	self.stringToBoolean = function(item) {
 		if (item === '' || typeof item == 'undefined') {
 			return;
@@ -131,39 +129,39 @@ var moduleFunction = function(args) {
 	self.helixDateTimeNow = function(inData) {
 		return helixDateTime(new Date());
 	};
-	
+
 	self.refId = function(inData) {
 		return qtools.newGuid();
 	};
-	
+
 	self.helixDateTime = function(inDate) {
 		return helixDateTime(inDate);
 	};
-	
+
 	self.helixNumber = function(inData) {
 		return helixNumber(inData);
 	};
-	
+
 	self.helixBoolean = function(inData) {
 		return helixBoolean(inData);
 	};
-	
+
 	self.helixFilePath = function(inData) {
 		return helixFilePath(inData);
 	};
-	
+
 	self.toUpperCase = function(inData) {
 		return inData.toString().toUpperCase();
 	};
-	
+
 	self.passThrough = function(inData) {
 		return inData;
 	};
-	
+
 	self.mysqlTimeStamp = function(inData) {
 		return toMysql(Date.now());
 	};
-	
+
 	self.toHelixDateTime = function(inDate) {
 		//helix example: '6/29/15  8:38:39 AM'
 
@@ -182,8 +180,7 @@ var moduleFunction = function(args) {
 
 		return result;
 	};
-	
-	
+
 	self.BooleanType = (value, destination) => {
 		if (typeof value == 'undefined' || value === '') {
 			return;
@@ -296,10 +293,8 @@ var moduleFunction = function(args) {
 		return tmp;
 	};
 
-	
 	//SYSTEM DATA MANIPULATION ====================================
-	
-	
+
 	//this is called as compileScript() from helixConnector.compileScriptActual() which is called from helix-engine.
 	self.makeApplescriptDataString = function(
 		schema,
@@ -324,20 +319,20 @@ var moduleFunction = function(args) {
 					var replaceObject = qtools.extend(element, otherParms);
 
 					/*
-					
+
 						in Feb/2020, this stopped working, even though item
 						seemed to have been working for a year. The reason
 						is that the applescript template has quotation marks
 						surrounding the data list. Below, however, I also
 						add quotation marks around the data list. That is
 						bad syntax and caused a crash.
-						
+
 						Why did it work previously? What changed to make it 
 						stop working now? I do not know but that is why there
 						are quotation marks commented out below.
-						
+
 						tqii
-					
+
 					*/
 
 					outString +=
@@ -382,7 +377,6 @@ var moduleFunction = function(args) {
 		}
 	};
 
-	
 	self.stringifyObject = function(
 		schema,
 		mapping,
@@ -395,11 +389,13 @@ var moduleFunction = function(args) {
 			finalFunction;
 
 		for (var i = 0, len = schema.length; i < len; i++) {
-			var element = schema[i],
+			var fieldName = schema[i],
 				finalFunction;
 
-			const mappingEntry = mapping[i] ? mapping[i] : 'StringType';
-			
+			const mappingEntry = mapping[fieldName]
+				? mapping[fieldName]
+				: 'StringType';
+
 			if (typeof mappingEntry == 'function') {
 				finalFunction = mappingEntry;
 			} else if (typeof mappingEntry == 'string') {
@@ -417,11 +413,11 @@ var moduleFunction = function(args) {
 			}
 
 			if (typeof inData == 'object') {
-				var result = finalFunction(inData[element], destination);
+				var result = finalFunction(inData[fieldName], destination);
 			} else {
 				var result = '';
-			} 
-			 outString +=
+			}
+			outString +=
 				(typeof result != 'undefined' ? result : '') + fieldSeparator;
 		}
 		outString = outString.replace(new RegExp(String.fromCharCode(9) + '$'), '');
@@ -455,6 +451,11 @@ var moduleFunction = function(args) {
 			true
 		);
 
+		var tmp = rawHelixData
+			.replace(new RegExp(`${recordSeparator}+$`, 'g'), '')
+			.replace(/record id:(\d+), /g, '$1' + fieldSeparator)
+			.replace(/helix record:/g, '');
+
 		var recordStringList = rawHelixData
 			.replace(new RegExp(`${recordSeparator}+$`, 'g'), '')
 			.replace(/record id:(\d+), /g, '$1' + fieldSeparator)
@@ -482,7 +483,10 @@ var moduleFunction = function(args) {
 		let mappingElement;
 		let incomingValue;
 		debugInfo += `\n${schema.schemaName} RECORD OBJECT LIST:\n`;
-		debugInfo += `\n${JSON.stringify(recordObjectList)}\n${''.padEnd(50, '=')}\n`;
+		debugInfo += `\n${JSON.stringify(recordObjectList)}\n${''.padEnd(
+			50,
+			'='
+		)}\n`;
 		debugInfo += `\n PROCESSING VALUES:\n`;
 		for (var i = 0, len = recordObjectList.length; i < len; i++) {
 			var elementList = recordObjectList[i];
@@ -492,11 +496,13 @@ var moduleFunction = function(args) {
 				fieldName = inSchema[j];
 				incomingValue = elementList[j];
 
-			const mappingEntry = mapping[i]
+				const mappingEntry = mapping[fieldName];
+				const mappingElement = self[mappingEntry];
 
 				if (typeof mappingElement == 'function') {
 					debugInfo += `\n${fieldName}, ${mappingElement}, ${incomingValue}, ${destination} (???)`;
 					mappedData = mappingElement(incomingValue, destination);
+
 				} else if (typeof self[mappingElement] == 'function') {
 					debugInfo += `\n${fieldName}, ${mappingElement}, ${incomingValue}, ${destination} (mapping data type found)`;
 					mappedData = self[mappingElement](incomingValue, destination);
@@ -513,7 +519,9 @@ var moduleFunction = function(args) {
 				} else {
 					debugInfo + `${fieldName} has no value. Property omitted from output`;
 				}
+
 			}
+
 			outArray.push(newRecordObject);
 			debugInfo += '\n';
 		}
@@ -521,13 +529,14 @@ var moduleFunction = function(args) {
 			const filePath = `/tmp/hxc_DebugInfo_${new Date().getTime()}_${
 				schema.schemaName
 			}.txt`;
-			qtools.logWarn(`WRITING debugData info to file: ${filePath} (debugData=true)`);
+			qtools.logWarn(
+				`WRITING debugData info to file: ${filePath} (debugData=true)`
+			);
 			qtools.writeSureFile(filePath, debugInfo);
-		
 		}
 		return outArray;
 	};
-	
+
 	self.arrayOfRecordsToArrayOfResponseObjects = (
 		fieldSequenceList,
 		mapping = {},
@@ -548,7 +557,7 @@ var moduleFunction = function(args) {
 		}
 		return outArray;
 	};
-	
+
 	self.remoteControlConversionList = {};
 	self.remoteControlConversionList.stringToJson = (
 		conversionArgs,
