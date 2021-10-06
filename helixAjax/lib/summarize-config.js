@@ -11,12 +11,13 @@ const qt = require('qtools-functional-library');
 const moduleFunction = function({ newConfig } = {}) {
 	
 	const isValid = element =>
-		qtools.getSurePath(element, 'relation') &&
-		qtools.getSurePath(element, 'view');
+		(qtools.getSurePath(element, 'relation') &&
+			qtools.getSurePath(element, 'view')) ||
+		qtools.getSurePath(element, 'scriptName');
 	
 	const relationsAndViews = ({ resultFormat = 'jsObj' } = {}) => {
-		const result = Object.keys(newConfig.system.schemaMap).reduce(
-			(result, keyName) => {
+		const result = Object.keys(newConfig.system.schemaMap)
+			.reduce((result, keyName) => {
 				const element = newConfig.system.schemaMap[keyName];
 
 				result.totalEntries++;
@@ -33,59 +34,57 @@ const moduleFunction = function({ newConfig } = {}) {
 					});
 				}
 				return result;
-			},
-			[]
-		).reduce((result, item) => {
-					if (isValid(item)) {
-						result.push({
-							endpointName: item.endpointName,
-							relation: item.relation,
-							view: item.endpointName,
-							type: 'primaryEndpoint',
-							nativeRelationName: item.nativeRelationName,
-							
-						});
-					}
-					if (isValid(item) && item.criterionSchemaName) {
-						result.push({
-							endpointName: item.endpointName,
-							relation: item.relation,
-							view: item.criterionSchemaName,
-							type: 'criterionSchemaName',
-							nativeRelationName: item.nativeRelationName,
-							
-						});
-					}
-					if (isValid(item) && item.testViewName) {
-						result.push({
-							endpointName: item.endpointName,
-							relation: item.relation,
-							view: item.testViewName,
-							type: 'testViewName',
-							nativeRelationName: item.nativeRelationName,
-							
-						})
-					}
-					if (isValid(item) && item.noPostViewName) {
-						result.push({
-							endpointName: item.endpointName,
-							relation: item.relation,
-							view: item.noPostViewName,
-							type: 'noPostViewName',
-							nativeRelationName: item.nativeRelationName,
-							
-						});
-					}
+			}, [])
+			.reduce((result, item) => {
+				if (isValid(item)) {
+					result.push({
+						endpointName: item.endpointName,
+						relation: item.relation,
+						view: item.endpointName,
+						type: 'primaryEndpoint',
+						nativeRelationName: item.nativeRelationName
+					});
+				}
+				// 				if (isValid(item) && item.criterionSchemaName) {
+				// 					result.push({
+				// 						endpointName: item.endpointName,
+				// 						relation: item.relation,
+				// 						view: item.criterionSchemaName,
+				// 						type: 'criterionSchemaName',
+				// 						nativeRelationName: item.nativeRelationName
+				// 					});
+				// 				}
+				// 				if (isValid(item) && item.testViewName) {
+				// 					result.push({
+				// 						endpointName: item.endpointName,
+				// 						relation: item.relation,
+				// 						view: item.testViewName,
+				// 						type: 'testViewName',
+				// 						nativeRelationName: item.nativeRelationName
+				// 					});
+				// 				}
+				// 				if (isValid(item) && item.noPostViewName) {
+				// 					result.push({
+				// 						endpointName: item.endpointName,
+				// 						relation: item.relation,
+				// 						view: item.noPostViewName,
+				// 						type: 'noPostViewName',
+				// 						nativeRelationName: item.nativeRelationName
+				// 					});
+				// 				}
 
-					return result;
-				}, [])
-				.sort(qtools.byObjectProperty('endpointName'));
+				return result;
+			}, [])
+			.sort(qtools.byObjectProperty('endpointName'));
 
-		if (resultFormat=='jsObj') {
+		if (resultFormat == 'jsObj') {
 			return result;
 		} else if (resultFormat == 'string') {
 			return result
-				.map(item => `${item.relation}:${item.view}:${item.endpointName}:${item.type}`)
+				.map(
+					item =>
+						`${item.relation}:${item.view}:${item.endpointName}:${item.type}`
+				)
 				.join(',\n');
 		} else {
 			return `invalid resultFormat (${resultFormat}), only supports 'string' and 'jsObj'`;
@@ -128,7 +127,7 @@ const moduleFunction = function({ newConfig } = {}) {
 ....schemaMapName: ${qtools.getSurePath(newConfig, 'system.schemaMapName', 'missing schemaMapName')}
 ....remoteControlDirectoryPath: ${qtools.getSurePath(newConfig, 'system.remoteControlDirectoryPath', 'missing remoteControlDirectoryPath')}
 ....staticDataDirectoryPath: ${qtools.getSurePath(newConfig, 'system.staticDataDirectoryPath', 'missing staticDataDirectoryPath')}
-....privilegedHosts: ${Object.keys(qtools.getSurePath(newConfig, 'system.privilegedHosts', {privilegedHosts:[]})).map(((item, entire, xxx)=>newConfig.system.privilegedHosts[item]))}`;
+....privilegedHosts: ${Object.keys(qtools.getSurePath(newConfig, 'system.privilegedHosts', {privilegedHosts:[]})).map(((item, entire, xxx)=>(newConfig.system.privilegedHosts)?newConfig.system.privilegedHosts[item]:'no privileged hosts'))}`;
 	};
 	
 	return { system, endpointOverview, relationsAndViews };

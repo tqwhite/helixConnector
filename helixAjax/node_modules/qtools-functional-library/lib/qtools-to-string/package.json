@@ -1,0 +1,11 @@
+{
+  "name": "qtools-to-string",
+  "version": "1.0.0",
+  "description": "implements qtToString() to allow more informative display of stuff",
+  "main": "qtools-to-string.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

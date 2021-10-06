@@ -502,7 +502,6 @@ var moduleFunction = function(args) {
 				if (typeof mappingElement == 'function') {
 					debugInfo += `\n${fieldName}, ${mappingElement}, ${incomingValue}, ${destination} (???)`;
 					mappedData = mappingElement(incomingValue, destination);
-
 				} else if (typeof self[mappingElement] == 'function') {
 					debugInfo += `\n${fieldName}, ${mappingElement}, ${incomingValue}, ${destination} (mapping data type found)`;
 					mappedData = self[mappingElement](incomingValue, destination);
@@ -519,7 +518,6 @@ var moduleFunction = function(args) {
 				} else {
 					debugInfo + `${fieldName} has no value. Property omitted from output`;
 				}
-
 			}
 
 			outArray.push(newRecordObject);
@@ -570,6 +568,20 @@ var moduleFunction = function(args) {
 			.split(recordSep)
 			.map(item => item.split(fieldSep))
 			.filter(item => item.join());
+		callback('', outData);
+	};
+	self.remoteControlConversionList.receiveJson = (
+		conversionArgs,
+		result,
+		callback
+	) => {
+		let outData;
+		try {
+			outData = JSON.parse(result);
+		} catch (e) {
+			callback('', e);
+			return;
+		}
 		callback('', outData);
 	};
 	self.remoteControlConversionList.cleanToJson = (

@@ -36,7 +36,6 @@ var moduleFunction = function(args) {
 
 	const executeActual = args => (libraryScriptName, parameters) => {
 		const { processor, getScript, compileScript } = args;
-		
 		const helixSchema = Object.assign(
 			{},
 			parameters.schema,
@@ -81,7 +80,7 @@ var moduleFunction = function(args) {
 					helixData.remoteControlConversionList[
 						helixSchema.conversion.functionName
 					];
-
+					
 				if (!conversionFunction) {
 					callback(
 						`Conversion function '${
@@ -90,7 +89,6 @@ var moduleFunction = function(args) {
 					);
 					return;
 				}
-
 				conversionFunction(helixSchema.conversion, result, callback);
 			} else {
 				callback(err, result);
