@@ -15,7 +15,7 @@ on error errMsg number errNum
 end try
 
 
-if ("Helix Server" is in everyProcess) then
+if ("<!applicationName!>" is in everyProcess) then
 	
 	return "{\"databaseAlive\":true}"
 	

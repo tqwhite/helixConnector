@@ -388,12 +388,12 @@ var moduleFunction = function(args) {
 		var outString = '',
 			finalFunction;
 
-		for (var i = 0, len = schema.length; i < len; i++) {
-			var fieldName = schema[i],
+		for (var fieldSequencePosition = 0, len = schema.length; fieldSequencePosition < len; fieldSequencePosition++) {
+			var fieldName = schema[fieldSequencePosition],
 				finalFunction;
 
-			const mappingEntry = mapping[fieldName]
-				? mapping[fieldName]
+			const mappingEntry = mapping[fieldSequencePosition]
+				? mapping[fieldSequencePosition]
 				: 'StringType';
 
 			if (typeof mappingEntry == 'function') {
