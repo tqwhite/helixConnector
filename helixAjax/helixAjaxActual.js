@@ -319,6 +319,7 @@ var moduleFunction = function(args) {
 	var router = express.Router();
 	var bodyParser = require('body-parser');
 
+	app.use(express.json({ limit: '4gb' }));
 	app.use(function(req, res, next) {
 		console.log(
 			`hxC REQUEST URL: ${req.protocol}://${req.hostname}/${req.url} (${
@@ -503,10 +504,13 @@ var moduleFunction = function(args) {
 		if (req.protocol == 'https') {
 			showPort = staticPageDispatchConfig.sslPort;
 		}
+
+		const dirName=module.path.replace(new RegExp(process.env.HOME), '').replace(/system.*$/, '');
+
 		res.send(
 			`hxConnector (${hxcVersion}) is alive and responded to ${escape(
 				req.protocol
-			)}://${escape(req.hostname)}:${showPort}/${escape(req.path)}`
+			)}://${escape(req.hostname)}:${showPort}/${escape(req.path)} using ${dirName.replace (path.dirname(dirName), '').replace(/\//g, '')}`
 		);
 	});
 
@@ -816,7 +820,7 @@ var moduleFunction = function(args) {
 			}
 
 			let sslAnnotation = '';
-			if (staticPageDispatchConfig.certDirPath) {
+			if (staticPageDispatchConfig.certDirPath && !staticPageDispatchConfig.sslSuppressOverride) {
 				https
 					.createServer(
 						{
