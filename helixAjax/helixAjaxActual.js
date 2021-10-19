@@ -505,7 +505,7 @@ var moduleFunction = function(args) {
 			showPort = staticPageDispatchConfig.sslPort;
 		}
 
-		const dirName=module.path.replace(new RegExp(process.env.HOME), '').replace(/system.*$/, '');
+		const dirName=(module.path?module.path:module.filename).replace(new RegExp(process.env.HOME), '').replace(/system.*$/, '');
 
 		res.send(
 			`hxConnector (${hxcVersion}) is alive and responded to ${escape(
