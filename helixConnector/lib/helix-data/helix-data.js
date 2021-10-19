@@ -386,7 +386,7 @@ var moduleFunction = function(args) {
 	) {
 		schema = schema || [];
 		var outString = '',
-			finalFunction;
+			workingMappingFunction;
 		
 		for (
 			var fieldSequencePosition = 0, len = schema.length;
@@ -394,30 +394,31 @@ var moduleFunction = function(args) {
 			fieldSequencePosition++
 		) {
 			var fieldName = schema[fieldSequencePosition],
-				finalFunction;
+				workingMappingFunction;
 
-			const mappingEntry = mapping[fieldSequencePosition]
-				? mapping[fieldSequencePosition]
+			const mappingFunctionName = mapping[fieldName]
+				? mapping[fieldName]
 				: 'StringType';
 
-			if (typeof mappingEntry == 'function') {
-				finalFunction = mappingEntry;
-			} else if (typeof mappingEntry == 'string') {
-				if (typeof self[mappingEntry] == 'function') {
-					finalFunction = self[mappingEntry];
+
+			if (typeof mappingFunctionName == 'function') {
+				workingMappingFunction = mappingFunctionName;
+			} else if (typeof mappingFunctionName == 'string') {
+				if (typeof self[mappingFunctionName] == 'function') {
+					workingMappingFunction = self[mappingFunctionName];
 				} else {
-					finalFunction = function() {
-						return mappingEntry;
+					workingMappingFunction = function() {
+						return mappingFunctionName;
 					};
 				}
 			} else {
-				finalFunction = function(a) {
+				workingMappingFunction = function(a) {
 					return a;
 				};
 			}
 
 			if (typeof inData == 'object') {
-				var result = finalFunction(inData[fieldName], destination);
+				var result = workingMappingFunction(inData[fieldName], destination);
 			} else {
 				var result = '';
 			}
@@ -502,7 +503,7 @@ var moduleFunction = function(args) {
 				fieldName = inSchema[j];
 				incomingValue = elementList[j];
 
-				const mappingEntry = mapping[fieldName];
+				const mappingEntry = mappingFunctionNamefieldName];
 				const mappingElement = self[mappingEntry];
 
 				if (typeof mappingElement == 'function') {
