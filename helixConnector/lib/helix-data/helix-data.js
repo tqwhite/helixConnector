@@ -320,39 +320,39 @@ var moduleFunction = function(args) {
 
 					/*
 
-						in Feb/2020, this stopped working, even though item
-						seemed to have been working for a year. The reason
-						is that the applescript template has quotation marks
-						surrounding the data list. Below, however, I also
-						add quotation marks around the data list. That is
-						bad syntax and caused a crash.
+						Turns out that my information about how Helix works with Applescript has 
+						been wrong the whole time, for years. It does not parse a string into
+						records. That is why it has not worked for loading multiple records.
+					
+						Instead, it needs an Applescript list (no surprise, I was just told
+						different). Once the list is in place, the separator causes a Helix
+						error.
+					
+						It is now removed. Eventually, I will remove it from the endpoint.
+					
+						//const tabSep=`${jsObjectToHxTabSeparated( fieldSequenceList, mapping, replaceObject, fieldSeparator, destination )}${recordSeparator}`;
 
-						Why did it work previously? What changed to make it 
-						stop working now? I do not know but that is why there
-						are quotation marks commented out below.
-
-						tqii
+						tqii. 10/14/21
+						
 
 					*/
 
-					outString +=
-						//'"' +
-						self.stringifyObject(
-							fieldSequenceList,
-							mapping,
-							replaceObject,
-							fieldSeparator,
-							destination
-						) +
-						//'"' +
-						recordSeparator;
+					const tabSep = `${jsObjectToHxTabSeparated(
+						fieldSequenceList,
+						mapping,
+						replaceObject,
+						fieldSeparator,
+						destination
+					)}`;
+
+					outString += `"${tabSep}", ¬\n`;
 				}
-				return outString.replace(new RegExp(recordSeparator + '$'), '');
+				return outString.replace(new RegExp(', ¬\n$'), '');
 				break;
 
 			case 'object':
 				var replaceObject = qtools.extend(inData, otherParms);
-				outString = self.stringifyObject(
+				outString = jsObjectToHxTabSeparated(
 					fieldSequenceList,
 					mapping,
 					replaceObject,
@@ -377,7 +377,7 @@ var moduleFunction = function(args) {
 		}
 	};
 
-	self.stringifyObject = function(
+	const jsObjectToHxTabSeparated = function(
 		schema,
 		mapping,
 		inData,
@@ -387,8 +387,12 @@ var moduleFunction = function(args) {
 		schema = schema || [];
 		var outString = '',
 			finalFunction;
-
-		for (var fieldSequencePosition = 0, len = schema.length; fieldSequencePosition < len; fieldSequencePosition++) {
+		
+		for (
+			var fieldSequencePosition = 0, len = schema.length;
+			fieldSequencePosition < len;
+			fieldSequencePosition++
+		) {
 			var fieldName = schema[fieldSequencePosition],
 				finalFunction;
 
@@ -420,7 +424,9 @@ var moduleFunction = function(args) {
 			outString +=
 				(typeof result != 'undefined' ? result : '') + fieldSeparator;
 		}
-		outString = outString.replace(new RegExp(String.fromCharCode(9) + '$'), '');
+		outString = outString
+			.replace(new RegExp(String.fromCharCode(9) + '$'), '')
+			.replace(/"/g, '\\"');
 
 		return outString;
 	};
