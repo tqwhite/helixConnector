@@ -399,8 +399,7 @@ var moduleFunction = function(args) {
 			const mappingFunctionName = mapping[fieldName]
 				? mapping[fieldName]
 				: 'StringType';
-
-
+				
 			if (typeof mappingFunctionName == 'function') {
 				workingMappingFunction = mappingFunctionName;
 			} else if (typeof mappingFunctionName == 'string') {
@@ -503,7 +502,8 @@ var moduleFunction = function(args) {
 				fieldName = inSchema[j];
 				incomingValue = elementList[j];
 
-				const mappingEntry = mappingFunctionNamefieldName];
+
+				const mappingEntry = mapping[fieldName];
 				const mappingElement = self[mappingEntry];
 
 				if (typeof mappingElement == 'function') {
