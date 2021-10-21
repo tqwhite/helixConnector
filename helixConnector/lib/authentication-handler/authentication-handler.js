@@ -18,6 +18,9 @@ const moduleFunction = function(args = {}) {
 		{ userId, allowedRequestIpAddress, accessExpirationDate },
 		callback
 	) => {
+console.error(`\n=-=============   generateAuthTokenActual  ========================= [authentication-handler.js.moduleFunction]\n`);
+
+
 		const token = jwt.sign(
 			{
 				userId,

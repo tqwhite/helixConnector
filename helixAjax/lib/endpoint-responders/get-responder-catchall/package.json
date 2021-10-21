@@ -1,0 +1,11 @@
+{
+  "name": "get-responder-catchall",
+  "version": "1.0.0",
+  "description": "receives and processes helix and remote control endpoints",
+  "main": "get-responder-catchall.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

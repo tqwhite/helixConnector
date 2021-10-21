@@ -1,0 +1,11 @@
+{
+  "name": "generate-token",
+  "version": "1.0.0",
+  "description": "endpoint to generate crypto access token for hxConnector",
+  "main": "generate-token.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

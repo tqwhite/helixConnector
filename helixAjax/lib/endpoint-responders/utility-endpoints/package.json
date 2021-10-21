@@ -1,0 +1,11 @@
+{
+  "name": "utility-endpoints",
+  "version": "1.0.0",
+  "description": "wrapper for utilities (ping, etc)",
+  "main": "utility-endpoints.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

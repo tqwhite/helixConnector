@@ -9,7 +9,6 @@ var express = require('express'); //powered by header removed below for snyk
 var app = express();
 const https = require('https');
 
-const os = require('os');
 
 const path = require('path');
 
@@ -80,7 +79,6 @@ var moduleFunction = function(args) {
 		);
 	};
 
-	const lastRestartTime = new Date().toLocaleString();
 
 	const addInternalEndpoints = clientSchema => {
 		//someday maybe implement the whole include function, for now, just get fileOne.json
@@ -239,81 +237,6 @@ var moduleFunction = function(args) {
 
 	helixParms.configDirPath = configDirPath;
 
-	//I believe this is unused and should be discarded. tqii, 7/7/21
-	helixParms.schemaMap.generateToken = {
-		emptyRecordsAllowed: true
-	}; //my node object doesn't provide for static methods, which this should be
-
-	var remoteControl = function(helixConnector, schema, query, callback) {
-		var retrievalParms = {
-			authToken: 'hello',
-			schema: qtools.clone(schema),
-			otherParms: query,
-			debug: false,
-			callback: callback
-		};
-		helixConnector.process('remoteControlManager', retrievalParms);
-	};
-
-	//EXECUTION FUNCTIONS ============================================================
-	
-	var retrieveRecords = function(helixConnector, schema, criterion, callback) {
-		var retrievalParms = {
-			authToken: 'hello',
-			helixSchema: qtools.clone(schema),
-			otherParms: {},
-			debug: false,
-			inData: {},
-			callback: callback
-		};
-
-		if (schema.criterionSchemaName) {
-			var criterionSchema = helixParms.schemaMap[schema.criterionSchemaName];
-
-			if (!criterionSchema) {
-				callback(
-					`BAD ENDPOINT CONSTRUCTION. Criterion endpoint: ${
-						schema.criterionSchemaName
-					} is not defined.`
-				);
-				return;
-			}
-
-			retrievalParms.helixSchema.criterion = criterionSchema;
-			retrievalParms.criterion = {};
-			retrievalParms.criterion.data = criterion;
-		}
-
-		helixConnector.process('retrieveRecords', retrievalParms);
-	};
-
-	var sendRcData = function(helixConnector, schema, testRecordData, callback) {
-		callback('POST/sendRcData() is not implemented for helixAjax.js');
-	};
-
-	var saveRecords = function(helixConnector, schema, testRecordData, callback) {
-		if (schema.responseSchemaName) {
-			var responseSchema = helixParms.schemaMap[schema.responseSchemaName];
-			schema.response = responseSchema;
-		}
-
-		/* NEXT
-		
-		Figure out how to get req.body to here and pass it through to verify 
-		
-		
-		*/
-
-		helixConnector.process('saveOneWithProcess', {
-			authToken: 'hello',
-			helixSchema: schema,
-			otherParms: {},
-			debug: false,
-			inData: testRecordData,
-			callback: callback
-		});
-	};
-
 	//SET UP SERVER =======================================================
 
 	var router = express.Router();
@@ -338,7 +261,8 @@ var moduleFunction = function(args) {
 		rateLimit({
 			windowMs: 1 * 60 * 1000, // 15 minutes
 			max: 60, // limit each IP to 350 requests per windowMs (mirror processes use this amount),
-			message:'one per second, take it or leave it. this is not a public server'
+			message:
+				'one per second, take it or leave it. this is not a public server'
 		})
 	); //snyk worries about denial of service attacks.
 	
@@ -417,6 +341,11 @@ var moduleFunction = function(args) {
 
 	var fabricateConnector = function(req, res, schema) {
 		var headerAuth = req.headers ? req.headers.authorization : '';
+		
+		var helixUserAuth = {
+			hxUser: req.headers ? req.headers.hxuser : '',
+			hxPassword: req.headers ? req.headers.hxpassword : ''
+		};
 
 		var tmp = headerAuth ? headerAuth.split(' ') : [];
 
@@ -440,6 +369,7 @@ var moduleFunction = function(args) {
 			var helixConnector = new helixConnectorGenerator({
 				helixAccessParms: helixParms,
 				authGoodies: authGoodies,
+				helixUserAuth,
 				req
 			});
 		} catch (err) {
@@ -498,298 +428,23 @@ var moduleFunction = function(args) {
 
 	//START SERVER ROUTING =======================================================
 
-	router.get(/ping/, function(req, res, next) {
-		res.status('200');
-		let showPort = staticPageDispatchConfig.port;
-		if (req.protocol == 'https') {
-			showPort = staticPageDispatchConfig.sslPort;
-		}
+	const utilityEnpoints=require('./lib/endpoint-responders/utility-endpoints');
+	const getResponder=require('./lib/endpoint-responders/get-responder-catchall');
+	const postResponder=require('./lib/endpoint-responders/post-responder-catchall');
+	const generateTokenResponder=require('./lib/endpoint-responders/generate-token');
+	
+	router.get(/ping/, utilityEnpoints.ping({staticPageDispatchConfig, hxcVersion}));
+	router.get(/hxConnectorCheck/, utilityEnpoints.hxConnectorCheck({staticPageDispatchConfig}));
+	router.get(/hxDetails/, utilityEnpoints.hxDetails({summarizeConfig, newConfig}));
+	router.post(/generateToken/, new generateTokenResponder({getSchema, helixParms, fabricateConnector, sendResult, send500, newConfig}).responder)
 
-		const dirName=(module.path?module.path:module.filename).replace(new RegExp(process.env.HOME), '').replace(/system.*$/, '');
 
-		res.send(
-			`hxConnector (${hxcVersion}) is alive and responded to ${escape(
-				req.protocol
-			)}://${escape(req.hostname)}:${showPort}/${escape(req.path)} using ${dirName.replace (path.dirname(dirName), '').replace(/\//g, '')}`
-		);
-	});
+	
+	//these need to appear after all the other endpoints
+	router.get(/.*/, new getResponder({getSchema, helixParms, fabricateConnector, sendResult, send500}).responder);
+	router.post(/.*/, new postResponder({getSchema, helixParms, fabricateConnector, sendResult, send500}).responder)
 
-	router.get(/hxConnectorCheck/, function(req, res, next) {
-		res.status('200');
-		let showPort = staticPageDispatchConfig.port;
-		if (req.protocol == 'https') {
-			showPort = staticPageDispatchConfig.sslPort;
-		}
-
-		res.send(
-			`<div class='connectorStatus'>hxConnector on host <span style='color:green;'>${os.hostname()}:${showPort}</span><br/>last restart: <span style='color:green;'>${lastRestartTime}</span> <br/>status: <span style='color:green;'>active</span><br/>helix server status: <span style='color:gray;'>[check disabled]</span></div>`
-		);
-	});
-
-	router.post(/generateToken/, function(req, res, next) {
-		var tmp = req.path.match(/\/(\w+)/),
-			schemaName = tmp ? tmp[1] : '',
-			schema = helixParms.schemaMap[schemaName];
-		var userId = req.body.userId;
-
-		const privilegedHosts = qtools.convertNumericObjectToArray(
-			qtools.getSurePath(newConfig, 'system.privilegedHosts', [])
-		);
-		if (!privilegedHosts.includes(req.ip)) {
-			qtools.logWarn(`generateTokenRequest made from unauthorized '${req.ip}'`);
-			res.status('401').send('request made from unauthorized host');
-			return;
-		}
-
-		if (!userId) {
-			res.status('400').send('userId must be specified');
-			return;
-		}
-
-		var helixConnector = fabricateConnector(req, res, schema);
-		helixConnector.generateAuthToken(req.body, function(err, result) {
-			if (err) {
-				res.status('401').send({
-					message: err
-				});
-			} else {
-				res.status('200').send({
-					userId: userId,
-					authToken: result,
-					instanceId: helixParms.instanceId
-				});
-			}
-		});
-	});
-
-	router.get(/hxDetails/, function(req, res, next) {
-		res.send(
-			summarizeConfig({ newConfig })
-				.relationsAndViews({
-					resultFormat: 'jsObj' //not jsObj
-				})
-				.map(item=>item.endpointName)
-		); //this is labeled as Relations and Views on the management page
-	});
-
-	router.get(/.*/, function(req, res, next) {
-		const tmp = req.path.match(/\/([\w-.]+)/g);
-		let schemaName;
-
-		if (qtools.toType(tmp) != 'array') {
-			qtools.logError(`Bad Path: ${req.path}`);
-			send500(res, req, `Bad Path: ${req.path}`);
-			return;
-		}
-
-		if (['/staticTest', '/dynamicTest', '/noPost'].includes(tmp[0])) {
-			schemaName = tmp ? tmp[1].replace(/^\//, '') : '';
-		} else {
-			schemaName = tmp ? tmp[0].replace(/^\//, '') : '';
-		}
-
-		const staticTest = tmp[0] == '/staticTest';
-		const dynamicTest = tmp[0] == '/dynamicTest';
-		const noPost = tmp[0] == '/noPost';
-
-		const schema = getSchema(helixParms, schemaName);
-
-		const testHxServerAliveSchema = getSchema(helixParms, 'testHxServerAlive');
-		testHxServerAliveSchema.schema = 'testHxServerAliveSchema';
-
-		try {
-			testHxServerAliveSchema.original = qtools.clone(testHxServerAliveSchema);
-		} catch (err) {
-			send500(res, req, `Schema '${schemaName}' CRASH CRASH CRASH`);
-			process.exit(1);
-		}
-
-		if (!schema) {
-			send500(res, req, `Schema '${schemaName}' not defined`);
-			return;
-		}
-
-		schema.schemaName = schemaName; //I don't trust myself not to forget to include this when I define an endpoint
-
-		if (!schema.original) {
-			schema.original = qtools.clone(schema);
-		}
-
-		if (qtools.isTrue(schema.schemaType == 'remoteControl')) {
-		} else if (dynamicTest) {
-			const viewName = schema.testViewName;
-
-			if (!viewName) {
-				send500(
-					res,
-					req,
-					`Schema '${schemaName}' does not have a testViewName property`
-				);
-				return;
-			}
-			schema.view = viewName;
-		} else if (noPost) {
-			const viewName = schema.noPostViewName;
-
-			if (!viewName) {
-				send500(
-					res,
-					req,
-					`Schema '${schemaName}' does not have a noPostViewName property`
-				);
-				return;
-			}
-			schema.view = viewName;
-		} else {
-			let viewName = schema.original.view;
-
-			if (!viewName) {
-				send500(
-					res,
-					req,
-					`Schema '${schemaName}' does not have a view property`
-				);
-				return;
-			}
-			schema.view = viewName;
-		}
-
-		schema.staticTestRequestFlag = staticTest;
-
-		if (schema.staticTest && typeof schema.staticTestData == 'undefined') {
-			send500(res, req, `Schema ${schemaName}' does not have staticTestData`);
-			return;
-		}
-
-		schema.schemaType = schema.schemaType ? schema.schemaType : 'helixAccess'; //just for completeness, I made it the default when I was young and stupid
-
-		if (qtools.isTrue(schema.debugData) && schema.schemaName) {
-			qtools.logWarn(
-				`debugData=true on schema ${schemaName}, writing files to /tmp`
-			);
-			const filePath = `/tmp/hxc_Get_RequestQuery_${new Date().getTime()}_${
-				schema.schemaName
-			}.txt`;
-			qtools.logWarn(`WRITING get request query: ${filePath} (debugData=true)`);
-			qtools.writeSureFile(filePath, JSON.stringify(req.query));
-		}
-
-		var helixConnector = fabricateConnector(req, res, schema);
-		const runRealSchema = (err, result = '') => {
-			const helixRunning=result.databaseAlive; //a defined by interfaceLibrary/testHxServerAlive.applescript
-			if (
-				schema.schemaType == 'helixAccess' &&
-				(!helixRunning || err)
-			) {
-				sendResult(res, req, next, helixConnector)(
-					err
-						? err.toString()
-						: `Helix is not running (--NOTE, often this is because there is a 'wants to control' security dialog on the Macintosh screen)'`
-				);
-				return;
-			}
-
-			if (helixConnector) {
-				switch (schema.schemaType) {
-					case 'remoteControl':
-						remoteControl(
-							helixConnector,
-							schema,
-							req.query,
-							sendResult(res, req, next, helixConnector)
-						);
-						break;
-
-					case 'helixAccess':
-					default:
-						retrieveRecords(
-							helixConnector,
-							schema,
-							req.query,
-							sendResult(res, req, next, helixConnector)
-						);
-				}
-			}
-		};
-
-		remoteControl(
-			helixConnector,
-			testHxServerAliveSchema,
-			req.query,
-			runRealSchema
-		);
-	});
-
-	router.post(/.*/, function(req, res, next) {
-		const tmp = req.path.match(/\/([\w-.]+)/g);
-		let schemaName;
-
-		if (['/staticTest', '/dynamicTest'].includes(tmp[0])) {
-			schemaName = tmp ? tmp[1].replace(/^\//, '') : '';
-		} else {
-			schemaName = tmp ? tmp[0].replace(/^\//, '') : '';
-		}
-
-		const staticTest = tmp[0] == '/staticTest';
-		const dynamicTest = tmp[0] == '/dynamicTest';
-
-		const schema = getSchema(helixParms, schemaName);
-		if (!schema) {
-			send500(res, req, `Schema '${escape(schemaName)}' not defined`);
-			return;
-		}
-		schema.schemaName = schemaName;
-
-		schema.schemaType = schema.schemaType ? schema.schemaType : 'helixAccess'; //just for completeness
-		let outData;
-		if (qtools.toType(req.body) == 'array') {
-			outData = req.body;
-		} else if (qtools.toType(req.body) == 'object' && req.body != null) {
-			outData = [req.body];
-		} else {
-			res
-				.status(400)
-				.send('Validation error: submitted data must be an array or object');
-			helixConnector.close();
-			return;
-		}
-
-		if (qtools.isTrue(schema.debugData) && schema.schemaName) {
-			qtools.logWarn(
-				`debugData=true on schema ${schemaName}, writing files to /tmp`
-			);
-			const filePath = `/tmp/hxc_Post_RequestBody_${new Date().getTime()}_${
-				schema.schemaName
-			}.txt`;
-			qtools.logWarn(`WRITING post request body: ${filePath} (debugData=true)`);
-			qtools.writeSureFile(filePath, JSON.stringify(req.body));
-		}
-
-		var helixConnector = fabricateConnector(req, res, schema);
-		if (helixConnector) {
-			switch (schema.schemaType) {
-				case 'remoteControl':
-					sendRcData(
-						helixConnector,
-						schema,
-						req.query,
-						sendResult(res, req, next, helixConnector)
-					);
-					break;
-
-				case 'helixAccess':
-				default:
-					saveRecords(
-						helixConnector,
-						schema,
-						outData,
-						sendResult(res, req, next, helixConnector)
-					);
-			}
-		}
-	});
-
-	//START SERVER =======================================================
+	//STARTUP FUNCTIONR =======================================================
 	
 	
 
@@ -820,7 +475,10 @@ var moduleFunction = function(args) {
 			}
 
 			let sslAnnotation = '';
-			if (staticPageDispatchConfig.certDirPath && !staticPageDispatchConfig.sslSuppressOverride) {
+			if (
+				staticPageDispatchConfig.certDirPath &&
+				!staticPageDispatchConfig.sslSuppressOverride
+			) {
 				https
 					.createServer(
 						{
@@ -868,11 +526,15 @@ staticPageDispatchConfig.port
 		}
 	};
 
+	//START SERVER =======================================================
+
 	verifySystemForStartup(
 		[verifyRelationHasPoolUsersInstalled(helixParms)],
 		startServer
 	);
 	
+
+	//END OF LIFE CODE =======================================================
 
 	const notifyQuit = type => (exceptionParm = 'no additional info') => {
 		qtools.logMilestone(

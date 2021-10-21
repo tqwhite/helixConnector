@@ -1,0 +1,11 @@
+{
+  "name": "post-responder-catchall",
+  "version": "1.0.0",
+  "description": "processes helix and remote control post processes",
+  "main": "post-responder-catchall.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

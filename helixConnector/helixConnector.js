@@ -24,6 +24,10 @@ const moduleFunction = function(args) {
 			targetScope: this, //will add listed items to targetScope
 			propList: [
 				{
+					name: 'helixUserAuth',
+					optional: false
+				},
+				{
 					name: 'helixAccessParms',
 					optional: false,
 					note:
@@ -46,13 +50,15 @@ const moduleFunction = function(args) {
 		true
 	); //this is a server component, don't die on error
 
-	const { hxScriptRunner } = args;
+	const { hxScriptRunner, helixUserAuth } = args;
+
 
 	if (argsErrorList) {
 		throw new Error(argsErrorList);
 	}
 	const self = this;
 	self.helixAccessParms = qtools.clone(self.helixAccessParms);
+	self.helixAccessParms.helixUserAuth=helixUserAuth;
 
 	const authenticationHandler = new authenticationHandlerGen({
 		authKey: args.helixAccessParms.authKey,

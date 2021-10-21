@@ -140,11 +140,14 @@ var moduleFunction = function(args) {
 	) => (processName, parameters) => {
 		const callback = parameters.callback;
 		const taskList = new taskListPlus();
+		const { helixUserAuth } = helixAccessParms;
 
-		if (
-			parameters.schema.skipPoolUser !== 'true' &&
-			parameters.schema.skipPoolUser !== true
-		) {
+		const receivedUserAuth = helixUserAuth.hxUser || helixUserAuth.hxPassword;
+		const needPoolUser = !(
+			parameters.schema.skipPoolUser == true || receivedUserAuth
+		);
+
+		if (needPoolUser) {
 			taskList.push((args, next) => {
 				const localCallback = (err, poolUserObject) => {
 					if (err) {
@@ -169,16 +172,22 @@ var moduleFunction = function(args) {
 				next(err, args);
 			};
 			if (args.poolUserObject) {
+				//here is where I think external user auth goes, maybe
 				parameters.poolUserObject = args.poolUserObject;
+			} else if (receivedUserAuth) {
+				parameters.poolUserObject = {
+					leaseUserName: helixUserAuth.hxUser,
+					leasePassword: helixUserAuth.hxPassword
+				};
+				qtools.logMilestone(`received helix user auth parameters (user: '${helixUserAuth.hxUser}')`);
 			}
+
 			const workingParameters = qtools.clone(parameters);
 			parameters.callback = localCallback;
 			hxScriptRunner(processName, parameters);
 		});
-		if (
-			parameters.schema.skipPoolUser !== 'true' &&
-			parameters.schema.skipPoolUser !== true
-		) {
+
+		if (needPoolUser) {
 			taskList.push((args, next) => {
 				const localCallback = (err, releaseStatus) => {
 					args.releaseStatus = releaseStatus;
@@ -216,8 +225,7 @@ var moduleFunction = function(args) {
 			helixData,
 			helixAccessParms
 		} = args;
-
-
+		
 		const helixSchema = qtools.clone(parameters.schema) || {};
 		const scriptElement = getScript(processName);
 		const osascript = require('osascript').eval;
@@ -255,7 +263,7 @@ var moduleFunction = function(args) {
 					? ''
 					: scriptElement.language //turns out that osascript won't let you specify, JS is the default
 		};
-		
+
 		executeOsaScript(
 			finalScript,
 			languageSpec,
@@ -273,10 +281,12 @@ var moduleFunction = function(args) {
 					const filePath = `/tmp/hxc_FromHelix_${new Date().getTime()}_${
 						parameters.schema.schemaName
 					}.txt`;
-					qtools.logWarn(`WRITING raw received from helix data to file (shows separators): ${filePath} (debugData=true)`);
+					qtools.logWarn(
+						`WRITING raw received from helix data to file (shows separators): ${filePath} (debugData=true)`
+					);
 					qtools.writeSureFile(filePath, data);
 				}
-				
+
 				data = data.replace(/([^\n])\n$/, '$1');
 
 				let workingSchema = helixSchema;
