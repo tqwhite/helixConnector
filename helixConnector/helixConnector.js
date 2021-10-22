@@ -38,7 +38,7 @@ const moduleFunction = function(args) {
 					optional: true
 				},
 				{
-					name: 'authGoodies',
+					name: 'apiAccessAuthParms',
 					optional: true
 				},
 				{
@@ -68,7 +68,7 @@ const moduleFunction = function(args) {
 		req: this.req
 	});
 
-	this.authGoodies = this.authGoodies ? this.authGoodies : {};
+	this.apiAccessAuthParms = this.apiAccessAuthParms ? this.apiAccessAuthParms : {};
 	
 	//LOCAL FUNCTIONS ====================================
 	const exitEventHandler = () => {
@@ -399,7 +399,7 @@ const moduleFunction = function(args) {
 
 		if (!publicEndpoint) {
 			const errorMessage = authenticationHandler.validateUserToken(
-				this.authGoodies
+				this.apiAccessAuthParms
 			);
 			if (typeof errorMessage == 'string') {
 				parameters.callback(errorMessage);
@@ -464,7 +464,7 @@ const moduleFunction = function(args) {
 
 	this.generateAuthToken = (() => {
 		const errorMessage = authenticationHandler.validateUserToken(
-			this.authGoodies
+			this.apiAccessAuthParms
 		);
 		if (typeof errorMessage == 'string') {
 			return (body, callback) => {

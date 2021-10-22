@@ -3,13 +3,12 @@
 const qtoolsGen = require('qtools');
 const qtools = new qtoolsGen(module, { updatePrototypes: true });
 
-const qt = require('qtools-functional-library'); 
- //START OF moduleFunction() ============================================================
+const qt = require('qtools-functional-library');
+//START OF moduleFunction() ============================================================
 
 const moduleFunction = function(args = {}) {
 	const {
-		getSchema,
-		helixParms,
+		schemaResolver,
 		fabricateConnector,
 		sendResult,
 		send500
@@ -21,9 +20,9 @@ const moduleFunction = function(args = {}) {
 	};
 	
 
-	var saveRecords = function(helixConnector, schema, testRecordData, callback) {
+	var saveRecords = function(helixConnector, schema, testRecordData, callback, req, res) {
 		if (schema.responseSchemaName) {
-			var responseSchema = helixParms.schemaMap[schema.responseSchemaName];
+			var responseSchema = schemaResolver.resolve({ path: `/${schema.responseSchemaName}`, req, res });
 			schema.response = responseSchema;
 		}
 
@@ -46,35 +45,16 @@ const moduleFunction = function(args = {}) {
 	
 	const responder = (req, res, next) => {
 		const tmp = req.path.match(/\/([\w-.]+)/g);
-		let schemaName;
+		
+		const schema = schemaResolver.resolve({ path: req.path, req, res });
 
-		if (['/staticTest', '/dynamicTest'].includes(tmp[0])) {
-			schemaName = tmp ? tmp[1].replace(/^\//, '') : '';
-		} else {
-			schemaName = tmp ? tmp[0].replace(/^\//, '') : '';
-		}
+		let outData = qtools.toType(req.body) == 'array' ? req.body : [req.body];
 
-		const staticTest = tmp[0] == '/staticTest';
-		const dynamicTest = tmp[0] == '/dynamicTest';
-
-		const schema = getSchema(helixParms, schemaName);
-		if (!schema) {
-			send500(res, req, `Schema '${escape(schemaName)}' not defined`);
-			return;
-		}
-		schema.schemaName = schemaName;
-
-		schema.schemaType = schema.schemaType ? schema.schemaType : 'helixAccess'; //just for completeness
-		let outData;
-		if (qtools.toType(req.body) == 'array') {
-			outData = req.body;
-		} else if (qtools.toType(req.body) == 'object' && req.body != null) {
-			outData = [req.body];
-		} else {
+		if (qtools.toType(req.body) != 'array') {
 			res
 				.status(400)
 				.send('Validation error: submitted data must be an array or object');
-			helixConnector.close();
+			helixConnector.close(); //I do not think this has meaning anymore (now that heliport is gone)
 			return;
 		}
 
@@ -90,6 +70,7 @@ const moduleFunction = function(args = {}) {
 		}
 
 		var helixConnector = fabricateConnector(req, res, schema);
+
 		if (helixConnector) {
 			switch (schema.schemaType) {
 				case 'remoteControl':
@@ -107,7 +88,7 @@ const moduleFunction = function(args = {}) {
 						helixConnector,
 						schema,
 						outData,
-						sendResult(res, req, next, helixConnector)
+						sendResult(res, req, next, helixConnector), req, res
 					);
 			}
 		}

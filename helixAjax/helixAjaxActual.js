@@ -9,7 +9,6 @@ var express = require('express'); //powered by header removed below for snyk
 var app = express();
 const https = require('https');
 
-
 const path = require('path');
 
 const schemaMapAssemblerGen = require('./lib/schema-map-assembler');
@@ -27,9 +26,10 @@ const mergeDeep = require('merge-deep');
 
 const summarizeConfig = require('./lib/summarize-config');
 
-const hxcVersion = require('./lib/version');
-
-qtools.logMilestone('\nStarting hxAjax *************************');
+const hxcVersion = require('./lib/version'); 
+ qtools.logMilestone(
+	'\nStarting hxAjax *************************'
+);
 console.error(`helixAjax startup beginning: ${new Date().toLocaleString()}`); //it's very helpful to have this annotation in the error log
 qtools.logWarn('Freezing Object.prototype');
 Object.freeze(Object.prototype); //must come after qtFunctionalLibrary which updates prototypes
@@ -52,6 +52,27 @@ var moduleFunction = function(args) {
 				data: outData
 			});
 		};
+
+	//VALIDATE ENVIRONMENT VARIABLE SETUP ====================================
+
+	if (!process.env.helixProjectPath) {
+		var message = 'there must be an environment variable: helixProjectPath';
+		qtools.logError(message);
+		return message;
+	}
+
+	if (!process.env.helixAjaxPagesPath) {
+		var message = 'there must be an environment variable: helixAjaxPagesPath';
+		qtools.logError(message);
+		return message;
+	}
+
+	if (!process.env.USER && !process.env.HXCONNECTORUSER) {
+		var message =
+			'there must be an environment variable: USER or HXCONNECTORUSER';
+		qtools.logError(message);
+		return message;
+	}
 
 	//UTILITY FUNCTIONS ====================================
 	
@@ -78,8 +99,7 @@ var moduleFunction = function(args) {
 			(err, result) => {}
 		);
 	};
-
-
+	
 	const addInternalEndpoints = clientSchema => {
 		//someday maybe implement the whole include function, for now, just get fileOne.json
 		const internalSchema = require('./internalEndpoints/fileOne.json');
@@ -103,43 +123,7 @@ var moduleFunction = function(args) {
 		return schema;
 	};
 
-	const generateEndpointDisplayList = helixParms => {
-		const endpointList = [];
-		for (var schemaName in helixParms.schemaMap) {
-			var element = getSchema(helixParms, schemaName);
-			if (!element) {
-				qtools.logWarn(`MISSING SCHEMA FILE: No ${schemaMap} found`);
-				continue;
-			}
-
-			const dyn = element.testViewName ? `, dynamicTest/${schemaName}, ` : '';
-			const stat = element.staticTestData ? `, staticTest/${schemaName}` : '';
-			const noPost = element.noPostViewName ? `, noPost/${schemaName}` : '';
-			endpointList.push(`${schemaName}${dyn}${stat}${noPost}`);
-		}
-		return endpointList;
-	};
-
 	//ENVIRONMENT AND CONFIG ====================================
-
-	if (!process.env.helixProjectPath) {
-		var message = 'there must be an environment variable: helixProjectPath';
-		qtools.logError(message);
-		return message;
-	}
-
-	if (!process.env.helixAjaxPagesPath) {
-		var message = 'there must be an environment variable: helixAjaxPagesPath';
-		qtools.logError(message);
-		return message;
-	}
-
-	if (!process.env.USER && !process.env.HXCONNECTORUSER) {
-		var message =
-			'there must be an environment variable: USER or HXCONNECTORUSER';
-		qtools.logError(message);
-		return message;
-	}
 
 	const hxConnectorUser = process.env.HXCONNECTORUSER || process.env.USER;
 
@@ -304,19 +288,18 @@ var moduleFunction = function(args) {
 		adminPagesAccessData
 	});
 	
-	if (!qtools.getSurePath(newConfig, 'system.suppressLogEndpointsAtStartup')) {
-		const endpointDisplayList = generateEndpointDisplayList(helixParms);
-		qtools.logMilestone(
-			`Endpoints:\n\t${endpointDisplayList.join(
-				'\n\t'
-			)}\n[endpoint listing from: hexlixAjax.js]`
-		);
-	} else {
-		qtools.logMilestone(
-			'TURN ON endpoint listing from helixAjax.js by setting system.suppressLogEndpointsAtStartup=false in config'
-		);
-	}
-
+	
+	const generateEndpointList = require('./lib/messaging-functions/show-endpoint-info').showInfo(
+		{
+			helixParms,
+			newConfig,
+			suppressLogEndpointsAtStartup: qtools.getSurePath(
+				newConfig,
+				'system.suppressLogEndpointsAtStartup'
+			)
+		}
+	);
+	
 	//INITIALIZATION FUNCTIONS =======================================================
 	
 	var verifyRelationHasPoolUsersInstalled = helixParms => (args, next) => {
@@ -340,35 +323,24 @@ var moduleFunction = function(args) {
 	};
 
 	var fabricateConnector = function(req, res, schema) {
-		var headerAuth = req.headers ? req.headers.authorization : '';
-		
-		var helixUserAuth = {
+		const headerAuth = req.headers ? req.headers.authorization : '';
+
+		const tmp = headerAuth ? headerAuth.split(' ') : [];
+
+		const apiAccessAuthParms = {
+			authToken: tmp[1] ? tmp[1] : '',
+			userId: tmp[0] ? tmp[0] : ''
+		};
+
+		const helixUserAuth = {
 			hxUser: req.headers ? req.headers.hxuser : '',
 			hxPassword: req.headers ? req.headers.hxpassword : ''
 		};
 
-		var tmp = headerAuth ? headerAuth.split(' ') : [];
-
-		//This is a feature that I never have used. Snyk thinks it's a bad idea.
-		// 		if (tmp.length < 1) {
-		//			var bodyAuth = req.body ? req.body.authorization : '';
-		// 			tmp = bodyAuth ? bodyAuth.split(' ') : [];
-		// 			delete req.body.authorization;
-		// 		}
-
-		/*
-			tmp[2] (instanceId) was added 1/2018 to make it easier to identify which 
-			system a token works for. It is optional and purely for helping users and is a decoration.
-		*/
-
-		var authGoodies = {
-			authToken: tmp[1] ? tmp[1] : '',
-			userId: tmp[0] ? tmp[0] : ''
-		};
 		try {
 			var helixConnector = new helixConnectorGenerator({
 				helixAccessParms: helixParms,
-				authGoodies: authGoodies,
+				apiAccessAuthParms,
 				helixUserAuth,
 				req
 			});
@@ -428,21 +400,70 @@ var moduleFunction = function(args) {
 
 	//START SERVER ROUTING =======================================================
 
-	const utilityEnpoints=require('./lib/endpoint-responders/utility-endpoints');
-	const getResponder=require('./lib/endpoint-responders/get-responder-catchall');
-	const postResponder=require('./lib/endpoint-responders/post-responder-catchall');
-	const generateTokenResponder=require('./lib/endpoint-responders/generate-token');
+	const utilityEnpoints = require('./lib/endpoint-responders/utility-endpoints');
+	const getResponder = require('./lib/endpoint-responders/get-responder-catchall');
+	const postResponder = require('./lib/endpoint-responders/post-responder-catchall');
+	const generateTokenResponder = require('./lib/endpoint-responders/generate-token');
 	
-	router.get(/ping/, utilityEnpoints.ping({staticPageDispatchConfig, hxcVersion}));
-	router.get(/hxConnectorCheck/, utilityEnpoints.hxConnectorCheck({staticPageDispatchConfig}));
-	router.get(/hxDetails/, utilityEnpoints.hxDetails({summarizeConfig, newConfig}));
-	router.post(/generateToken/, new generateTokenResponder({getSchema, helixParms, fabricateConnector, sendResult, send500, newConfig}).responder)
+	const schemaResolver = require('./lib/get-resolved-schema')({
+		getSchema,
+		helixParms
+	});
 
-
+	router.get(
+		/ping/,
+		utilityEnpoints.ping({ staticPageDispatchConfig, hxcVersion })
+	);
+	router.get(
+		/hxConnectorCheck/,
+		utilityEnpoints.hxConnectorCheck({ staticPageDispatchConfig })
+	);
+	router.get(
+		/hxDetails/,
+		utilityEnpoints.hxDetails({ summarizeConfig, newConfig })
+	);
+	router.post(
+		/generateToken/,
+		new generateTokenResponder({
+			getSchema,
+			helixParms,
+			fabricateConnector,
+			sendResult,
+			send500,
+			newConfig
+		}).responder
+	);
 	
+	
+
 	//these need to appear after all the other endpoints
-	router.get(/.*/, new getResponder({getSchema, helixParms, fabricateConnector, sendResult, send500}).responder);
-	router.post(/.*/, new postResponder({getSchema, helixParms, fabricateConnector, sendResult, send500}).responder)
+
+	router.get(/\/([^\w-.]+)/g, (req, res) =>
+		send500(res, req, `Bad Path: ${req.path}`)
+	);
+	router.post(/\/([^\w-.]+)/g, (req, res) =>
+		send500(res, req, `Bad Path: ${req.path}`)
+	);
+	router.get(
+		/.*/,
+		new getResponder({
+			schemaResolver,
+			getSchema,
+			helixParms,
+			fabricateConnector,
+			sendResult,
+			send500
+		}).responder
+	);
+	router.post(
+		/.*/,
+		new postResponder({
+			schemaResolver,
+			fabricateConnector,
+			sendResult,
+			send500
+		}).responder
+	);
 
 	//STARTUP FUNCTIONR =======================================================
 	
@@ -504,25 +525,18 @@ var moduleFunction = function(args) {
 
 			app.listen(staticPageDispatchConfig.port);
 
-			if (helixParms.suppressTokenSecurityFeatures) {
-				qtools.logWarn(`WARNING: suppressTokenSecurityFeatures=true`);
-			}
-			// prettier-ignore
-			qtools.log(
-`${summarizeConfig({newConfig}).system()}
-${summarizeConfig({newConfig}).endpointOverview()}
-note: helixEngine.delayReleasePoolUser=${helixParms.qtGetSurePath( 'helixEngine.delayReleasePoolUser' )}
-endpoints directory: ${schemaMapPath}${helixParms.suppressTokenSecurityFeatures?'\nWARNING: systemParameters.ini/suppressTokenSecurityFeatures=true':''}
-reminder: setting debugData=true in endpoint causes helix-data to log JSON to a file in /tmp/...
-Code Version: ${hxcVersion}
-${new Date().toLocaleTimeString()}: Magic happens on port ${
-staticPageDispatchConfig.port
-}${sslAnnotation}. ----------------------------------------------------------`
+			const startupConfigurationOutput = require('./lib/messaging-functions/startup-configuration-output').sendOutput(
+				{
+					newConfig,
+					reminder,
+					schemaMapPath,
+					hxcVersion,
+					staticPageDispatchConfig,
+					sslAnnotation,
+					helixParms,
+					summarizeConfig
+				}
 			);
-			console.error(
-				`helixAjax (version ${hxcVersion}) startup complete: ${new Date().toLocaleString()}`
-			); //it's very helpful to have this annotation IN THE ERROR LOG
-			reminder(`hxConnector Startup Complete`); //shows macos notification
 		}
 	};
 
@@ -533,31 +547,13 @@ staticPageDispatchConfig.port
 		startServer
 	);
 	
-
 	//END OF LIFE CODE =======================================================
-
-	const notifyQuit = type => (exceptionParm = 'no additional info') => {
-		qtools.logMilestone(
-			`QUITTING hxC with interrupt type ${type} ${exceptionParm}`
-		);
-	};
 	
-	//TURNS OUT THAT DOING THIS END OF LIFE PROCESSING IS SLOW. NOT WORTH IT. TQII
-	//do something when app is closing
-	// 	process.on('exit', notifyQuit('exit'));
-	//
-	// 	//catches ctrl+c event
-	// 	process.on('SIGTERM', notifyQuit('SIGTERM (usually this is from launchctl)'));
-	//
-	// 	//catches ctrl+c event
-	// 	process.on('SIGINT', notifyQuit('SIGINT'));
-	//
-	// 	// catches "kill pid" (for example: nodemon restart)
-	// 	process.on('SIGUSR1', notifyQuit('SIGUSR1'));
-	// 	process.on('SIGUSR2', notifyQuit('SIGUSR2'));
-
-	//catches uncaught exceptions
-	process.on('uncaughtException', notifyQuit('uncaughtException'));
+	process.on('uncaughtException', err =>
+		qtools.logError(
+			`QUITTING hxC with interrupt type 'uncaughtException' message: ${err}`
+		)
+	);
 	return this;
 };
 

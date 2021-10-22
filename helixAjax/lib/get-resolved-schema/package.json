@@ -1,0 +1,11 @@
+{
+  "name": "get-resolved-schema",
+  "version": "1.0.0",
+  "description": "locate the correct schema based on req.path and config",
+  "main": "get-resolved-schema.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}
