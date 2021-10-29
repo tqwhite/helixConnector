@@ -1,0 +1,11 @@
+{
+  "name": "external-authorization",
+  "version": "1.0.0",
+  "description": "Wrapper for tools to allow hxC to access external identity resources",
+  "main": "external-authorization.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

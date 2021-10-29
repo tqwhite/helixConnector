@@ -25,6 +25,7 @@ const rateLimit = require('express-rate-limit'); //added becasue snyk worries ab
 const mergeDeep = require('merge-deep');
 
 const summarizeConfig = require('./lib/summarize-config');
+const externalAuthorization = require('./lib/external-authorization');
 
 const hxcVersion = require('./lib/version'); 
  qtools.logMilestone(
@@ -203,10 +204,6 @@ var moduleFunction = function(args) {
 	const schemaMapAssembler = new schemaMapAssemblerGen();
 	const schemaMap = schemaMapAssembler.getSchemaMap(schemaMapPath);
 
-	//START CONNECTOR ============================================================
-
-	const helixConnectorGenerator = require(helixConnectorPath);
-
 	//ORGANIZE HELIXPARMS ============================================================
 
 	const helixParms = qtools.getSurePath(newConfig, 'system');
@@ -266,11 +263,17 @@ var moduleFunction = function(args) {
 		}
 		next();
 	});
+	
 	app.use(
 		bodyParser.urlencoded({
 			extended: true
 		})
 	);
+	
+	externalAuthorization({app, newConfig}).install();
+console.log(`\n=-=============   externalAuthorization done ========================= [helixAjaxActual.js.moduleFunction]\n`);
+
+
 
 	app.use('/', router);
 	
@@ -299,8 +302,10 @@ var moduleFunction = function(args) {
 			)
 		}
 	);
-	
-	//INITIALIZATION FUNCTIONS =======================================================
+
+	//START CONNECTOR ============================================================
+
+	const helixConnectorGenerator = require(helixConnectorPath);
 	
 	var verifyRelationHasPoolUsersInstalled = helixParms => (args, next) => {
 		const localCallback = (err, result) => {
