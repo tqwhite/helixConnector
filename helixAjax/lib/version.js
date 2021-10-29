@@ -1,4 +1,4 @@
-module.exports=`hxc090121.3`
+module.exports=`hxc090121.4 Dev (external auth)`
 
 //hxc090121.3
 //updated summarize-configs.js to recognize remote control scripts as valid. 9/23/21
