@@ -1,0 +1,19 @@
+{
+  "name": "passport-simple",
+  "version": "1.0.0",
+  "description": "minimum package to bring passport into an app",
+  "main": "./lib",
+  "dependencies": {
+    "passport-strategy": "1.x.x",
+    "qtools-functional-library": "^1.1.8"
+  },
+  "directories": {
+    "lib": "lib",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "MIT"
+}

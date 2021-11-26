@@ -1,0 +1,11 @@
+{
+  "name": "qtools-to-key-value-array",
+  "version": "1.0.0",
+  "description": "Takes an object, map or set. Converts object or map into an array of {key:'keyName', value:'value'} pairs. A set is converted to an array of values.",
+  "main": "qtools-to-key-value-array.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

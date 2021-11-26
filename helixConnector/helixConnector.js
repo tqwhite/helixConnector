@@ -201,7 +201,7 @@ const moduleFunction = function(args) {
 		makeApplescriptDataString
 	) => args => {
 		const { scriptElement, processName, parameters, helixSchema } = args;
-
+		
 		const inData = qtools.clone(parameters.inData) || {};
 		const otherParms = parameters.otherParms || {};
 

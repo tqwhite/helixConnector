@@ -33,6 +33,8 @@ const moduleFunction = function(args = {}) {
 		
 		*/
 
+console.dir({['schema']:schema});
+
 		helixConnector.process('saveOneWithProcess', {
 			authToken: 'hello',
 			helixSchema: schema,
@@ -48,15 +50,14 @@ const moduleFunction = function(args = {}) {
 		
 		const schema = schemaResolver.resolve({ path: req.path, req, res });
 
-		let outData = qtools.toType(req.body) == 'array' ? req.body : [req.body];
-
-		if (qtools.toType(req.body) != 'array') {
+		if (req.body === null) {
 			res
 				.status(400)
-				.send('Validation error: submitted data must be an array or object');
-			helixConnector.close(); //I do not think this has meaning anymore (now that heliport is gone)
+				.send('Validation error: body is null');
 			return;
 		}
+
+		let outData = qtools.toType(req.body) == 'array' ? req.body : [req.body];
 
 		if (qtools.isTrue(schema.debugData) && schema.schemaName) {
 			qtools.logWarn(

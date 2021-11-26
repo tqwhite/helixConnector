@@ -1,0 +1,22 @@
+{
+"setAuthorizedUserCriterion": {
+		"debugData": false,
+		"debug": false,
+		"relation": "__inertLogin",
+		"note":"",
+		"view": "setAuthorizedUserCriterion",
+		"fieldSequenceList": [
+			"user"
+		],
+		"mapping": {
+			"user": "StringType"
+		},
+		"separators": {
+			"field": "\t",
+			"record": "`"
+		},
+		"criterionSchemaName": "",
+		"emptyRecordsAllowed": true,
+		"private": false
+	}
+	}

@@ -1,0 +1,11 @@
+{
+  "name": "add-hx-client-special-auth-alt1",
+  "version": "1.0.0",
+  "description": "add endpoint to authorize login and execute a sequence of helix steps for helix internal strategy alt1",
+  "main": "add-hx-client-special-auth-alt1.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

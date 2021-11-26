@@ -27,10 +27,8 @@ const mergeDeep = require('merge-deep');
 const summarizeConfig = require('./lib/summarize-config');
 const externalAuthorization = require('./lib/external-authorization');
 
-const hxcVersion = require('./lib/version'); 
- qtools.logMilestone(
-	'\nStarting hxAjax *************************'
-);
+const hxcVersion = require('./lib/version');
+qtools.logMilestone('\nStarting hxAjax *************************');
 console.error(`helixAjax startup beginning: ${new Date().toLocaleString()}`); //it's very helpful to have this annotation in the error log
 qtools.logWarn('Freezing Object.prototype');
 Object.freeze(Object.prototype); //must come after qtFunctionalLibrary which updates prototypes
@@ -76,7 +74,7 @@ var moduleFunction = function(args) {
 	}
 
 	//UTILITY FUNCTIONS ====================================
-	
+
 	const reminder = (message, title = 'hxConnector Update') => {
 		notifier.notify(
 			{
@@ -100,7 +98,7 @@ var moduleFunction = function(args) {
 			(err, result) => {}
 		);
 	};
-	
+
 	const addInternalEndpoints = clientSchema => {
 		//someday maybe implement the whole include function, for now, just get fileOne.json
 		const internalSchema = require('./internalEndpoints/fileOne.json');
@@ -135,20 +133,20 @@ var moduleFunction = function(args) {
 	));
 
 	var configPath = path.join(configDirPath, '/systemParameters.ini');
-	
+
 	const configOverridePath = path.join(
 		configDirPath,
 		'/systemParametersOverride.ini'
 	);
-	
+
 	if (!qtools.realPath(configPath)) {
 		var message = 'configuration file ' + configPath + ' is missing';
 		qtools.logError(message);
 		return message;
 	}
-	
+
 	qtools.logMilestone(`configuration file found: ${configPath}`);
-	
+
 	var helixConnectorPath = process.env.helixConnectorPath + 'helixConnector.js';
 	if (!qtools.realPath(helixConnectorPath)) {
 		var message =
@@ -171,6 +169,8 @@ var moduleFunction = function(args) {
 		newConfig = mergeDeep(newConfig, overrideConfig);
 	}
 
+	const bootTime = new Date().toLocaleString();
+
 	//ORGANIZE SCHEMA MAP ============================================================
 
 	const collectionName = qtools.getSurePath(newConfig, 'system.collection');
@@ -182,8 +182,7 @@ var moduleFunction = function(args) {
 		'staticPageDispatch',
 		{}
 	);
-	
-	
+
 	let schemaMapPath;
 	const schemaMapDirectoryPath = qtools.getSurePath(
 		newConfig,
@@ -199,7 +198,6 @@ var moduleFunction = function(args) {
 			`${schemaMapName}.json`
 		);
 	}
-	
 
 	const schemaMapAssembler = new schemaMapAssemblerGen();
 	const schemaMap = schemaMapAssembler.getSchemaMap(schemaMapPath);
@@ -237,16 +235,16 @@ var moduleFunction = function(args) {
 		res.removeHeader('X-Powered-By'); //snyk hates this header.
 		next();
 	});
-	
-	app.use(
-		rateLimit({
-			windowMs: 1 * 60 * 1000, // 15 minutes
-			max: 60, // limit each IP to 350 requests per windowMs (mirror processes use this amount),
-			message:
-				'one per second, take it or leave it. this is not a public server'
-		})
-	); //snyk worries about denial of service attacks.
-	
+
+	// 	app.use(
+	// 		rateLimit({
+	// 			windowMs: 1 * 60 * 1000, // 15 minutes
+	// 			max: 60, // limit each IP to 350 requests per windowMs (mirror processes use this amount),
+	// 			message:
+	// 				'one per second, take it or leave it. this is not a public server'
+	// 		})
+	// 	); //snyk worries about denial of service attacks.
+
 	app.use(
 		bodyParser.json({
 			extended: true
@@ -263,20 +261,13 @@ var moduleFunction = function(args) {
 		}
 		next();
 	});
-	
+
 	app.use(
 		bodyParser.urlencoded({
 			extended: true
 		})
 	);
-	
-	externalAuthorization({app, newConfig}).install();
-console.log(`\n=-=============   externalAuthorization done ========================= [helixAjaxActual.js.moduleFunction]\n`);
 
-
-
-	app.use('/', router);
-	
 	//STATIC PAGE DISPATCH =======================================================
 
 	var staticPageDispatch = require('./lib/static-page-dispatch');
@@ -290,8 +281,7 @@ console.log(`\n=-=============   externalAuthorization done ====================
 		helixParms,
 		adminPagesAccessData
 	});
-	
-	
+
 	const generateEndpointList = require('./lib/messaging-functions/show-endpoint-info').showInfo(
 		{
 			helixParms,
@@ -306,8 +296,8 @@ console.log(`\n=-=============   externalAuthorization done ====================
 	//START CONNECTOR ============================================================
 
 	const helixConnectorGenerator = require(helixConnectorPath);
-	
-	var verifyRelationHasPoolUsersInstalled = helixParms => (args, next) => {
+
+	const verifyRelationHasPoolUsersInstalled = helixParms => (args, next) => {
 		const localCallback = (err, result) => {
 			if (!args.processResult) {
 				args.processResult = [];
@@ -325,9 +315,9 @@ console.log(`\n=-=============   externalAuthorization done ====================
 			qtools.logMilestone('SKIPPING startup check for: Pool User Tables');
 			localCallback();
 		}
-	};
+	}; //this was useful back in the day when we didn't know which db had what. Now they all work and this takes tooo long.
 
-	var fabricateConnector = function(req, res, schema) {
+	const fabricateConnector = function(req, res, schema) {
 		const headerAuth = req.headers ? req.headers.authorization : '';
 
 		const tmp = headerAuth ? headerAuth.split(' ') : [];
@@ -355,7 +345,11 @@ console.log(`\n=-=============   externalAuthorization done ====================
 			return;
 		}
 
-		if (!schema || schema.private) {
+		//I have lately decided that it is incorrect to have this function detect a missing schema error
+		//and do not want future code to do that so I added this hack.
+		//If schema is exactly equal to false, it is interpreted to override this behavior.
+		//For existing code, this should not change behavior at all. tqii, 11/24/21
+		if (schema!==false &&(!schema || schema.private)) {
 			res.status('404').send('Bad Request: No such schema');
 			return;
 		}
@@ -373,11 +367,11 @@ console.log(`\n=-=============   externalAuthorization done ====================
 
 	//HTTP OUTPUT FUNCTIONS =======================================================
 
-	var send500 = (res, req, message) => {
+	const send500 = (res, req, message) => {
 		qtools.logWarn(`500 error: ${req.path}=>${message}`);
 		res.status(500).send(escape(message));
 	};
-	
+
 	const send200 = (res, req, result) => {
 		res.status('200');
 		res.set({
@@ -391,7 +385,7 @@ console.log(`\n=-=============   externalAuthorization done ====================
 		res.json(result);
 	};
 
-	var sendResult = function(res, req, next, helixConnector) {
+	const sendResult = function(res, req, next, helixConnector) {
 		return function(err, result) {
 			if (err) {
 				send500(res, req, err.toString());
@@ -409,15 +403,29 @@ console.log(`\n=-=============   externalAuthorization done ====================
 	const getResponder = require('./lib/endpoint-responders/get-responder-catchall');
 	const postResponder = require('./lib/endpoint-responders/post-responder-catchall');
 	const generateTokenResponder = require('./lib/endpoint-responders/generate-token');
-	
+
 	const schemaResolver = require('./lib/get-resolved-schema')({
 		getSchema,
-		helixParms
+		helixParms,
+		send500
 	});
-
+	
+	const hxClientSpecialAuthPath = 'hxClientAuth';
+	externalAuthorization({
+		app,
+		router,
+		newConfig,
+		hxClientSpecialAuthPath,
+		helixConnectorPackage: {
+			fabricateConnector,
+			sendResult,
+			send500
+		}
+	}).install(); //must precede app.use('/', router);
+	
 	router.get(
 		/ping/,
-		utilityEnpoints.ping({ staticPageDispatchConfig, hxcVersion })
+		utilityEnpoints.ping({ staticPageDispatchConfig, hxcVersion, bootTime })
 	);
 	router.get(
 		/hxConnectorCheck/,
@@ -438,8 +446,6 @@ console.log(`\n=-=============   externalAuthorization done ====================
 			newConfig
 		}).responder
 	);
-	
-	
 
 	//these need to appear after all the other endpoints
 
@@ -472,7 +478,7 @@ console.log(`\n=-=============   externalAuthorization done ====================
 
 	//STARTUP FUNCTIONR =======================================================
 	
-	
+	app.use('/', router);
 
 	staticPageDispatchConfig.port = staticPageDispatchConfig.port
 		? staticPageDispatchConfig.port
@@ -551,9 +557,9 @@ console.log(`\n=-=============   externalAuthorization done ====================
 		[verifyRelationHasPoolUsersInstalled(helixParms)],
 		startServer
 	);
-	
+
 	//END OF LIFE CODE =======================================================
-	
+
 	process.on('uncaughtException', err =>
 		qtools.logError(
 			`QUITTING hxC with interrupt type 'uncaughtException' message: ${err}`

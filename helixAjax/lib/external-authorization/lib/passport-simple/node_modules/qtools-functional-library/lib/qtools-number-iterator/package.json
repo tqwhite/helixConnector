@@ -1,0 +1,11 @@
+{
+  "name": "qtools-number-iterator",
+  "version": "1.0.0",
+  "description": "Creates a functional for-loop on the Number prototype",
+  "main": "qtools-number-iterator.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

@@ -1,0 +1,20 @@
+{
+	"testCriterion": {
+		"NOTE":"this endpoint was copied into the endpoints that use it for hxClientAuth",
+		"relation": "1 Inert iPhone",
+		"view": "criterionForm01",
+		"fieldSequenceList": [
+			"user",
+			"Entity",
+			"dateTimeLastTransferred",
+			"dateEnd"
+		],
+		"note": "dateTimeLastTransferred really means dateStart but nobody had the energy to change it",
+		"mapping": {
+			"dateTimeLastTransferred": "DateTimeType",
+			"dateEnd": "DateTimeType"
+		},
+		"private": true,
+		"retrievalSchemaName": "UNUSED - verify later"
+	}
+}

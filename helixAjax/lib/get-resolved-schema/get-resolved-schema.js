@@ -8,11 +8,20 @@ const qt = require('qtools-functional-library');
 
 //START OF moduleFunction() ============================================================
 
-const moduleFunction = function({ getSchema, helixParms }) {
+const moduleFunction = function({ getSchema, helixParms, send500 }) {
 	
 	const resolve = ({path, req, res}) => {
 		
 		const pathParts = path.match(/\/([\w-.]+)/g);
+		
+		if (!pathParts){
+				send500(
+					res,
+					req,
+					`Illegal path '${path}'`
+				);
+				return;
+		}
 
 		let schemaName;
 
@@ -86,11 +95,11 @@ const moduleFunction = function({ getSchema, helixParms }) {
 
 		schema.schemaType = schema.schemaType ? schema.schemaType : 'helixAccess'; //just for completeness, I made it the default when I was young and stupid
 
-		if (qtools.isTrue(schema.debugData) && schema.schemaName) {
+		if (false && qtools.isTrue(schema.debugData) && schema.schemaName) {
 			qtools.logWarn(
 				`debugData=true on schema ${schemaName}, writing files to /pathParts`
 			);
-			const filePath = `/pathParts/hxc_Get_RequestQuery_${new Date().getTime()}_${
+			const filePath = `/tmp/pathParts/hxc_Get_RequestQuery_${new Date().getTime()}_${
 				schema.schemaName
 			}.txt`;
 			qtools.logWarn(`WRITING get request query: ${filePath} (debugData=true)`);

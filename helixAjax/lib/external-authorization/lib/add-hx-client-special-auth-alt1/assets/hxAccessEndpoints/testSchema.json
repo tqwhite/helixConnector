@@ -1,0 +1,32 @@
+{
+	"testSchema": {
+		"relation": "1 800Summary",
+		"view": "syncCountsFactoryFloor",
+		"fieldSequenceList": [
+			"scountDept",
+			"scountCell",
+			"scountTravOper",
+			"scountTravLines",
+			"scountJobLineLots",
+			"scountUser",
+			"scountToDo"
+		],
+		"mapping": {
+			"scountDept": "NumberType",
+			"scountCell": "NumberType",
+			"scountTravOper": "NumberType",
+			"scountTravLines": "NumberType",
+			"scountJobLineLots": "NumberType",
+			"scountUser": "NumberType",
+			"scountToDo": "NumberType"
+			
+		},
+		"separators": {
+			"field": "\t",
+			"record": "`"
+		},
+		"criterionSchemaName": "generalQuery1",
+		"emptyRecordsAllowed": true,
+		"private": false
+	}
+	}

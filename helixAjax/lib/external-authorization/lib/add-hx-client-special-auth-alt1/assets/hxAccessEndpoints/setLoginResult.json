@@ -1,0 +1,26 @@
+{
+"setLoginResult": {
+		"debugData": false,
+		"debug": true,
+		"relation": "__inertLogin",
+		"note":"",
+		"view": "setAuthorized",
+		"fieldSequenceList": [
+			"user",
+			"i auth",
+			"_statusMessage"
+		],
+		"mapping": {
+			"user": "StringType",
+			"i auth": "BooleanType",
+			"_statusMessage": "StringType"
+		},
+		"separators": {
+			"field": "\t",
+			"record": "`"
+		},
+		"criterionSchemaName": "",
+		"emptyRecordsAllowed": true,
+		"private": false
+	}
+	}

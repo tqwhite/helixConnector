@@ -19,7 +19,7 @@ const moduleFunction = function(args = {}) {
 	var remoteControl = function(helixConnector, schema, query, callback) {
 		var retrievalParms = {
 			authToken: 'hello',
-			schema: qtools.clone(schema),
+			schema,
 			otherParms: query,
 			debug: false,
 			callback: callback

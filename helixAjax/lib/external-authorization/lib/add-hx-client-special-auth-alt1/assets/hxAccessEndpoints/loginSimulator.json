@@ -1,0 +1,27 @@
+{
+"loginSimulator": {
+		"debugData": false,
+		"debug": false,
+		"relation": "__inertLogin",
+		"note":"",
+		"view": "loginSimulator",
+		"fieldSequenceList": [
+			"user",
+			"password"
+		],
+		"mapping": {
+			"user": "StringType",
+			"password": "StringType",
+			"i _helixPrimaryKey_loginControlLog_fp": "NumberType",
+			"lk primaryKey_controlLog/ug": "NumberType",
+			"i auth": "BooleanType"
+		},
+		"separators": {
+			"field": "\t",
+			"record": "`"
+		},
+		"criterionSchemaName": "",
+		"emptyRecordsAllowed": true,
+		"private": false
+	}
+	}

@@ -13,7 +13,7 @@ const os = require('os');
 const moduleFunction = function() {
 	
 	
-	const ping = ({ staticPageDispatchConfig, hxcVersion }) => (
+	const ping = ({ staticPageDispatchConfig, hxcVersion, bootTime }) => (
 		req,
 		res,
 		next
@@ -32,7 +32,7 @@ const moduleFunction = function() {
 			.replace(/\//g, '');
 
 		res.send(
-			`hxConnector (${hxcVersion}) is alive and responded to ${escape(
+			`hxConnector (${hxcVersion}) is alive since ${bootTime} and responded to ${escape(
 				req.protocol
 			)}://${escape(req.hostname)}:${showPort}/${escape(
 				req.path
