@@ -69,19 +69,20 @@ const moduleFunction = function({
 	
 	const taskList = new taskListPlus();
 	
-	taskList.push((args, next) => {
-		const schemaName = 'loginSimulator';
-
-		const localCallback = (err, result) => {
-			args.results[schemaName] = result;
-			next(err, args);
-		};
-
-		const { schemas, sendToHelix, hxAuthUserName } = args;
-		const schema = schemas[schemaName];
-		const postData = { user: hxAuthUserName, password: 'shairWord!0' };
-		sendToHelix.process({ postData, schema, callback: localCallback });
-	});
+// 	taskList.push((args, next) => {
+// 		const schemaName = 'loginSimulator';
+// 
+// 		const localCallback = (err, result) => {
+// 			args.results[schemaName] = result;
+// 			next(err, args);
+// 		};
+// 
+// 		const { schemas, sendToHelix, hxAuthUserName } = args;
+// 		const schema = schemas[schemaName];
+// 		//const postData = { user: hxAuthUserName, password: 'shairWord!0' };
+// 		const postData = { user: hxAuthUserName, password: 'shairWord!0' };
+// 		sendToHelix.process({ postData, schema, callback: localCallback });
+// 	});
 	
 	taskList.push((args, next) => {
 		const schemaName = 'getPassword';
@@ -120,11 +121,14 @@ const moduleFunction = function({
 
 		const localCallback = (err, result) => {
 			if (!err) {
-				args.externalAuthResult = result;
+				args.externalAuthResult = {validLogin:true, message:'Valid Login'};
 				args.results.externalAuthResult =
 					result.qtGetSurePath('token_type') == 'Bearer';
 			}
-			next(err, args);
+			else{
+				args.externalAuthResult = {validLogin:false, message:'Login Failed'};
+			}
+			next('', args);
 		};
 
 		const { schemas, sendToHelix, hxAuthUserName, hxAuthPassword } = args;
@@ -147,8 +151,8 @@ const moduleFunction = function({
 		const schema = schemas[schemaName];
 		const postData = {
 			user: hxAuthUserName,
-			['i auth']: externalAuthResult,
-			_statusMessage: `${externalAuthResult ? 'Valid Login' : 'Login Failed'}`
+			['i auth']: externalAuthResult.validLogin,
+			_statusMessage: `${externalAuthResult.validLogin ? 'Valid Login' : 'Login Failed'}`
 		};
 		sendToHelix.process({ postData, schema, callback: localCallback });
 	});
@@ -188,12 +192,14 @@ const moduleFunction = function({
 			const { send500, sendResult, helixConnector } = helixConnectorPackage;
 
 			if (err) {
+				console.log(`hxClientAuth failed for ${hxAuthUserName}`);
 				send500(res, req, err);
 				return;
 			}
 
 			//sendResult(res, req, next, helixConnector)(JSON.stringify(args.getPassword));
-			res.send(`login successful for ${hxAuthUserName}`);
+			console.log(`hxClientAuth successful for ${hxAuthUserName}`);
+			res.send(`hxClientAuth successful for ${hxAuthUserName}`);
 			//res.send(args.results);
 			//note to self: next() does not belong here because this is the end of the response chain.
 		});

@@ -1,7 +1,7 @@
 {
 "setLoginResult": {
 		"debugData": false,
-		"debug": true,
+		"debug": false,
 		"relation": "__inertLogin",
 		"note":"",
 		"view": "setAuthorized",
