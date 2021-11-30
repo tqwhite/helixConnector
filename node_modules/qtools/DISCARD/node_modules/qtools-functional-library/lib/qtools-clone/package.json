@@ -1,0 +1,11 @@
+{
+  "name": "qtools-clone",
+  "version": "1.0.0",
+  "description": "Deep clone of a javascript object, returns new object.",
+  "main": "qtools-clone.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

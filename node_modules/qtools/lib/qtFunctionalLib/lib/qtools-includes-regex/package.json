@@ -1,0 +1,11 @@
+{
+  "name": "qtools-includes-regex",
+  "version": "1.0.0",
+  "description": "array prototype enhancment treats string values as regular express",
+  "main": "qtools-includes-regex.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

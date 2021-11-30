@@ -1,0 +1,11 @@
+{
+  "name": "qtools-number-keys-to-array",
+  "version": "1.0.0",
+  "description": "converts an object into an array; optionally keeps holes; if non-numeric keys exist, they are (optionally) pushed as {key:value} elements onto the end of the array.",
+  "main": "qtools-number-keys-to-array.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}
