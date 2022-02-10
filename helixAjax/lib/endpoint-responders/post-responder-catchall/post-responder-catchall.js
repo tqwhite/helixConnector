@@ -32,9 +32,7 @@ const moduleFunction = function(args = {}) {
 		
 		
 		*/
-
-console.dir({['schema']:schema});
-
+		
 		helixConnector.process('saveOneWithProcess', {
 			authToken: 'hello',
 			helixSchema: schema,
@@ -53,15 +51,15 @@ console.dir({['schema']:schema});
 		if (req.body === null) {
 			res
 				.status(400)
-				.send('Validation error: body is null');
+				.send('Validation error: post body is null');
 			return;
 		}
 
 		let outData = qtools.toType(req.body) == 'array' ? req.body : [req.body];
-
+		
 		if (qtools.isTrue(schema.debugData) && schema.schemaName) {
 			qtools.logWarn(
-				`debugData=true on schema ${schemaName}, writing files to /tmp`
+				`debugData=true on schema ${schema.schemaName}, writing files to /tmp`
 			);
 			const filePath = `/tmp/hxc_Post_RequestBody_${new Date().getTime()}_${
 				schema.schemaName

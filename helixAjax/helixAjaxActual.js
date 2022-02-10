@@ -223,6 +223,21 @@ var moduleFunction = function(args) {
 
 	app.use(express.json({ limit: '4gb' }));
 	app.use(function(req, res, next) {
+	
+// console.log(`\n=-=============   req.path  ========================= [helixAjaxActual.js.[ anonymous ]]\n`);
+// 
+// 
+// console.log(`req.path=${req.path}`);
+// 
+// console.log(`\n=-=============   req.path  ========================= [helixAjaxActual.js.[ anonymous ]]\n`);
+// 
+// 
+// 	
+// 		if (req.path.match(/.*hxc___000__000_200_01___noDbTable.*/)){
+// 			qtools.logError(`hxc___000__000_200_01___noDbTable AppleEvent timed out`);
+// 			res.status(500).send('AppleEvent timed out');
+// 			return;
+// 		}
 		console.log(
 			`hxC REQUEST URL: ${req.protocol}://${req.hostname}/${req.url} (${
 				req.method
@@ -254,6 +269,7 @@ var moduleFunction = function(args) {
 	app.use(function(err, req, res, next) {
 		//bodyParser.json produces a syntax error when it gets badly formed json
 		//this catches the error
+		
 		if (err) {
 			qtools.logError(`JSON.parse() error: ${err.toString()}`);
 			res.status(400).send(err.toString());
@@ -286,6 +302,7 @@ var moduleFunction = function(args) {
 		{
 			helixParms,
 			newConfig,
+			getSchema,
 			suppressLogEndpointsAtStartup: qtools.getSurePath(
 				newConfig,
 				'system.suppressLogEndpointsAtStartup'
@@ -449,12 +466,12 @@ var moduleFunction = function(args) {
 
 	//these need to appear after all the other endpoints
 
-	router.get(/\/([^\w-.]+)/g, (req, res) =>
-		send500(res, req, `Bad Path: ${req.path}`)
-	);
-	router.post(/\/([^\w-.]+)/g, (req, res) =>
-		send500(res, req, `Bad Path: ${req.path}`)
-	);
+// 	router.get(/\/([^\w-.]+)/g, (req, res) =>
+// 		send500(res, req, `Bad Path: ${req.path}`)
+// 	);
+// 	router.post(/\/([^\w-.]+)/g, (req, res) =>
+// 		send500(res, req, `Bad Path: ${req.path}`)
+// 	);
 	router.get(
 		/.*/,
 		new getResponder({

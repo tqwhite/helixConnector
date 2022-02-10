@@ -55,6 +55,7 @@ var moduleFunction = function(args) {
 					count++;
 				} catch (e) {
 					console.log(`BAD JSON ${endpointFilePath}`);
+					console.error(`BAD JSON ${endpointFilePath}`);
 				}
 			});
 

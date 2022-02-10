@@ -196,6 +196,7 @@ var moduleFunction = function(args) {
 							`CANNOT RELEASE pool session from Helix (${err.toString()}) in pool-user.js/poolUserRelease`
 						)
 					);
+					return;
 				}
 				args.releaseStatus = releaseStatus;
 				next(err, args);

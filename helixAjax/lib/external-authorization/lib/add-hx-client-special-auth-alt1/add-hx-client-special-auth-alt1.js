@@ -85,6 +85,24 @@ const moduleFunction = function({
 // 	});
 	
 	taskList.push((args, next) => {
+		const schemaName = 'setLoginResult';
+
+		const localCallback = (err, result) => {
+			args.results[schemaName] = result;
+			next(err, args);
+		};
+
+		const { schemas, sendToHelix, hxAuthUserName, externalAuthResult } = args;
+		const schema = schemas[schemaName];
+		const postData = {
+			user: hxAuthUserName,
+			['i auth']: false,
+			_statusMessage: 'processing through active directory'
+		};
+		sendToHelix.process({ postData, schema, callback: localCallback });
+	});
+	
+	taskList.push((args, next) => {
 		const schemaName = 'getPassword';
 
 		const localCallback = (err, result) => {

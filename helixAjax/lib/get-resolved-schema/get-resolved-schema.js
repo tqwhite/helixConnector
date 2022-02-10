@@ -25,13 +25,14 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 
 		let schemaName;
 
-		if (['/staticTest', '/dynamicTest', '/noPost'].includes(pathParts[0])) {
+		//fromFile and staticTest are synonyms since static-data was upgraded to try 'relation_view' for missing filename
+		if (['/fromFile', '/staticTest', '/dynamicTest', '/noPost'].includes(pathParts[0])) {
 			schemaName = pathParts ? pathParts[1].replace(/^\//, '') : '';
 		} else {
 			schemaName = pathParts ? pathParts[0].replace(/^\//, '') : '';
 		}
 
-		const staticTest = pathParts[0] == '/staticTest';
+		const staticTest = (pathParts[0] == '/staticTest' || pathParts[0] == '/fromFile');
 		const dynamicTest = pathParts[0] == '/dynamicTest';
 		const noPost = pathParts[0] == '/noPost';
 		const schema = getSchema(helixParms, schemaName);

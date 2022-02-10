@@ -179,7 +179,11 @@ var moduleFunction = function(args) {
 					leaseUserName: helixUserAuth.hxUser,
 					leasePassword: helixUserAuth.hxPassword
 				};
-				qtools.logMilestone(`received helix user auth parameters (user: '${helixUserAuth.hxUser}')`);
+				qtools.logMilestone(
+					`received helix user auth parameters (user: '${
+						helixUserAuth.hxUser
+					}')`
+				);
 			}
 
 			const workingParameters = qtools.clone(parameters);
@@ -189,21 +193,43 @@ var moduleFunction = function(args) {
 
 		if (needPoolUser) {
 			taskList.push((args, next) => {
+				const { poolUserObject } = args;
+				let retryCount = 0;
 				const localCallback = (err, releaseStatus) => {
+					if (retryCount < 1 && err.toString().match(/-1712/)) {
+						//-1712 is AppleEvent timed out
+						retryCount++;
+						executeRelease();
+						return;
+					}
+					if (err) {
+						err = new Error(`err.toString() (tried ${retryCount + 1} times)`);
+					}
 					args.releaseStatus = releaseStatus;
 					next(err, args);
 				};
+				
 				if (args.poolUserObject) {
-					parameters.poolUserObject = args.poolUserObject;
+					parameters.poolUserObject = poolUserObject;
 				}
-				hxPoolUserAccessor.releasePoolUserObject(
-					{
-						processName,
-						helixAccessParms,
-						poolUserObject: args.poolUserObject
-					},
+
+				const executeRelease = ((
+					processName,
+					helixAccessParms,
+					poolUserObject,
 					localCallback
-				);
+				) => () => {
+					hxPoolUserAccessor.releasePoolUserObject(
+						{
+							processName,
+							helixAccessParms,
+							poolUserObject
+						},
+						localCallback
+					);
+				})(processName, helixAccessParms, poolUserObject, localCallback);
+
+				executeRelease();
 			});
 		}
 
@@ -225,7 +251,7 @@ var moduleFunction = function(args) {
 			helixData,
 			helixAccessParms
 		} = args;
-		
+
 		const helixSchema = qtools.clone(parameters.schema) || {};
 		const scriptElement = getScript(processName);
 		const osascript = require('osascript').eval;

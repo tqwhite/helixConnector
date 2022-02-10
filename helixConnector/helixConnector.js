@@ -82,7 +82,8 @@ const moduleFunction = function(args) {
 
 	//METHODS AND PROPERTIES ====================================
 
-	//DISPATCH ====================================
+	
+	//GET SCRIPT -----------------------------------------------------------------------
 
 	const getScriptActual = remoteControlDirectoryPath => functionName => {
 		const getScriptPathParameters = functionName => {
@@ -196,6 +197,11 @@ const moduleFunction = function(args) {
 		}
 		return schema;
 	};
+	
+	
+	//COMPILE SCRIPT -----------------------------------------------------------------------
+	
+	
 	const compileScriptActual = (
 		helixAccessParms,
 		makeApplescriptDataString
@@ -306,6 +312,8 @@ const moduleFunction = function(args) {
 
 		return finalScript;
 	};
+	
+	//STATIC RETRIEVAL -----------------------------------------------------------------------
 
 	const executeProcessActual = (
 		getScript,
@@ -330,6 +338,7 @@ const moduleFunction = function(args) {
 					helixAccessParms
 				}).execute('testQuitHelixNoSave', parameters);
 				break;
+			case 'fromFile':
 			case 'staticTest':
 				executeStaticTestRoute(parameters.schema, parameters.callback);
 				break;
@@ -364,6 +373,8 @@ const moduleFunction = function(args) {
 				break;
 		}
 	};
+	
+	//STATIC RETRIEVAL -----------------------------------------------------------------------
 
 	const executeStaticTestRouteActual = staticDataGen => (
 		helixSchema,
@@ -378,6 +389,7 @@ const moduleFunction = function(args) {
 				);
 			};
 			const staticData = new staticDataGen();
+
 			const outData = staticData.get(
 				helixSchema.staticTestData,
 				self.helixAccessParms.staticDataDirectoryPath,
@@ -389,8 +401,13 @@ const moduleFunction = function(args) {
 
 		executeStaticTest(helixSchema, staticDataGen, callback);
 	};
+	
+	//MAIN ENTRY ROUTINE =======================================================================
 
-	this.process = (control, parameters) => {
+	const processActual = executeProcess=> (control, parameters) => {
+	
+		const {callback}=parameters;
+		
 		const publicEndpoint = qtools.getSurePath(
 			parameters,
 			'schema.publicEndpoint',
@@ -402,7 +419,7 @@ const moduleFunction = function(args) {
 				this.apiAccessAuthParms
 			);
 			if (typeof errorMessage == 'string') {
-				parameters.callback(errorMessage);
+				callback(errorMessage);
 				return;
 			}
 		}
@@ -426,22 +443,18 @@ const moduleFunction = function(args) {
 			? 'staticTest'
 			: control;
 
-		if (!['staticTest', 'remoteControl', 'helixAccess'].includes(schemaType)) {
-			parameters.callback(new Error(`unknown schemaType '${schemaType}'`));
+		if (!['staticTest', 'staticTest', 'remoteControl', 'helixAccess'].includes(schemaType)) {
+			callback(new Error(`unknown schemaType '${schemaType}'`));
 			return;
 		}
 
 		const localCallback = (err, result) => {
-			parameters.callback(err, result);
+			callback(err, result);
 		};
 		executeProcess(control, parameters, localCallback);
 	};
 
-	this.close = () => {
-		//releasePoolUser();
-	};
-
-	//INITIALIZATION ====================================
+	//INITIALIZATION =======================================================================
 
 	const getScript = getScriptActual(
 		self.helixAccessParms.remoteControlDirectoryPath
@@ -453,6 +466,7 @@ const moduleFunction = function(args) {
 	);
 
 	const executeStaticTestRoute = executeStaticTestRouteActual(staticDataGen);
+	
 	const executeProcess = executeProcessActual(
 		getScript,
 		compileScript,
@@ -481,6 +495,12 @@ const moduleFunction = function(args) {
 			compileScript,
 			helixAccessParms: args.helixAccessParms
 		}).checkUserPool(callback);
+	};
+	
+	this.process=processActual(executeProcess);
+
+	this.close = () => {
+		//releasePoolUser();
 	};
 
 	//DISCARD ====================================

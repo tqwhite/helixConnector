@@ -11,7 +11,7 @@ const qt = require('qtools-functional-library');
 
 const moduleFunction = function(args={}) {
 
-const showInfo=({helixParms, newConfig, suppressLogEndpointsAtStartup})=>{
+const showInfo=({helixParms, newConfig, getSchema, suppressLogEndpointsAtStartup})=>{
 	const generateEndpointDisplayList = helixParms => {
 		const endpointList = [];
 		for (var schemaName in helixParms.schemaMap) {

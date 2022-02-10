@@ -57,6 +57,12 @@ var moduleFunction = function(args) {
 			return staticTestData;
 		}
 
+		if (!staticTestData){
+			staticTestData=`${helixSchema.relation}_${helixSchema.view}`;
+		}
+
+
+
 		const staticDataPath = path.join(staticDataDirectoryPath, staticTestData);
 
 		if (typeof maybeFunc == 'function') {
