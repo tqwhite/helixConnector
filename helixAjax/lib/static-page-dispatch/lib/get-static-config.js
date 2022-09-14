@@ -39,8 +39,8 @@ var moduleFunction = function(args) {
 				eventName: eventName,
 				data: outData
 			});
-		}; 
-	 //DATABASE SPECIFIC SPECIFICATIONS ====================================
+		};
+	//DATABASE SPECIFIC SPECIFICATIONS ====================================
 	
 	//GENERIC DATABASE SPECIFICATIONS ====================================
 	var moduleFileName = module.filename.replace(/^\/.*\/([a-zA-Z_]+\.js)/, '$1');
@@ -64,14 +64,6 @@ var moduleFunction = function(args) {
 		`staticPageParmeters=${specificationFilePath} (USED BY STATICPAGEDISPATCH.js:44)`
 	);
 
-console.log(`\n=-=============   specificationFileName  ========================= [get-static-config.js.moduleFunction]\n`);
-
-
-console.log(`specificationFileName=${specificationFileName}`);
-
-console.log(`\n=-=============   specificationFileName  ========================= [get-static-config.js.moduleFunction]\n`);
-
-	
 	var specsJson = qtools.fs.readFileSync(specificationFilePath);
 	try {
 		var specs = JSON.parse(specsJson);
@@ -125,5 +117,5 @@ console.log(`\n=-=============   specificationFileName  ========================
 //END OF moduleFunction() ============================================================
 
 util.inherits(moduleFunction, events.EventEmitter);
-module.exports = new moduleFunction();          
+module.exports = new moduleFunction();
 

@@ -1,0 +1,11 @@
+{
+  "name": "qtools-get-by-property",
+  "version": "1.0.0",
+  "description": "method of array that contains objects, parameters are a dotted string representing the path to the value for comparison and a match value, returns the object with a mathcing property\"",
+  "main": "qtools-get-by-property.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

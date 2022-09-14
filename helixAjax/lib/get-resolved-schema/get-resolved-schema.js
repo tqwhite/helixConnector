@@ -96,7 +96,7 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 
 		schema.schemaType = schema.schemaType ? schema.schemaType : 'helixAccess'; //just for completeness, I made it the default when I was young and stupid
 
-		if (false && qtools.isTrue(schema.debugData) && schema.schemaName) {
+		if (qtools.isTrue(schema.debugData) && schema.schemaName) {
 			qtools.logWarn(
 				`debugData=true on schema ${schemaName}, writing files to /pathParts`
 			);
@@ -104,7 +104,7 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 				schema.schemaName
 			}.txt`;
 			qtools.logWarn(`WRITING get request query: ${filePath} (debugData=true)`);
-			qtools.writeSureFile(filePath, JSON.stringify(req.query));
+			qtools.writeSureFile(filePath, JSON.stringify({...req.query, tqNote:'remember, leading ? is removed by get-responder-catchall.js before actual processing'}));
 		}
 
 		return schema;

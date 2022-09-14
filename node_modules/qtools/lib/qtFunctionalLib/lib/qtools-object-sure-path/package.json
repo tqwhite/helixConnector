@@ -1,0 +1,11 @@
+{
+  "name": "qtools-object-sure-path",
+  "version": "1.0.0",
+  "description": "mutate properties in an object based on a dotted path",
+  "main": "qtools-object-sure-path.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

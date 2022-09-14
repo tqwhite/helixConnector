@@ -51,14 +51,13 @@ const moduleFunction = function(args) {
 	); //this is a server component, don't die on error
 
 	const { hxScriptRunner, helixUserAuth } = args;
-
-
+	
 	if (argsErrorList) {
 		throw new Error(argsErrorList);
 	}
 	const self = this;
 	self.helixAccessParms = qtools.clone(self.helixAccessParms);
-	self.helixAccessParms.helixUserAuth=helixUserAuth;
+	self.helixAccessParms.helixUserAuth = helixUserAuth;
 
 	const authenticationHandler = new authenticationHandlerGen({
 		authKey: args.helixAccessParms.authKey,
@@ -68,7 +67,9 @@ const moduleFunction = function(args) {
 		req: this.req
 	});
 
-	this.apiAccessAuthParms = this.apiAccessAuthParms ? this.apiAccessAuthParms : {};
+	this.apiAccessAuthParms = this.apiAccessAuthParms
+		? this.apiAccessAuthParms
+		: {};
 	
 	//LOCAL FUNCTIONS ====================================
 	const exitEventHandler = () => {
@@ -207,7 +208,7 @@ const moduleFunction = function(args) {
 		makeApplescriptDataString
 	) => args => {
 		const { scriptElement, processName, parameters, helixSchema } = args;
-		
+
 		const inData = qtools.clone(parameters.inData) || {};
 		const otherParms = parameters.otherParms || {};
 
@@ -246,12 +247,14 @@ const moduleFunction = function(args) {
 			),
 			script = scriptElement.script;
 
-		replaceObject.dataString = makeApplescriptDataString(
-			helixSchema,
+		
+		replaceObject.dataString = makeApplescriptDataString({
+			schema: helixSchema,
 			otherParms,
 			inData,
-			helixSchema.separators
-		);
+			separators: helixSchema.separators,
+			workingHelixAccessParms
+		});
 
 		if (qtools.isTrue(helixSchema.debugData) && !helixSchema.internalSchema) {
 			const filePath = `/tmp/hxc_HelixReplaceObject_${new Date().getTime()}_${
@@ -276,6 +279,10 @@ const moduleFunction = function(args) {
 			);
 		}
 
+		//otherParms gets the query in get/post-responder-catchall.js including meta query elements, if any
+		//eg, hxcPagedRecordCount, hxcPagedRecordOffset, hxcReturnMetaDataOnly
+
+		
 		if (
 			helixSchema.criterion &&
 			parameters.criterion &&
@@ -285,11 +292,11 @@ const moduleFunction = function(args) {
 				helixSchema,
 				helixSchema.criterion
 			);
-			replaceObject.criterion.dataString = makeApplescriptDataString(
-				helixSchema.criterion,
+			replaceObject.criterion.dataString = makeApplescriptDataString({
+				schema: helixSchema.criterion,
 				otherParms,
-				parameters.criterion.data
-			);
+				inData: parameters.criterion.data
+			});
 		}
 
 		if (
@@ -322,13 +329,18 @@ const moduleFunction = function(args) {
 		remoteControlManagerGen,
 		helixEngineGen,
 		helixAccessParms
-	) => (libraryScriptName, parameters, callback) => {
-		if (!parameters.schema) {
-			parameters('Must have schema');
+	) => (libraryScriptName, retrievalParms, callback) => {
+		if (!retrievalParms.schema) {
+			retrievalParms('Must have schema');
 			return;
 		}
 		//this allows mapping of user friendly names to file names and processes
 		//also complex tasks if needed, especially if other thing need killing
+
+		//	const QUERYPARMS=retrievalParms.criterion
+
+		const { otherParms } = retrievalParms;
+
 		switch (libraryScriptName) {
 			case 'kill':
 			case 'quitHelixNoSave':
@@ -336,17 +348,17 @@ const moduleFunction = function(args) {
 					getScript,
 					compileScript,
 					helixAccessParms
-				}).execute('testQuitHelixNoSave', parameters);
+				}).execute('testQuitHelixNoSave', retrievalParms);
 				break;
 			case 'fromFile':
 			case 'staticTest':
-				executeStaticTestRoute(parameters.schema, parameters.callback);
+				executeStaticTestRoute(retrievalParms.schema, retrievalParms.callback);
 				break;
 			case 'remoteControlManager':
 				new remoteControlManagerGen({
 					getScript,
 					compileScript
-				}).execute(parameters.schema.scriptName, parameters);
+				}).execute(retrievalParms.schema.scriptName, retrievalParms);
 				break;
 			case 'THIS IS THE MAIN CASE FOR ACCESSING HELIX':
 			case 'retrieveRecords':
@@ -355,19 +367,20 @@ const moduleFunction = function(args) {
 				const helixEngineInstance3 = new helixEngineGen({
 					getScript,
 					compileScript,
-					helixAccessParms
+					helixAccessParms,
+					otherParms
 				});
 
-				const invalid = helixEngineInstance3.validateSchema(parameters);
+				const invalid = helixEngineInstance3.validateSchema(retrievalParms);
 				if (invalid) {
 					callback(new Error(invalid));
 					return;
 				}
 
-				helixEngineInstance3.execute(libraryScriptName, parameters);
+				helixEngineInstance3.execute(libraryScriptName, retrievalParms); //executeActual
 				break;
 			default:
-				parameters.callback(
+				retrievalParms.callback(
 					`unknown libraryScriptName type '${libraryScriptName}' in helixConnector.js`
 				);
 				break;
@@ -404,10 +417,10 @@ const moduleFunction = function(args) {
 	
 	//MAIN ENTRY ROUTINE =======================================================================
 
-	const processActual = executeProcess=> (control, parameters) => {
-	
-		const {callback}=parameters;
+	const processActual = executeProcess => (control, parameters) => {
 		
+		const { callback } = parameters;
+
 		const publicEndpoint = qtools.getSurePath(
 			parameters,
 			'schema.publicEndpoint',
@@ -443,7 +456,11 @@ const moduleFunction = function(args) {
 			? 'staticTest'
 			: control;
 
-		if (!['staticTest', 'staticTest', 'remoteControl', 'helixAccess'].includes(schemaType)) {
+		if (
+			!['staticTest', 'staticTest', 'remoteControl', 'helixAccess'].includes(
+				schemaType
+			)
+		) {
 			callback(new Error(`unknown schemaType '${schemaType}'`));
 			return;
 		}
@@ -482,7 +499,6 @@ const moduleFunction = function(args) {
 		);
 		if (typeof errorMessage == 'string') {
 			return (body, callback) => {
-
 				callback(errorMessage);
 			};
 		}
@@ -497,7 +513,7 @@ const moduleFunction = function(args) {
 		}).checkUserPool(callback);
 	};
 	
-	this.process=processActual(executeProcess);
+	this.process = processActual(executeProcess);
 
 	this.close = () => {
 		//releasePoolUser();

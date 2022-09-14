@@ -1,4 +1,6 @@
-module.exports=`hxc010521`
+module.exports=`hxc083022`
+
+//hxc083022 is the paged version
 
 //hxc090121.3
 //updated summarize-configs.js to recognize remote control scripts as valid. 9/23/21

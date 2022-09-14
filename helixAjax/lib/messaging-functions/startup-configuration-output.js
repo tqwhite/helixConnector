@@ -22,11 +22,12 @@ const moduleFunction = function(args = {}) {
 		}
 		// prettier-ignore
 		qtools.log(
-`XXXXXXXXXXX
+`
 ${summarizeConfig({newConfig}).system()}
 ${summarizeConfig({newConfig}).endpointOverview()}
 note: helixEngine.delayReleasePoolUser=${helixParms.qtGetSurePath( 'helixEngine.delayReleasePoolUser' )}
 endpoints directory: ${schemaMapPath}${helixParms.suppressTokenSecurityFeatures?'\nWARNING: systemParameters.ini/suppressTokenSecurityFeatures=true':''}
+applescript driver log file path: ${newConfig.system.driverLogFilePath}
 reminder: setting debugData=true in endpoint causes helix-data to log JSON to a file in /tmp/...
 Code Version: ${hxcVersion}
 ${new Date().toLocaleTimeString()}: Magic happens on port ${

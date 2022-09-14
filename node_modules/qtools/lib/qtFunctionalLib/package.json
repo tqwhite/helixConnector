@@ -1,0 +1,30 @@
+{
+  "name": "qtfunctionallib",
+  "version": "1.0.0",
+  "description": "Useful additions to JS prototypes to facilliate chainable, functional (mostly) style. Also make life more convenient.\"",
+  "main": "qtFunctionalLib.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tqwhite/qtFunctionalLib.git"
+  },
+  "author": "TQ White II",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/tqwhite/qtFunctionalLib/issues"
+  },
+  "homepage": "https://github.com/tqwhite/qtFunctionalLib#readme",
+  "devDependencies": {},
+  "keywords": [
+    "functional",
+    "chain"
+  ],
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/evangelion1204/multi-ini/blob/master/LICENSE"
+    }
+  ]
+}

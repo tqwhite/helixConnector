@@ -1,0 +1,11 @@
+{
+  "name": "qtools-pass-through",
+  "version": "1.0.0",
+  "description": "executes a supplied function but never changes the value supplied",
+  "main": "qtools-pass-through.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

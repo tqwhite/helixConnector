@@ -34,11 +34,15 @@ var moduleFunction = function(args) {
 			{
 				name: 'initCallback',
 				optional: true
+			},
+			{
+				name: 'otherParms',
+				optional: true
 			}
 		]
 	});
 
-	const { getScript, compileScript } = args;
+	const { getScript, compileScript, otherParms = {} } = args;
 
 	//LOCAL FUNCTIONS ====================================
 
@@ -138,6 +142,13 @@ var moduleFunction = function(args) {
 		hxPoolUserAccessor,
 		helixAccessParms
 	) => (processName, parameters) => {
+		//
+		// processName is libraryScriptName from helixConnector
+		// parameters is retrievalParms from helixConnector
+		//
+
+		const retrievalParms = parameters;
+		
 		const callback = parameters.callback;
 		const taskList = new taskListPlus();
 		const { helixUserAuth } = helixAccessParms;
@@ -188,7 +199,7 @@ var moduleFunction = function(args) {
 
 			const workingParameters = qtools.clone(parameters);
 			parameters.callback = localCallback;
-			hxScriptRunner(processName, parameters);
+			hxScriptRunner(processName, parameters); //hxScriptRunnerActual
 		});
 
 		if (needPoolUser) {
@@ -208,7 +219,7 @@ var moduleFunction = function(args) {
 					args.releaseStatus = releaseStatus;
 					next(err, args);
 				};
-				
+
 				if (args.poolUserObject) {
 					parameters.poolUserObject = poolUserObject;
 				}
@@ -249,12 +260,15 @@ var moduleFunction = function(args) {
 			getScript,
 			compileScript,
 			helixData,
-			helixAccessParms
+			helixAccessParms,
+			otherParms
 		} = args;
 
 		const helixSchema = qtools.clone(parameters.schema) || {};
 		const scriptElement = getScript(processName);
 		const osascript = require('osascript').eval;
+
+		const { hxcReturnMetaDataOnly } = otherParms;
 
 		const tmp =
 			typeof parameters.schema != 'undefined'
@@ -274,7 +288,7 @@ var moduleFunction = function(args) {
 				helixSchema
 			}),
 			callback = parameters.callback || function() {};
-
+		
 		if (helixSchema.debug === 'true' || helixSchema.debug === true) {
 			console.log(
 				'finalScript=\n\n' +
@@ -313,28 +327,48 @@ var moduleFunction = function(args) {
 					qtools.writeSureFile(filePath, data);
 				}
 
-				data = data.replace(/([^\n])\n$/, '$1');
+				const stringData = data.replace(/([^\n])\n$/, '$1');
+				let outData;
 
+				
 				let workingSchema = helixSchema;
 				if (helixSchema.response) {
 					workingSchema = helixSchema.response;
 				}
-
+				
 				if (
 					workingSchema.returnsJson === 'true' ||
 					workingSchema.returnsJson === true
 				) {
 					try {
-						data = JSON.parse(data);
+						outData = JSON.parse(stringData);
 					} catch (e) {
 						callback(new Error(e));
 						return;
 					}
 				} else {
-					data = helixData.helixStringToRecordList(workingSchema, data);
+					outData = helixData.helixStringToRecordList(
+						workingSchema,
+						stringData
+					);
 				}
 
-				callback('', data);
+				if (hxcReturnMetaDataOnly) {
+					outData = [
+						{
+							totalRecordsAvailable: stringData,
+							schemaName: workingSchema.schemaName,
+							relation: workingSchema.relation,
+							view: workingSchema.view,
+							criterionSchemaName: workingSchema.criterionSchemaName,
+							queryData: args.otherParms,
+							driverHxAccessRecordCount:
+								helixAccessParms.driverHxAccessRecordCount
+						}
+					];
+				}
+
+				callback('', outData);
 			}
 		);
 	};
@@ -346,7 +380,8 @@ var moduleFunction = function(args) {
 		getScript,
 		compileScript,
 		helixData,
-		helixAccessParms: this.helixAccessParms
+		helixAccessParms: this.helixAccessParms,
+		otherParms
 	});
 
 	const hxPoolUserAccessor = new poolUserGen({

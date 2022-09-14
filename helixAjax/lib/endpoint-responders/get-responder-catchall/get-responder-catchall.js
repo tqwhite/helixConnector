@@ -7,12 +7,7 @@ const qt = require('qtools-functional-library');
 //START OF moduleFunction() ============================================================
 
 const moduleFunction = function(args = {}) {
-	const {
-		schemaResolver,
-		fabricateConnector,
-		sendResult,
-		send500r
-	} = args;
+	const { schemaResolver, fabricateConnector, sendResult, send500 } = args;
 	
 	
 
@@ -38,7 +33,7 @@ const moduleFunction = function(args = {}) {
 		var retrievalParms = {
 			authToken: 'hello',
 			helixSchema: qtools.clone(schema),
-			otherParms: {},
+			otherParms: req.query,
 			debug: false,
 			inData: {},
 			callback: callback
@@ -65,7 +60,7 @@ const moduleFunction = function(args = {}) {
 			retrievalParms.criterion.data = criterion;
 		}
 
-		helixConnector.process('retrieveRecords', retrievalParms);
+		helixConnector.process('retrieveRecords', retrievalParms); //processActual
 	};
 
 	//==================================================================================
@@ -91,6 +86,20 @@ const moduleFunction = function(args = {}) {
 		try {
 			testHxServerAliveSchema.original = qtools.clone(testHxServerAliveSchema);
 		} catch (err) {
+			if (!send500) {
+				const send500 = (res, req, message) => {
+					qtools.logWarn(`500 error: ${req.path}=>${message}`);
+					res.status(500).send(escape(message));
+				};
+				send500(
+					res,
+					req,
+					`Schema '${schemaName}' Missing send500 and CRASH CRASH CRASH Mysterious qtools.clone stack overflow soft error. HACK`
+				);
+				process.exit(1);
+				return;
+			}
+
 			send500(
 				res,
 				req,
@@ -113,12 +122,29 @@ const moduleFunction = function(args = {}) {
 			}
 
 			if (helixConnector) {
+				const cleanQuery = Object.keys(req.query)
+					.map(name => ({
+						origName: name,
+						revisedName: name.replace(/^\?/, '')
+					}))
+					.reduce(
+						(result, item) => ({
+							...result,
+							...{ [item.revisedName]: req.query[item.origName] }
+						}),
+						{}
+					);
+
+				delete cleanQuery.hxcPagedRecordOffset; //these are meta parameters, never part of a real query
+				delete cleanQuery.hxcPagedRecordCount;
+				delete cleanQuery.hxcReturnMetaDataOnly;
+
 				switch (schema.schemaType) {
 					case 'remoteControl':
 						remoteControl(
 							helixConnector,
 							schema,
-							req.query,
+							cleanQuery,
 							sendResult(res, req, next, helixConnector)
 						);
 						break;
@@ -128,7 +154,7 @@ const moduleFunction = function(args = {}) {
 						retrieveRecords(
 							helixConnector,
 							schema,
-							req.query,
+							cleanQuery,
 							sendResult(res, req, next, helixConnector),
 							req,
 							res

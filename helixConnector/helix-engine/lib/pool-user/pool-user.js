@@ -176,7 +176,7 @@ var moduleFunction = function(args) {
 		const initialData = typeof inData != 'undefined' ? inData : {};
 		asynchronousPipe(taskList.getList(), initialData, (err, finalResult) => {
 			//console.dir({ 'finalResult [asyncPipe Boilerplate.]': finalResult });
-			callback(err, finalResult.poolUserObject);
+			callback(finalResult.poolUserObject.error, finalResult.poolUserObject);
 		});
 	};
 

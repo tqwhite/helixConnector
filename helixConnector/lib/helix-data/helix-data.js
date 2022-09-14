@@ -296,12 +296,12 @@ var moduleFunction = function(args) {
 	//SYSTEM DATA MANIPULATION ====================================
 
 	//this is called as compileScript() from helixConnector.compileScriptActual() which is called from helix-engine.
-	self.makeApplescriptDataString = function(
+	self.makeApplescriptDataString = function({
 		schema,
 		otherParms,
 		inData,
 		separators
-	) {
+	}) {
 		const { fieldSequenceList, mapping } = schema;
 
 		const destination = 'toHelix';
@@ -316,7 +316,11 @@ var moduleFunction = function(args) {
 				var outString = '';
 				for (var i = 0, len = inData.length; i < len; i++) {
 					var element = inData[i];
-					var replaceObject = qtools.extend(element, otherParms);
+					const workingOtherParms = qtools.clone(otherParms);
+					delete workingOtherParms.hxcPagedRecordOffset; //these are meta parameters, never part of a real query
+					delete workingOtherParms.hxcPagedRecordCount;
+
+					var replaceObject = qtools.extend(element, workingOtherParms);
 
 					/*
 
@@ -351,7 +355,13 @@ var moduleFunction = function(args) {
 				break;
 
 			case 'object':
-				var replaceObject = qtools.extend(inData, otherParms);
+				const workingOtherParms = qtools.clone(otherParms);
+				delete workingOtherParms.hxcPagedRecordOffset; //these are meta parameters, never part of a real query
+				delete workingOtherParms.hxcPagedRecordCount;
+				delete workingOtherParms.hxcReturnMetaDataOnly;
+
+				var replaceObject = qtools.extend(inData, workingOtherParms);
+
 				outString = jsObjectToHxTabSeparated(
 					fieldSequenceList,
 					mapping,
@@ -387,7 +397,7 @@ var moduleFunction = function(args) {
 		schema = schema || [];
 		var outString = '',
 			workingMappingFunction;
-		
+
 		for (
 			var fieldSequencePosition = 0, len = schema.length;
 			fieldSequencePosition < len;
@@ -399,7 +409,7 @@ var moduleFunction = function(args) {
 			const mappingFunctionName = mapping[fieldName]
 				? mapping[fieldName]
 				: 'StringType';
-				
+
 			if (typeof mappingFunctionName == 'function') {
 				workingMappingFunction = mappingFunctionName;
 			} else if (typeof mappingFunctionName == 'string') {

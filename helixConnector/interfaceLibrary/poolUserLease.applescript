@@ -10,8 +10,15 @@ set myPassword to "<!password!>"
 	
 tell application "<!applicationName!>"
 	
-set theRetrievedData to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as list
+	set theRetrievedData to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as list
 	
+	set poolCount to length of theRetrievedData
+	if (poolCount = 0) then
+		set one to my jProp("error", "No pool users found in Helix")
+		set json to my jObj({one})
+		set errorMessage to text 1 thru -2 of json
+		return errorMessage
+	end if
 	
 	set myLeasedUser to item 1 of helix record of item 1 of theRetrievedData
 	set leasePassword to item 2 of helix record of item 1 of theRetrievedData
