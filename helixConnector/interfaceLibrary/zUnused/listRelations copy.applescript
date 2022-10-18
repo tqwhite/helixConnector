@@ -1,13 +1,18 @@
-use AppleScript version "2.4" -- Yosemite (10.10) or later
-use scripting additions
-
---swap out as necessary
 tell application "<!applicationName!>"
-
-	set appendedText to ""
 	
-	tell collection 1
+	set myCollection to "<!collection!>"
+	set myRelation to "<!relation!>"
+	set myView to "<!view!>"
+	set myUser to "<!user!>"
+	set myPassword to "<!password!>"
+	
+--<!processName!> - <!callingProcess!>
+	
+	
+	tell collection myCollection
+		set appendedText to ""
 		
+		login myUser password myPassword -- without modifying allowed (this last part not needed)
 		set allMyRelations to every relation
 		repeat with i from 1 to (count allMyRelations)
 			set myRelation to relation i

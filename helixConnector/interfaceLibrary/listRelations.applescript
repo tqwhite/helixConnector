@@ -7,7 +7,8 @@ tell application "<!applicationName!>"
 	set myPassword to "<!password!>"
 	
 --<!processName!> - <!callingProcess!>
-	
+-- REFERENCED in .../code/helixConnector/helix-engine/lib/pool-user/pool-user.js
+-- pool-user.js.getRelationList() is unused. not mentioned anywhere I can find today. 10/14/22 tqii
 	
 	tell collection myCollection
 		set appendedText to ""

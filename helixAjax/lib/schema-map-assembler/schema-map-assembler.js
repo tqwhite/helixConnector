@@ -32,9 +32,10 @@ var moduleFunction = function(args) {
 		const autoIncludeItems = qtools.fs.readdirSync(autoIncludeDirectoryPath);
 		let outObj = {};
 		let count = 0;
-		let duplicateCount=0;
-		const llength=autoIncludeItems
-			.filter(fileName => fileName.match(/\.json$/))
+		let duplicateCount = 0;
+		const llength = autoIncludeItems.filter(fileName =>
+			fileName.match(/\.json$/)
+		);
 		autoIncludeItems
 			.filter(fileName => fileName.match(/\.json$/))
 			.forEach(fileName => {
@@ -43,10 +44,11 @@ var moduleFunction = function(args) {
 					const contents = qtools.fs.readFileSync(endpointFilePath).toString();
 					const element = JSON.parse(contents);
 
-					const newPropertyName=Object.keys(element).qtLast();
-					
-					if (outObj[newPropertyName]){
-						qtools.logWarn(`Duplicate property name, ${newPropertyName}, found in ${endpointFilePath}`);
+					const newPropertyName = Object.keys(element).qtLast(); 
+					 if (outObj[newPropertyName]) {
+						qtools.logWarn(
+							`Duplicate property name, ${newPropertyName}, found in ${endpointFilePath}`
+						);
 						duplicateCount++;
 					}
 
@@ -59,7 +61,9 @@ var moduleFunction = function(args) {
 				}
 			});
 
-		const duplicateCountString=duplicateCount?` (including ${duplicateCount} duplicates)`:'';
+		const duplicateCountString = duplicateCount
+			? ` (including ${duplicateCount} duplicates)`
+			: '';
 		qtools.logMilestone(
 			`added ${count} items${duplicateCountString} from autoIncludeDirectoryPath: ${autoIncludeDirectoryPath}`
 		);

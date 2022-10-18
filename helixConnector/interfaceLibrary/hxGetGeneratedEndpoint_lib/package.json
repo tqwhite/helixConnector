@@ -1,0 +1,15 @@
+{
+  "name": "hxgetgeneratedendpoint_lib",
+  "version": "1.0.0",
+  "description": "JS routines to support hxC applescript",
+  "main": "elementFormatter.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC",
+  "dependencies": {
+    "qtools-functional-library": "^1.1.10",
+    "qtools-parse-command-line": "^1.0.5"
+  }
+}

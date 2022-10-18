@@ -105,7 +105,7 @@ var moduleFunction = function(args) {
 			return badDataMessage;
 		}
 	};
-	
+
 	const executeHelixOperation = function(processName, parameters) {};
 
 	const executeOsaScript = (script, parms, callback) => {
@@ -148,7 +148,7 @@ var moduleFunction = function(args) {
 		//
 
 		const retrievalParms = parameters;
-		
+
 		const callback = parameters.callback;
 		const taskList = new taskListPlus();
 		const { helixUserAuth } = helixAccessParms;
@@ -157,6 +157,13 @@ var moduleFunction = function(args) {
 		const needPoolUser = !(
 			parameters.schema.skipPoolUser == true || receivedUserAuth
 		);
+
+		console.dir(
+			{ ['helixUserAuth']: helixUserAuth },
+			{ showHidden: false, depth: 2, colors: true }
+		);
+
+		console.log(`needPoolUser=${needPoolUser}`);
 
 		if (needPoolUser) {
 			taskList.push((args, next) => {
@@ -190,6 +197,10 @@ var moduleFunction = function(args) {
 					leaseUserName: helixUserAuth.hxUser,
 					leasePassword: helixUserAuth.hxPassword
 				};
+				console.log(
+					`\n=-=============    auth parameters  ========================= [helix-engine.js.moduleFunction]\n`
+				);
+
 				qtools.logMilestone(
 					`received helix user auth parameters (user: '${
 						helixUserAuth.hxUser
@@ -213,8 +224,12 @@ var moduleFunction = function(args) {
 						executeRelease();
 						return;
 					}
+
 					if (err) {
-						err = new Error(`err.toString() (tried ${retryCount + 1} times)`);
+						err = new Error(
+							`${err.toString()} (tried ${retryCount +
+								1} times) [helix-engine.js]`
+						);
 					}
 					args.releaseStatus = releaseStatus;
 					next(err, args);
@@ -254,6 +269,17 @@ var moduleFunction = function(args) {
 		});
 	};
 
+	const mapSeparationAliases = (separators = {}) => {
+		const outObject = {};
+		Object.keys(separators).forEach(name => {
+			outObject[name] = separators[name]
+				.replace(/TAB/g, '\t')
+				.replace(/CR/g, '\r');
+		});
+
+		return outObject;
+	};
+
 	const hxScriptRunnerActual = args => (processName, parameters) => {
 		const {
 			executeOsaScript,
@@ -280,6 +306,8 @@ var moduleFunction = function(args) {
 			return;
 		}
 
+		helixSchema.separators = mapSeparationAliases(helixSchema.separators); //replace aliases TAB and CR (applescript endpointGenerator has a very bad time with backslashes, esp, \t
+
 		//compileScript() is actually helixConnector.compileScriptActual which calla helixData.makeApplescriptDataString()
 		const finalScript = compileScript({
 				scriptElement,
@@ -288,7 +316,7 @@ var moduleFunction = function(args) {
 				helixSchema
 			}),
 			callback = parameters.callback || function() {};
-		
+
 		if (helixSchema.debug === 'true' || helixSchema.debug === true) {
 			console.log(
 				'finalScript=\n\n' +
@@ -330,12 +358,11 @@ var moduleFunction = function(args) {
 				const stringData = data.replace(/([^\n])\n$/, '$1');
 				let outData;
 
-				
 				let workingSchema = helixSchema;
 				if (helixSchema.response) {
 					workingSchema = helixSchema.response;
 				}
-				
+
 				if (
 					workingSchema.returnsJson === 'true' ||
 					workingSchema.returnsJson === true
@@ -396,7 +423,7 @@ var moduleFunction = function(args) {
 	);
 
 	this.validateSchema = validateSchema;
-	
+
 	this.checkUserPool = callback => {
 		hxPoolUserAccessor.checkUserPool(callback);
 	};

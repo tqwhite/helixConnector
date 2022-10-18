@@ -7,8 +7,10 @@ tell application "<!applicationName!>"
 	set myPassword to "<!password!>"
 	set myData to ("<!dataString!>")
 	
---<!processName!> - <!callingProcess!>
--- <!schemaName!>
+	--<!processName!> - <!callingProcess!>
+	-- <!schemaName!>
+		
+	-- <!endpointFilePath!>
 	
 	tell collection 1
 		with timeout of 3600 seconds

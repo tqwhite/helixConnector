@@ -4,77 +4,48 @@ const qtoolsGen = require('qtools');
 const qtools = new qtoolsGen(module, { updatePrototypes: true });
 
 const qt = require('qtools-functional-library');
-//console.dir(qt.help());
-
+// console.dir(qt.help());
+// process.exit();
 //START OF moduleFunction() ============================================================
 
 const moduleFunction = function({ newConfig } = {}) {
-	
 	const isValid = element =>
 		(qtools.getSurePath(element, 'relation') &&
 			qtools.getSurePath(element, 'view')) ||
 		qtools.getSurePath(element, 'scriptName');
-	
+
 	const relationsAndViews = ({ resultFormat = 'jsObj' } = {}) => {
+		const reorganizeAndFilter = (result, keyName) => {
+			const element = newConfig.system.schemaMap[keyName];
+
+			result.totalEntries++;
+
+			let tmp = 'n/a';
+			if (typeof element.fieldSequenceList != 'undefined') {
+				tmp = element.fieldSequenceList.qtDump({ toString: true });
+			}
+
+			if (isValid(element)) {
+				result.push({
+					endpointName: keyName,
+					note: element.note,
+					fields: tmp,
+					relation: element.relation,
+					view: element.view,
+					criterionSchemaName: element.criterionSchemaName,
+					testViewName: element.testViewName,
+					noPostViewName: element.noPostViewName,
+					nativeRelationName: element.nativeRelationName,
+					endpointFilePath: element.endpointFilePath
+				});
+			}
+			return result;
+		};
+
 		const result = Object.keys(newConfig.system.schemaMap)
-			.reduce((result, keyName) => {
-				const element = newConfig.system.schemaMap[keyName];
-
-				result.totalEntries++;
-
-				if (isValid(element)) {
-					result.push({
-						endpointName: keyName,
-						relation: element.relation,
-						view: element.view,
-						criterionSchemaName: element.criterionSchemaName,
-						testViewName: element.testViewName,
-						noPostViewName: element.noPostViewName,
-						nativeRelationName: element.nativeRelationName
-					});
-				}
-				return result;
-			}, [])
-			.reduce((result, item) => {
-				if (isValid(item)) {
-					result.push({
-						endpointName: item.endpointName,
-						relation: item.relation,
-						view: item.endpointName,
-						type: 'primaryEndpoint',
-						nativeRelationName: item.nativeRelationName
-					});
-				}
-				// 				if (isValid(item) && item.criterionSchemaName) {
-				// 					result.push({
-				// 						endpointName: item.endpointName,
-				// 						relation: item.relation,
-				// 						view: item.criterionSchemaName,
-				// 						type: 'criterionSchemaName',
-				// 						nativeRelationName: item.nativeRelationName
-				// 					});
-				// 				}
-				// 				if (isValid(item) && item.testViewName) {
-				// 					result.push({
-				// 						endpointName: item.endpointName,
-				// 						relation: item.relation,
-				// 						view: item.testViewName,
-				// 						type: 'testViewName',
-				// 						nativeRelationName: item.nativeRelationName
-				// 					});
-				// 				}
-				// 				if (isValid(item) && item.noPostViewName) {
-				// 					result.push({
-				// 						endpointName: item.endpointName,
-				// 						relation: item.relation,
-				// 						view: item.noPostViewName,
-				// 						type: 'noPostViewName',
-				// 						nativeRelationName: item.nativeRelationName
-				// 					});
-				// 				}
-
-				return result;
-			}, [])
+			.reduce(reorganizeAndFilter, [])
+			.filter(element => isValid(element))
+			.map(element => ({ ...element, type: 'primaryEndpoint' }))
 			.sort(qtools.byObjectProperty('endpointName'));
 
 		if (resultFormat == 'jsObj') {
@@ -113,9 +84,9 @@ const moduleFunction = function({ newConfig } = {}) {
 			validEndpointCount.usableEndpoints
 		} usable endpoints out of ${
 			validEndpointCount.totalEntries
-		} items found in schemaMap`;
+		} items found in schemaMap (including internal endpoints)`;
 	};
-	
+
 	const system = () => {
 		// prettier-ignore
 		return `Config Summary:
@@ -129,7 +100,7 @@ const moduleFunction = function({ newConfig } = {}) {
 ....staticDataDirectoryPath: ${qtools.getSurePath(newConfig, 'system.staticDataDirectoryPath', 'missing staticDataDirectoryPath')}
 ....privilegedHosts: ${Object.keys(qtools.getSurePath(newConfig, 'system.privilegedHosts', {privilegedHosts:[]})).map(((item, entire, xxx)=>(newConfig.system.privilegedHosts)?newConfig.system.privilegedHosts[item]:'no privileged hosts'))}`;
 	};
-	
+
 	return { system, endpointOverview, relationsAndViews };
 };
 

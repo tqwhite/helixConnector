@@ -20,7 +20,17 @@ set myView to "<!viewName!>"
 set myUser to "<!user!>"
 set myPassword to "<!password!>"
 
+set driverLogFilePath to "<!driverLogFilePath!>"
 
+
+		do shell script "echo \"\nGetViewSummary to: " & driverLogFilePath & "   [$(date)]\" >> " & driverLogFilePath
+
+-- 		do shell script "echo \" driver version:   [$(date)]\" >> " & driverLogFilePath
+-- 		do shell script "echo \" accessing: " & myRelation & "/" & myView & "   [$(date)]\" >> " & driverLogFilePath
+-- 		do shell script "echo \" systemParameters.driverHxAccessRecordCount " & driverHxAccessRecordCount & "   [$(date)]\" >> " & driverLogFilePath
+-- 		do shell script "echo \" queryParameters.hxcPagedRecordOffset " & hxcPagedRecordOffset & "   [$(date)]\" >> " & driverLogFilePath
+-- 		do shell script "echo \" queryParameters.hxcPagedRecordCount " & hxcPagedRecordCount & "   [$(date)]\" >> " & driverLogFilePath
+		
 
 --swap out as necessary
 tell application "<!applicationName!>"

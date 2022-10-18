@@ -20,19 +20,30 @@ const moduleFunction = function(args = {}) {
 		if (helixParms.suppressTokenSecurityFeatures) {
 			qtools.logWarn(`WARNING: suppressTokenSecurityFeatures=true`);
 		}
+		
+		
+//=============   showSchemaSummary  ========================= 
+
+		const showSchemaSummary=true; //false suppresses output
+		
+//=============   showSchemaSummary  ========================= 
+		
 		// prettier-ignore
 		qtools.log(
 `
+
 ${summarizeConfig({newConfig}).system()}
 ${summarizeConfig({newConfig}).endpointOverview()}
 note: helixEngine.delayReleasePoolUser=${helixParms.qtGetSurePath( 'helixEngine.delayReleasePoolUser' )}
 endpoints directory: ${schemaMapPath}${helixParms.suppressTokenSecurityFeatures?'\nWARNING: systemParameters.ini/suppressTokenSecurityFeatures=true':''}
 applescript driver log file path: ${newConfig.system.driverLogFilePath}
 reminder: setting debugData=true in endpoint causes helix-data to log JSON to a file in /tmp/...
+${showSchemaSummary?(summarizeConfig({newConfig}).relationsAndViews().qtDump({label:'\n[startup-configuration-output.js]'}))?'endpoint details from  startup-configuration-output.js (showSchemaSummary) displayed above':'':'endpoint details available in startup-configuration-output.js (showSchemaSummary)'}
 Code Version: ${hxcVersion}
 ${new Date().toLocaleTimeString()}: Magic happens on port ${
 staticPageDispatchConfig.port
-}${sslAnnotation}. ----------------------------------------------------------`
+}${sslAnnotation}. ----------------------------------------------------------
+`
 			);
 		console.error(
 			`helixAjax (version ${hxcVersion}) startup complete: ${new Date().toLocaleString()}`

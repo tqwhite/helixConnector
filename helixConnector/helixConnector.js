@@ -105,13 +105,17 @@ const moduleFunction = function(args) {
 				}
 			};
 
+
+
 			let scriptElement = scriptNameMap[functionName];
 
 			if (scriptElement) {
-				return scriptElement;
+
+				return {...scriptElement, scriptFilePath:scriptElement.path};
 			}
 
-			const internalLibPath = __dirname + '/interfaceLibrary/';
+			const internalLibPath = path.join(__dirname, 'interfaceLibrary');
+
 
 			if (remoteControlDirectoryPath) {
 				scriptElement = {
@@ -119,11 +123,12 @@ const moduleFunction = function(args) {
 						remoteControlDirectoryPath,
 						`${functionName}.applescript`
 					),
-					language: 'AppleScript'
+					language: 'AppleScript',
+				tqiiHacks:'he is the worst! (remove this)'
 				};
 
 				if (qtools.realPath(scriptElement.path)) {
-					return scriptElement;
+					return {...scriptElement, scriptFilePath:scriptElement.path};
 				}
 
 				scriptElement = {
@@ -132,7 +137,7 @@ const moduleFunction = function(args) {
 				};
 
 				if (qtools.realPath(scriptElement.path)) {
-					return scriptElement;
+					return {...scriptElement, scriptFilePath:scriptElement.path};
 				}
 
 				scriptElement = {
@@ -141,17 +146,20 @@ const moduleFunction = function(args) {
 				};
 
 				if (qtools.realPath(scriptElement.path)) {
-					return scriptElement;
+					return {...scriptElement, scriptFilePath:scriptElement.path};
 				}
 			}
-
+			
+			const internalScriptFilePath=path.join(internalLibPath, `${functionName}.applescript`);
+			
 			scriptElement = {
-				path: path.join(internalLibPath, `${functionName}.applescript`),
-				language: 'AppleScript'
+				path: internalScriptFilePath,
+				language: 'AppleScript',
+				tqiiHacks:'sure as hell does! (remove this)'
 			};
 
 			if (qtools.realPath(scriptElement.path)) {
-				return scriptElement;
+				return {...scriptElement, scriptFilePath:scriptElement.path};
 			}
 
 			scriptElement = {
@@ -160,7 +168,7 @@ const moduleFunction = function(args) {
 			};
 
 			if (qtools.realPath(scriptElement.path)) {
-				return scriptElement;
+				return {...scriptElement, scriptFilePath:scriptElement.path};
 			}
 
 			scriptElement = {
@@ -169,7 +177,9 @@ const moduleFunction = function(args) {
 			};
 
 			if (qtools.realPath(scriptElement.path)) {
-				return scriptElement;
+
+
+				return {...scriptElement, scriptFilePath:scriptElement.path};
 			}
 		};
 		const scriptElement = getScriptPathParameters(functionName);
@@ -183,6 +193,7 @@ const moduleFunction = function(args) {
 			scriptElement.script = qtools.fs
 				.readFileSync(scriptElement.path)
 				.toString();
+			
 		} else {
 			scriptElement.err = `Error: File not found ${scriptElement.path}`;
 		}
@@ -210,7 +221,7 @@ const moduleFunction = function(args) {
 		const { scriptElement, processName, parameters, helixSchema } = args;
 
 		const inData = qtools.clone(parameters.inData) || {};
-		const otherParms = parameters.otherParms || {};
+		const otherParms = {...(parameters.otherParms || {}), ...scriptElement};
 
 		const workingHelixAccessParms = qtools.clone(helixAccessParms);
 

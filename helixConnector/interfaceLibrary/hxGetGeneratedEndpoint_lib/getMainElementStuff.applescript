@@ -1,8 +1,6 @@
 use AppleScript version "2.4" -- Yosemite (10.10) or later
 use scripting additions
 
---NEWER VERSION DOES NOT WORK RIGHT WITH CUSTOM RELATION NAMES
-
 --http://192.168.0.50:9000/getViewSummary?nativeRelationName=General%20Ledger%20Accounts&viewName=008_sync_mySQL-debug
 
 --this presupposes that there is only an abacus or a field in the rectangle
@@ -15,11 +13,47 @@ use scripting additions
 --there are other formatting specifics, such as Groups (a comma) and Dollar signs - do you need these?
 
 
-set myCollection to "<!collection!>"
-set myRelation to "<!nativeRelationName!>"
-set myView to "<!viewName!>"
-set myUser to "<!user!>"
-set myPassword to "<!password!>"
+
+set myCollection to "<!myCollection!>"
+set myRelation to "<!myRelation!>"
+set myView to "<!myView!>"
+set myUser to "<!myUser!>"
+set myPassword to "<!myPassword!>"
+
+set myData to ("<!myData!>")
+
+set driverLogFilePath to "<!driverLogFilePath!>"
+
+
+set scriptFilePath to "<!scriptFilePath!>"
+set scriptString to "/usr/local/bin/node -e 'const path=require(\"path\"); const parse=path.parse(\"" & scriptFilePath & "\"); console.log(parse.dir);'"
+set scriptParentDirPath to do shell script scriptString
+
+
+
+	-- ----------------------------------------------------------------------
+
+		-- <!processName!> - <!callingProcess!>
+		-- <!schemaName!>
+		
+		-- <!scriptFilePath!>
+		
+		-- verified to work with curldb4 prod 'hxGetGeneratedEndpoint?nativeRelationName=RELATIONNAME&viewName=VIEWNAME
+		-- nativeRelationName name can actually be either native or custom 
+	
+	-- ----------------------------------------------------------------------
+
+
+		do shell script "echo \"\nSTARTING: <!schemaName!> to: " & driverLogFilePath & "   [$(date)]\" >> " & driverLogFilePath
+ 		do shell script "echo \" creating endpoint for: " & myRelation & "/" & myView & "   [$(date)]\" >> " & driverLogFilePath
+		do shell script "echo \"scriptFilePath " & scriptFilePath & "\" >> " & driverLogFilePath
+		do shell script "echo \"scriptParentDirPath " & scriptParentDirPath & "\" >> " & driverLogFilePath
+
+-- 		do shell script "echo \" driver version:   [$(date)]\" >> " & driverLogFilePath
+-- 		do shell script "echo \" systemParameters.driverHxAccessRecordCount " & driverHxAccessRecordCount & "   [$(date)]\" >> " & driverLogFilePath
+-- 		do shell script "echo \" queryParameters.hxcPagedRecordOffset " & hxcPagedRecordOffset & "   [$(date)]\" >> " & driverLogFilePath
+-- 		do shell script "echo \" queryParameters.hxcPagedRecordCount " & hxcPagedRecordCount & "   [$(date)]\" >> " & driverLogFilePath
+		
 
 --swap out as necessary
 tell application "<!applicationName!>"
@@ -32,7 +66,18 @@ tell application "<!applicationName!>"
 		
 		login myUser password myPassword
 		
-		set theRelationName to name of relation myRelation
+		set theRelationName to ""
+		try
+			set theRelationName to name of relation myRelation
+		end try
+		
+		if (theRelationName is "") then
+			set nativeName to my getNativeNameFromCustom(myRelation)
+			
+			set myRelation to nativeName
+			set theRelationName to nativeName
+		end if
+		
 		set theRelationCustomName to the custom name of relation myRelation
 		
 		if (myView is not "") then
@@ -41,125 +86,170 @@ tell application "<!applicationName!>"
 			set viewName to (theRelationCustomName & "_sync_mySQL")
 		end if
 		
-		
-		set thisView to view viewName of relation theRelationName
-		--set allViews to every view of relation myRelation
+		set allViews to every view of relation myRelation
 		
 		--retrieve all the views in the relation
-		--repeat with x in allViews
-		--	set thisView to x
-		tell thisView
-			--set theRealViewName to the name
-			set viewTemplate to the view template
-			
-			--confirm you have the right view - only way to ignore it if it hasn't been created yet
-			--	if (theRealViewName is viewName) then
-			
-			tell viewTemplate
-				set thePageRect to the page rectangle
+		repeat with x in allViews
+			set thisView to x
+			tell thisView
+				set theRealViewName to the name
+				set theRealViewCustomName to the custom name
 				
-				--get all the rectangles
-				tell thePageRect
-					set allTheRectangles to every template rectangle
-					
-					repeat with theRect from 1 to (count allTheRectangles)
-						set theRectObject to item theRect
-						set theRectObjectClass to (class of item theRect)
+				
+				if (theRealViewCustomName is not "") then
+					set theRealViewName to theRealViewCustomName
+				end if
+				
+				--confirm you have the right view - only way to ignore it if it hasn't been created yet
+				if (theRealViewName is viewName) then
+					set viewTemplate to the view template
+					tell viewTemplate
+						set thePageRect to the page rectangle
 						
-						if (theRectObjectClass is data rectangle) then
+						--get all the rectangles
+						tell thePageRect
+							set allTheRectangles to every template rectangle
 							
-							tell theRectObject
-								set theFieldIcon to the field icon
-								set fieldIconClass to the class of the theFieldIcon
+							repeat with theRect from 1 to (count allTheRectangles)
+								set theRectObject to item theRect
+								set theRectObjectClass to (class of item theRect)
 								
-								set theAbacusIcon to the abacus icon
-								set theAbacusIconClass to the class of theAbacusIcon
-								
-								if (fieldIconClass is not object) then
+								if (theRectObjectClass is data rectangle) then
 									
-									--if (theFieldIcon is not null) then
-									tell theFieldIcon
-										set theFieldType to data type
-										set theFieldFormat to the format
+									tell theRectObject
+										set theFieldIcon to the field icon
+										set fieldIconClass to the class of the theFieldIcon
 										
-										if (theFieldType is fixed point type) then
-											set theHelixResult to my formatFixedPoint(theFieldIcon, "field")
-										else if (theFieldType is number type) then
-											set theHelixResult to my formatNumber(theFieldIcon, "field")
-										else if (theFieldType is date time type) then
-											set theHelixResult to my formatDateTime(theFieldIcon, "field")
-										else if (theFieldType is flag type) then
-											set theHelixResult to my formatFlag(theFieldIcon, "field")
-										else if (theFieldType is text type) then
-											set theHelixResult to my formatText(theFieldIcon, "field")
-										else if (theFieldType is styled text type) then
-											set theHelixResult to my formatText(theFieldIcon, "field")
+										set theAbacusIcon to the abacus icon
+										set theAbacusIconClass to the class of theAbacusIcon
+										
+										if (fieldIconClass is not object) then
+											
+											--if (theFieldIcon is not null) then
+											tell theFieldIcon
+												set theFieldType to data type
+												set theFieldFormat to the format
+												
+												if (theFieldType is fixed point type) then
+													set theHelixResult to my formatFixedPoint(theFieldIcon, "field")
+												else if (theFieldType is number type) then
+													set theHelixResult to my formatNumber(theFieldIcon, "field")
+												else if (theFieldType is date time type) then
+													set theHelixResult to my formatDateTime(theFieldIcon, "field")
+												else if (theFieldType is flag type) then
+													set theHelixResult to my formatFlag(theFieldIcon, "field")
+												else if (theFieldType is text type) then
+													set theHelixResult to my formatText(theFieldIcon, "field")
+												else if (theFieldType is styled text type) then
+													set theHelixResult to my formatText(theFieldIcon, "field")
+												end if
+											end tell
+											
+										else if (theAbacusIconClass is not object) then
+											tell theAbacusIcon
+												set theAbacusType to data type
+												set theAbacusFormat to the format
+												
+												if (theAbacusType is fixed point type) then
+													set theHelixResult to my formatFixedPoint(theAbacusIcon, "abacus")
+												else if (theAbacusType is number type) then
+													set theHelixResult to my formatNumber(theAbacusIcon, "abacus")
+												else if (theAbacusType is date time type) then
+													set theHelixResult to my formatDateTime(theAbacusIcon, "abacus")
+												else if (theAbacusType is flag type) then
+													set theHelixResult to my formatFlag(theAbacusIcon, "abacus")
+												else if (theAbacusType is text type) then
+													set theHelixResult to my formatText(theAbacusIcon, "abacus")
+												else if (theAbacusType is styled text type) then
+													set theHelixResult to my formatText(theAbacusIcon, "abacus")
+												end if
+												
+											end tell
+											
 										end if
+										set appendedText2 to (appendedText2 & theHelixResult & ",")
 									end tell
-									
-								else if (theAbacusIconClass is not object) then
-									tell theAbacusIcon
-										set theAbacusType to data type
-										set theAbacusFormat to the format
-										
-										if (theAbacusType is fixed point type) then
-											set theHelixResult to my formatFixedPoint(theAbacusIcon, "abacus")
-										else if (theAbacusType is number type) then
-											set theHelixResult to my formatNumber(theAbacusIcon, "abacus")
-										else if (theAbacusType is date time type) then
-											set theHelixResult to my formatDateTime(theAbacusIcon, "abacus")
-										else if (theAbacusType is flag type) then
-											set theHelixResult to my formatFlag(theAbacusIcon, "abacus")
-										else if (theAbacusType is text type) then
-											set theHelixResult to my formatText(theAbacusIcon, "abacus")
-										else if (theAbacusType is styled text type) then
-											set theHelixResult to my formatText(theAbacusIcon, "abacus")
-										end if
-										
-									end tell
-									
 								end if
-								set appendedText2 to (appendedText2 & theHelixResult & ",")
-							end tell
-						end if
-					end repeat
-				end tell
+							end repeat
+						end tell
+					end tell
+				end if
 			end tell
-			--end if
-		end tell
+			
+		end repeat
 		
-		--end repeat
+		
+		
+		
+
+--		assemble main element json ----------------------------------------------------------------------------------------
+
 		
 		
 		
 		if (appendedText2 is "") then
 			
-			set finishedString to ""
-			set finishedString to finishedString & "[{"
+			set mainElementJson to ""
+			set mainElementJson to mainElementJson & "[{"
 			
-			set finishedString to finishedString & my q("error") & ":"
-			set finishedString to finishedString & my q("No fields found. Probably " & viewName & " is incorrect")
+			set mainElementJson to mainElementJson & my q("error") & ":"
+			set mainElementJson to mainElementJson & my q("No fields found. Probably " & viewName & " is incorrect")
 			
-			set finishedString to finishedString & "}]"
-			return finishedString
+			set mainElementJson to mainElementJson & "}]"
+			return mainElementJson
 		end if
 		
-		set primaryKeyName to my retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
+	--	set primaryKeyName to my retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
+		set primaryKeyName to "HELLO"
 		
 		set appendedText2 to text 1 thru -2 of appendedText2
 		set contextList to {{"primaryKeyName", primaryKeyName}, {"requestedRelation", myRelation}, {"requestedView", myView}, {"viewNameUsed", viewName}, {"nativeRelationName", theRelationName}, {"customRelationName", theRelationCustomName}}
 		set contextElement to my convertToJsonObject(contextList)
 		
-		set finishedString to ""
-		set finishedString to finishedString & "{"
-		set finishedString to finishedString & my q("context") & ":"
-		set finishedString to finishedString & contextElement & ","
-		set finishedString to finishedString & my q("fieldData") & ":"
-		set finishedString to finishedString & "[" & appendedText2 & "]"
-		set finishedString to finishedString & "}"
+		set mainElementJson to ""
+		set mainElementJson to mainElementJson & "{"
+		set mainElementJson to mainElementJson & my q("context") & ":"
+		set mainElementJson to mainElementJson & contextElement & ","
+		set mainElementJson to mainElementJson & my q("fieldData") & ":"
+		set mainElementJson to mainElementJson & "[" & appendedText2 & "]"
+		set mainElementJson to mainElementJson & "}"
+		
+				
+
+--		getViewSummary into separator.json ----------------------------------------------------------------------------------------
+
+		set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, viewName} to create process for retrieve
+		set viewSummary to utilize {theProcessID} to get view summary --gets us {record count, field delimiter, record delimiter}
+		set theClose to utilize theProcessID to close process
+		set fieldSeparator to field delimiters of viewSummary
+		set recordSeparator to record delimiters of viewSummary
+		set separatorJson to "{" & "\"recordSeparator\":\"" & recordSeparator & "\",\"fieldSeparator\":\"" & fieldSeparator & "\"}"
+				
+		
+--		generatorHelper(mainElementJson, separatorJson) ----------------------------------------------------------------------------------------
+
+		set scriptLibDirName to "<!schemaName!>_lib"
+		set generatorHelperFileName to "generatorHelper.js"
+		set helperFilePath to scriptParentDirPath & "/" & scriptLibDirName & "/" & generatorHelperFileName & " -combineElementAndSeparatorsToFinalJson " 
+		set generatorShellCmdString to "/usr/local/bin/node " & helperFilePath & " '" & "'" & driverLogFilePath & "'" &"'" & " '" & mainElementJson &"'" & " '" & separatorJson & "'"
+		set elementJson to do shell script generatorShellCmdString
+
 		
 		
-		return finishedString
+
+		do shell script "echo 'helperFilePath " & helperFilePath & "' >> " & driverLogFilePath
+--		do shell script "echo 'mainElementJson " & mainElementJson & "' >> " & driverLogFilePath
+--		do shell script "echo 'separatorJson " & separatorJson & "' >> " & driverLogFilePath
+--		do shell script "echo 'elementJson " & elementJson & "' >> " & driverLogFilePath
+-- 		do shell script "echo \"endpointString ---------------------------------------- \" >> " & driverLogFilePath
+-- 		do shell script "echo \"" & endpointString & "\" >> " & driverLogFilePath
+-- 		do shell script "echo \"---------------------------------------- [$(date)]\" >> " & driverLogFilePath
+
+
+		do shell script "echo \"finished <!schemaName!>  [$(date)]\" >> " & driverLogFilePath
+		
+		return elementJson
+		-- return mainElementJson
 		
 	end tell
 end tell
@@ -170,8 +260,8 @@ end tell
 
 
 
-
 --FIELD TYPE CONVERTERS =====================================================================
+
 on formatFixedPoint(hxIconObject, hxIconType)
 	tell application "<!applicationName!>"
 		tell hxIconObject
@@ -441,3 +531,41 @@ on retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
 	
 	
 end retrievePrimaryKey
+
+on getNativeNameFromCustom(customNameIn)
+	
+	
+	set myCollection to "<!myCollection!>"
+	set myUser to "<!myUser!>"
+	set myPassword to "<!myPassword!>"
+	
+	tell application "<!applicationName!>"
+		tell collection 1
+			login myUser password myPassword
+			
+			set allMyRelations to every relation
+			
+			repeat with i in allMyRelations
+				
+				set theRelation to i
+				
+				tell theRelation
+					set theName to name
+					set theCustomName to custom name
+					
+					if (theCustomName is customNameIn) then
+						set theResult to theName
+						exit repeat
+					end if
+				end tell
+			end repeat
+		end tell
+		return theResult
+	end tell
+end getNativeNameFromCustom
+
+	
+
+-- ----------------------------------------------------------------------
+	-- <!schemaName!>
+-- ----------------------------------------------------------------------

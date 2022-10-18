@@ -35,22 +35,32 @@ var moduleFunction = function(args) {
 	
 
 	const executeActual = args => (libraryScriptName, parameters) => {
+
+
+
+
+		const {schema:hxSchema}=parameters;
+		
 		const { processor, getScript, compileScript } = args;
 		const helixSchema = Object.assign(
 			{},
-			parameters.schema,
+			hxSchema,
 			parameters.otherParms
 		);
+		
 		const scriptElement = getScript(libraryScriptName);
-		const tmp = parameters.schema ? parameters.schema.scriptName : 'NO SCRIPT';
+
+		const tmp = hxSchema ? hxSchema.scriptName : 'NO SCRIPT';
 		qtools.logDetail(
 			`remote control script: ${libraryScriptName}/${tmp} ${new Date().toLocaleString()}`
 		);
+
 
 		if (scriptElement.err) {
 			!parameters.callback || parameters.callback(scriptElement.err);
 			return;
 		}
+
 
 		if (!scriptElement.language) {
 			!parameters.callback ||
@@ -58,10 +68,11 @@ var moduleFunction = function(args) {
 			return;
 		}
 
+
 		var finalScript = compileScript({
 			scriptElement,
 			libraryScriptName,
-			parameters: parameters.schema,
+			parameters: hxSchema,
 			helixSchema
 		});
 		const callback = parameters.callback || function() {};
@@ -142,9 +153,9 @@ var moduleFunction = function(args) {
 		}
 	};
 	
-	const { getScript, compileScript } = args;
+	const { getScript, compileScript } = args; //getScript is helixConnector.getScriptPathParameters()
+
 	this.execute = executeActual({ processor, getScript, compileScript });
-	
 	
 	!this.initCallback || this.initCallback();
 

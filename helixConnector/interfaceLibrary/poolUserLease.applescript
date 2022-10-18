@@ -6,10 +6,19 @@ set myView to "<!userPoolLeaseView!>"
 set myUser to "<!user!>"
 set myPassword to "<!password!>"	
 
+set driverLogFilePath to "<!driverLogFilePath!>"
+	
 -- <!schemaName!>
 	
 tell application "<!applicationName!>"
 	
+	do shell script "echo \"\nRequesting new pool user   [$(date)]\" >> " & driverLogFilePath
+	
+	do shell script "echo \" myRelation " & myRelation & "   [$(date)]\" >> " & driverLogFilePath
+	do shell script "echo \" myView " & myView & "   [$(date)]\" >> " & driverLogFilePath
+	do shell script "echo \" myUser " & myUser & "   [$(date)]\" >> " & driverLogFilePath
+	do shell script "echo \" myPassword " & myPassword & "   [$(date)]\" >> " & driverLogFilePath
+		
 	set theRetrievedData to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as list
 	
 	set poolCount to length of theRetrievedData

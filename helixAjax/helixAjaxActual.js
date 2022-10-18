@@ -9,6 +9,7 @@ var express = require('express'); //powered by header removed below for snyk
 var app = express();
 const https = require('https');
 
+const fs=require('fs');
 const path = require('path');
 
 const schemaMapAssemblerGen = require('./lib/schema-map-assembler');
@@ -101,7 +102,9 @@ var moduleFunction = function(args) {
 
 	const addInternalEndpoints = clientSchema => {
 		//someday maybe implement the whole include function, for now, just get fileOne.json
-		const internalSchema = require('./internalEndpoints/fileOne.json');
+		const fileOneSubPath='./internalEndpoints/fileOne.json';
+		const fileOnePath=path.join(path.dirname(module.filename), fileOneSubPath);
+		const internalSchema = require(fileOnePath);
 		return Object.assign({}, internalSchema.schemaMap, clientSchema);
 	};
 

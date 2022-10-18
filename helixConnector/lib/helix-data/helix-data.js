@@ -394,6 +394,7 @@ var moduleFunction = function(args) {
 		fieldSeparator = '\t',
 		destination
 	) {
+
 		schema = schema || [];
 		var outString = '',
 			workingMappingFunction;

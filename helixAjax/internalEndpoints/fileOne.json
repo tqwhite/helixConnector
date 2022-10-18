@@ -24,22 +24,11 @@
 				"parameters": {}
 			}
 		},
-		"hxGetViewSummary": {
-			"debug": "false",
+		"hxGetGeneratedEndpoint": {
+			"debug": "true",
 			"skipPoolUser": true,
 			"schemaType": "remoteControl",
-			"scriptName": "hxGetViewSummary",
-			"arguments": {},
-			"conversion": {
-				"functionName": "cleanToJson",
-				"parameters": {}
-			}
-		},
-		"hxListAllRelationsForCollection": {
-			"debug": "false",
-			"skipPoolUser": true,
-			"schemaType": "remoteControl",
-			"scriptName": "hxListAllRelationsForCollection",
+			"scriptName": "hxGetGeneratedEndpoint",
 			"arguments": {},
 			"conversion": {
 				"functionName": "cleanToJson",
