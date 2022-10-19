@@ -1,5 +1,6 @@
 'use strict';
 
+const moduleName=__filename.replace(__dirname+'/', '').replace(/.js$/, ''); //this just seems to come in handy a lot
 const qt = require('qtools-functional-library');
 
 const commandLineParser = require('qtools-parse-command-line');
@@ -15,43 +16,22 @@ const { exec } = require("child_process");
 const logFilePath = commandLineParameters.fileList[0];
 
 const log = message => {
-	fs.writeFileSync(logFilePath, message+'\n');
+	fs.writeFileSync(logFilePath, "MESSAGE:   \n"+message+'\n');
 };
 
+//GET PARAMETERS ============================================================
 
-const operateSpecialElement= commandLineParameters.qtGetSurePath('switches.operateSpecialElement', false);
 const combineElementAndSeparatorsToFinalJson= commandLineParameters.qtGetSurePath('switches.combineElementAndSeparatorsToFinalJson', false);
 
-log(`operateSpecialElement=${operateSpecialElement}`);
+const driverParameterReplaceObject={};
+Object.keys(commandLineParameters.values).forEach(name=>driverParameterReplaceObject[name]=commandLineParameters.qtGetSurePath(`values.${name}`, []).qtPop().replace(/^\[\[/, '').replace(/\]\]$/, '')); //problems occur with empty parameters. calling program adds prefix and suffix, removed here
 
-if (operateSpecialElement) {
-	const getMainElementStuff = require('./getMainElementStuff');
-	
-// prettier-ignore
-const driverParameterReplaceObject={};	
+//CALCULATE APPLESCRIPT ============================================================
 
-Object.keys(commandLineParameters.values).forEach(name=>driverParameterReplaceObject[name]=commandLineParameters.qtGetSurePath(`values.${name}`, []).qtPop())
-driverParameterReplaceObject.myPassword=driverParameterReplaceObject.myPassword.replace(/^X/, '').replace(/X$/, ''); //causes trouble when password is empty
-
-//     myCollection: 'donutBackBrain',
-//     myRelation: 'Customer Records',
-//     myView: 'exportCustomer',
-//     myUser: 'lenny',
-//     driverLogFilePath: '/tmp/hxcDriverLog.log',
-//     scriptFilePath: '/Users/lenny/CustomApplications/Databright/library/hxConnector/system/code/helixConnector/interfaceLibrary/hxGetGeneratedEndpoint.applescript',
-//     schemaName: 'hxGetGeneratedEndpoint',
-//     applicationName: 'Helix RADE',
-//     myPassword: ''
-log("===================+");
-log(util.inspect({driverParameterReplaceObject}), { showHidden: false, depth: 2, colors: true });
-log("===================2+");
-
-const getElementsTemplate=fs.readFileSync(path.join(driverParameterReplaceObject.scriptParentDirPath, `${driverParameterReplaceObject.schemaName}_lib`, 'getMainElementStuff.applescript')).toString()
-
+const getElementsTemplate=fs.readFileSync(path.join(driverParameterReplaceObject.driverLibraryDirPath, `${driverParameterReplaceObject.schemaName}_lib`, 'getBasicEndpointJson.applescript')).toString();
 const getElementsScript=getElementsTemplate.qtTemplateReplace(driverParameterReplaceObject);
 
-
-
+//EXECUTE AND RETURN (console.log) RESULT ============================================================
 
 exec(`osascript <<SCRIPT
 ${getElementsScript}
@@ -64,49 +44,13 @@ SCRIPT`, (error, stdout, stderr) => {
         console.log(`stderr: ${stderr}`);
         return;
     }
-    console.log(stdout);
+    console.log(stdout); //console.log() writes json back to calling applescript
+	log(`\n\nGenerated endpoint (${moduleName}.js): ${driverParameterReplaceObject.myRelation}\${driverParameterReplaceObject.myView}\n${JSON.stringify(driverParameterReplaceObject)} \n===========================================`);
 });
 
-	log(util.inspect({driverParameterReplaceObject}));
 
-	return;
-} else if (combineElementAndSeparatorsToFinalJson){
-	//INPUT ============================================================
 
-	const mainElementsJson = commandLineParameters.fileList[1];
-	let mainElements;
-	try {
-		mainElements = JSON.parse(mainElementsJson);
-	} catch (e) {
-		log(`failed json parsing of mainElementsJson. ${e.toString()}`);
-	}
 
-	const separatorsJson = commandLineParameters.fileList[2]
-		.replace(/\t/g, 'TAB')
-		.replace(/\r/g, 'CR');
-
-	let separators;
-
-	try {
-		separators = JSON.parse(separatorsJson);
-	} catch (e) {
-		log(`failed json parsing of separatorsJson. ${e.toString()}`);
-	}
-
-	//PROCESS ============================================================
-
-	const combineElementAndSeparatorsToFinalJson = require('./combineElementAndSeparatorsToFinalJson');
-
-	const finishedEndpoint = combineElementAndSeparatorsToFinalJson({
-		mainElements,
-		separators,
-		log
-	});
-
-	//OUTPUT ============================================================
-
-	process.stdout.write(
-		JSON.stringify(finishedEndpoint)
-		
-	);
-}
+//log(util.inspect(commandLineParameters));
+//log(util.inspect(driverParameterReplaceObject));
+log(`getElementsScript=${getElementsScript}`);

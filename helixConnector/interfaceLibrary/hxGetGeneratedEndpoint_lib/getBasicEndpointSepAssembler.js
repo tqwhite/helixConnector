@@ -13,10 +13,48 @@ const commandLineParameters = commandLineParser.getParameters();
 
 //START OF moduleFunction() ============================================================
 
-const moduleFunction = function({ mainElements, separators, log }) {
+const moduleFunction = function() {
 	//return { demoKeys: Object.keys(mainElements).join(', ') };
 
-log(`\nENTERING ${moduleName}\n`);
+const logFilePath = commandLineParameters.fileList[0];
+
+const log = message => {
+	fs.writeFileSync(logFilePath, message+'\n');
+};
+	log(`\n\nStarting ${moduleName} ===========================================`);
+
+
+	//INPUT ============================================================
+
+	const mainElementsJson = commandLineParameters.fileList[1];
+	let mainElements;
+	try {
+		mainElements = JSON.parse(mainElementsJson);
+	} catch (e) {
+		log(`failed json parsing of mainElementsJson. ${e.toString()}`);
+	}
+
+	const separatorsJson = commandLineParameters.fileList[2]
+		.replace(/\t/g, 'TAB')
+		.replace(/\r/g, 'CR');
+
+	let separators;
+
+	try {
+		separators = JSON.parse(separatorsJson);
+	} catch (e) {
+		log(`failed json parsing of separatorsJson. ${e.toString()}`);
+	}
+
+
+
+
+
+
+
+	//PROCESS ============================================================
+
+
 	
 	const getMappingElement = meta => {
 		const functionMap = {
@@ -89,13 +127,19 @@ log(`\nENTERING ${moduleName}\n`);
 	const endpointDefinition = {
 		[endpointName]: definitionBlock
 	};
+	
+const finishedEndpointJson=JSON.stringify(endpointDefinition);
 
-	return endpointDefinition;
+
+	//OUTPUT ============================================================
+
+	process.stdout.write(finishedEndpointJson);
+	log(`\n\nEnding ${moduleName} ===========================================`);
 };
 
 //END OF moduleFunction() ============================================================
 
-module.exports = moduleFunction;
+module.exports = moduleFunction();
 
 
 

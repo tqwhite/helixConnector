@@ -25,20 +25,21 @@ set myData to ("<!myData!>")
 set driverLogFilePath to "<!driverLogFilePath!>"
 
 
-set scriptFilePath to "<!scriptFilePath!>"
-set scriptString to "/usr/local/bin/node -e 'const path=require(\"path\"); const parse=path.parse(\"" & scriptFilePath & "\"); console.log(parse.dir);'"
-set scriptParentDirPath to do shell script scriptString
+set driverLibraryDirPath to "<!driverLibraryDirPath!>"
 
 
+
+set criterionView to "<!criterionView!>"
+set criterionRelation to "<!criterionRelation!>"
+set responseView to "<!responseView!>"
+set responseRelation to "<!responseRelation!>"
 
 	-- ----------------------------------------------------------------------
 
-		-- <!processName!> - <!callingProcess!>
 		-- <!schemaName!>
 		
 		-- <!scriptFilePath!>
 		
-		-- verified to work with curldb4 prod 'hxGetGeneratedEndpoint?nativeRelationName=RELATIONNAME&viewName=VIEWNAME
 		-- nativeRelationName name can actually be either native or custom 
 	
 	-- ----------------------------------------------------------------------
@@ -46,8 +47,7 @@ set scriptParentDirPath to do shell script scriptString
 
 		do shell script "echo \"\nSTARTING: <!schemaName!> to: " & driverLogFilePath & "   [$(date)]\" >> " & driverLogFilePath
  		do shell script "echo \" creating endpoint for: " & myRelation & "/" & myView & "   [$(date)]\" >> " & driverLogFilePath
-		do shell script "echo \"scriptFilePath " & scriptFilePath & "\" >> " & driverLogFilePath
-		do shell script "echo \"scriptParentDirPath " & scriptParentDirPath & "\" >> " & driverLogFilePath
+		do shell script "echo \"driverLibraryDirPath " & driverLibraryDirPath & "\" >> " & driverLogFilePath
 
 -- 		do shell script "echo \" driver version:   [$(date)]\" >> " & driverLogFilePath
 -- 		do shell script "echo \" systemParameters.driverHxAccessRecordCount " & driverHxAccessRecordCount & "   [$(date)]\" >> " & driverLogFilePath
@@ -228,16 +228,17 @@ tell application "<!applicationName!>"
 		
 --		generatorHelper(mainElementJson, separatorJson) ----------------------------------------------------------------------------------------
 
+ 		do shell script "echo \"getMainElementStuff.applescript------------------------ [$(date)]\" >> " & driverLogFilePath
 		set scriptLibDirName to "<!schemaName!>_lib"
-		set generatorHelperFileName to "generatorHelper.js"
-		set helperFilePath to scriptParentDirPath & "/" & scriptLibDirName & "/" & generatorHelperFileName & " -combineElementAndSeparatorsToFinalJson " 
-		set generatorShellCmdString to "/usr/local/bin/node " & helperFilePath & " '" & "'" & driverLogFilePath & "'" &"'" & " '" & mainElementJson &"'" & " '" & separatorJson & "'"
+		set generatorHelperFileName to "getBasicEndpointSepAssembler.js"
+		set helperFilePath to driverLibraryDirPath & "/" & scriptLibDirName & "/" & generatorHelperFileName & " -combineElementAndSeparatorsToFinalJson " 
+		set generatorShellCmdString to "/usr/local/bin/node " & helperFilePath &  " '" & driverLogFilePath & "' " & " '" & mainElementJson &"'" & " '" & separatorJson & "'"
 		set elementJson to do shell script generatorShellCmdString
 
 		
 		
 
-		do shell script "echo 'helperFilePath " & helperFilePath & "' >> " & driverLogFilePath
+ 		do shell script "echo \"---------------------------------------- [$(date)]\" >> " & driverLogFilePath
 --		do shell script "echo 'mainElementJson " & mainElementJson & "' >> " & driverLogFilePath
 --		do shell script "echo 'separatorJson " & separatorJson & "' >> " & driverLogFilePath
 --		do shell script "echo 'elementJson " & elementJson & "' >> " & driverLogFilePath
@@ -246,7 +247,7 @@ tell application "<!applicationName!>"
 -- 		do shell script "echo \"---------------------------------------- [$(date)]\" >> " & driverLogFilePath
 
 
-		do shell script "echo \"finished <!schemaName!>  [$(date)]\" >> " & driverLogFilePath
+		do shell script "echo \"finished <!schemaName!>/getMainElementStuff.applescript  [$(date)]\" >> " & driverLogFilePath
 		
 		return elementJson
 		-- return mainElementJson
@@ -567,5 +568,11 @@ end getNativeNameFromCustom
 	
 
 -- ----------------------------------------------------------------------
-	-- <!schemaName!>
+	-- <!schemaName!>/getMainElementStuff.applescript
+	
+	
+-- set criterionView to "<!criterionView!>"
+-- set criterionRelation to "<!criterionRelation!>"
+-- set responseView to "<!responseView!>"
+-- set responseRelation to "<!responseRelation!>"
 -- ----------------------------------------------------------------------
