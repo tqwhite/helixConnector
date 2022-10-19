@@ -9,6 +9,7 @@
   "author": "TQ White II",
   "license": "ISC",
   "dependencies": {
+    "qtools-asynchronous-pipe-plus": "^1.0.2",
     "qtools-functional-library": "^1.1.10",
     "qtools-parse-command-line": "^1.0.5"
   }

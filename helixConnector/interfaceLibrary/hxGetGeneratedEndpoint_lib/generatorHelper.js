@@ -11,6 +11,10 @@ const path=require('path');
 const util = require('util');
 const { exec } = require("child_process");
 
+const asynchronousPipePlus = new require('qtools-asynchronous-pipe-plus')();
+const pipeRunner = asynchronousPipePlus.pipeRunner;
+const taskListPlus = asynchronousPipePlus.taskListPlus;
+
 //INIT LOGGING ============================================================
 
 const logFilePath = commandLineParameters.fileList[0];
@@ -29,28 +33,60 @@ Object.keys(commandLineParameters.values).forEach(name=>driverParameterReplaceOb
 //CALCULATE APPLESCRIPT ============================================================
 
 const getElementsTemplate=fs.readFileSync(path.join(driverParameterReplaceObject.driverLibraryDirPath, `${driverParameterReplaceObject.schemaName}_lib`, 'getBasicEndpointJson.applescript')).toString();
-const getElementsScript=getElementsTemplate.qtTemplateReplace(driverParameterReplaceObject);
+const getEndpointApplescript=getElementsTemplate.qtTemplateReplace(driverParameterReplaceObject);
 
 //EXECUTE AND RETURN (console.log) RESULT ============================================================
 
+const getEndpointData=(template, callback)=>{
+
 exec(`osascript <<SCRIPT
-${getElementsScript}
+${template}
 SCRIPT`, (error, stdout, stderr) => {
     if (error) {
-        console.log(`error: ${error.message}`);
+        callback(`error: ${error.message}`)
         return;
     }
     if (stderr) {
-        console.log(`stderr: ${stderr}`);
+        callback(`stderr: ${stderr}`)
         return;
     }
-    console.log(stdout); //console.log() writes json back to calling applescript
+    callback('', stdout)
+    //console.log(stdout); //console.log() writes json back to calling applescript
 	log(`\n\nGenerated endpoint (${moduleName}.js): ${driverParameterReplaceObject.myRelation}\${driverParameterReplaceObject.myView}\n${JSON.stringify(driverParameterReplaceObject)} \n===========================================`);
 });
 
+}
 
 
 
 //log(util.inspect(commandLineParameters));
 //log(util.inspect(driverParameterReplaceObject));
-log(`getElementsScript=${getElementsScript}`);
+//log(`getElementsScript=${getElementsScript}`);
+
+
+	const taskList = new taskListPlus();
+	
+	taskList.push((args, next) => {
+		const localCallback = (err, mainEndpoint) => {
+			next(err, { ...args, mainEndpoint });
+		};
+		getEndpointData(getEndpointApplescript, localCallback);
+	});
+
+	
+	const initialData = typeof inData != 'undefined' ? inData : {};
+	pipeRunner(taskList.getList(), initialData, (err, args) => {
+		const { mainEndpoint } = args;
+
+		console.log(mainEndpoint);
+		
+		//callback(err, {localResult1Value, localResult2});
+	});
+
+
+
+
+
+
+
+
