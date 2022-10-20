@@ -11,7 +11,7 @@
   "dependencies": {
     "axios": "^0.24.0",
     "jwt-decode": "^3.1.2",
-    "passport": "^0.5.0",
+    "passport": "^0.6.0",
     "qtools-asynchronous-pipe-plus": "^1.0.2",
     "querystring": "^0.2.1"
   }
