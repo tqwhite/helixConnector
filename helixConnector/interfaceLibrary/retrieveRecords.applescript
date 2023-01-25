@@ -162,11 +162,10 @@ tell application "<!applicationName!>"
 				set theResult to theResult & tempResult
 				
 				-- the following values are not strictly necessary but it's nice to be able to confirm the math all worked.
-				
-				set currRetrievedCount to length of tempResult
-				set recordsSoFar to recordsSoFar + (length of tempResult)
-				set remainingRecords to remainingRecords - currRetrievedCount
-				set recordOffset to recordOffset + currRetrievedCount
+				-- set currRetrievedCount to length of tempResult
+				-- set recordsSoFar to recordsSoFar + (length of tempResult)
+				-- set remainingRecords to remainingRecords - currRetrievedCount
+				-- set recordOffset to recordOffset + currRetrievedCount
 			end if
 			
 			my addToLog("DONE: " & recordsSoFar & " records sent")

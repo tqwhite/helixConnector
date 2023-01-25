@@ -29,9 +29,11 @@ const summarizeConfig = require('./lib/summarize-config');
 const externalAuthorization = require('./lib/external-authorization');
 
 const hxcVersion = require('./lib/version');
+
 qtools.logMilestone('\nStarting hxAjax *************************');
 console.error(`helixAjax startup beginning: ${new Date().toLocaleString()}`); //it's very helpful to have this annotation in the error log
 qtools.logWarn('Freezing Object.prototype');
+
 Object.freeze(Object.prototype); //must come after qtFunctionalLibrary which updates prototypes
 
 //START OF moduleFunction() ============================================================

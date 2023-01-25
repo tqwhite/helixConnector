@@ -10,9 +10,7 @@ const qt = require('qtools-functional-library');
 
 const moduleFunction = function({ getSchema, helixParms, send500 }) {
 	
-	const resolve = ({path, req, res}) => {
-	
-
+	const resolve = ({ path, req, res }) => {
 		const mapSeparationAliases = (separators = {}) => {
 			const outObject = {};
 			Object.keys(separators).forEach(name => {
@@ -25,32 +23,64 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 
 			return outObject;
 		};
-	
-		
+
 		const pathParts = path.match(/\/([\w-.]+)/g);
+
+		if (!pathParts) {
+			send500(res, req, `Illegal path '${path}'`);
+			return;
+		}
+
+		let viewName;
+
+
+		const schemaNameSegmentIndex = pathParts.length > 1 ? 1 : 0;
+		const schemaName = pathParts
+			? pathParts[schemaNameSegmentIndex].replace(/^\//, '')
+			: '';
+		const viewType = pathParts.length > 1 ? pathParts[0].replace(/^\//, '') : 'prod';
+
+		const schema = getSchema(helixParms, schemaName);
 		
-		if (!pathParts){
+		if (schema.schemaType == 'remoteControl') {
+		} else if (schema.views) {
+			if (Object.keys(schema.views).includes(viewType)) {
+				viewName = schema.views[viewType];
+			} else {
+				send500(res, req, `Illegal path segment '${viewType}/${schemaName}'`);
+				return;
+			}
+		} else {
+			schema.staticTestRequestFlag = false;
+			switch (viewType.toLowerCase()) { //backward compatability
+				case 'dynamictest':
+					viewName = schema.testViewName;
+					break;
+
+				case 'nopost':
+					viewName = schema.noPostViewName;
+					break;
+				case 'statictest':
+				case 'fromfile': 
+					//fromFile and staticTest are synonyms since static-data was upgraded to try 'relation_view' for missing filename
+					viewName = 'SPECIAL';
+					schema.staticTestRequestFlag = true;
+					break;
+				case 'prod':
+				case '':
+					viewName = schema.view;
+					break;
+			}
+
+			if (!viewName) {
 				send500(
 					res,
 					req,
-					`Illegal path '${path}'`
+					`No view specified for path segment '${viewType}/${schemaName}'`
 				);
 				return;
+			}
 		}
-
-		let schemaName;
-
-		//fromFile and staticTest are synonyms since static-data was upgraded to try 'relation_view' for missing filename
-		if (['/fromFile', '/staticTest', '/dynamicTest', '/noPost'].includes(pathParts[0])) {
-			schemaName = pathParts ? pathParts[1].replace(/^\//, '') : '';
-		} else {
-			schemaName = pathParts ? pathParts[0].replace(/^\//, '') : '';
-		}
-
-		const staticTest = (pathParts[0] == '/staticTest' || pathParts[0] == '/fromFile');
-		const dynamicTest = pathParts[0] == '/dynamicTest';
-		const noPost = pathParts[0] == '/noPost';
-		const schema = getSchema(helixParms, schemaName);
 
 		if (!schema) {
 			send500(res, req, `Schema '${schemaName}' not defined`);
@@ -64,46 +94,10 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 		}
 
 		if (qtools.isTrue(schema.schemaType == 'remoteControl')) {
-		} else if (dynamicTest) {
-			const viewName = schema.testViewName;
-
-			if (!viewName) {
-				send500(
-					res,
-					req,
-					`Schema '${schemaName}' does not have a testViewName property`
-				);
-				return;
-			}
-			schema.view = viewName;
-		} else if (noPost) {
-			const viewName = schema.noPostViewName;
-
-			if (!viewName) {
-				send500(
-					res,
-					req,
-					`Schema '${schemaName}' does not have a noPostViewName property`
-				);
-				return;
-			}
-			schema.view = viewName;
 		} else {
-			let viewName = schema.original.view;
-
-			if (!viewName) {
-				send500(
-					res,
-					req,
-					`Schema '${schemaName}' does not have a view property`
-				);
-				return;
-			}
 			schema.view = viewName;
 		}
-
-		schema.staticTestRequestFlag = staticTest;
-
+		
 		if (schema.staticTest && typeof schema.staticTestData == 'undefined') {
 			send500(res, req, `Schema ${schemaName}' does not have staticTestData`);
 			return;
@@ -119,10 +113,17 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 				schema.schemaName
 			}.txt`;
 			qtools.logWarn(`WRITING get request query: ${filePath} (debugData=true)`);
-			qtools.writeSureFile(filePath, JSON.stringify({...req.query, tqNote:'remember, leading ? is removed by get-responder-catchall.js before actual processing'}));
+			qtools.writeSureFile(
+				filePath,
+				JSON.stringify({
+					...req.query,
+					tqNote:
+						'remember, leading ? is removed by get-responder-catchall.js before actual processing'
+				})
+			);
 		}
-		
-		schema.separators=mapSeparationAliases(schema.separators);
+
+		schema.separators = mapSeparationAliases(schema.separators);
 
 		return schema;
 	};
@@ -132,6 +133,5 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 
 //END OF moduleFunction() ============================================================
 
-
-module.exports = args=>moduleFunction(args)
+module.exports = args => moduleFunction(args);
 
