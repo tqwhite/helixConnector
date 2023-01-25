@@ -518,23 +518,23 @@ var moduleFunction = function(args) {
 				const mappingElement = self[mappingEntry];
 
 				if (typeof mappingElement == 'function') {
-					debugInfo += `\n${fieldName}, ${mappingElement}, ${incomingValue}, ${destination} (???)`;
+			//		debugInfo += `\n${fieldName}, ${mappingElement}, ${incomingValue}, ${destination} (???)`;
 					mappedData = mappingElement(incomingValue, destination);
 				} else if (typeof self[mappingElement] == 'function') {
-					debugInfo += `\n${fieldName}, ${mappingElement}, ${incomingValue}, ${destination} (mapping data type found)`;
+			//		debugInfo += `\n${fieldName}, ${mappingElement}, ${incomingValue}, ${destination} (mapping data type found)`;
 					mappedData = self[mappingElement](incomingValue, destination);
 				} else if (typeof mappingElement != 'undefined') {
 					mappedData = mappingElement;
-					debugInfo += `\n${fieldName}, ${mappingElement}, ${incomingValue}, ${destination} (mapping constant)`;
+			//		debugInfo += `\n${fieldName}, ${mappingElement}, ${incomingValue}, ${destination} (mapping constant)`;
 				} else {
-					debugInfo += `\n${fieldName}, default(StringType), ${incomingValue}, ${destination} (no mapping specified)`;
+			//		debugInfo += `\n${fieldName}, default(StringType), ${incomingValue}, ${destination} (no mapping specified)`;
 					mappedData = self.StringType(incomingValue, destination);
 				}
 
 				if (typeof mappedData != 'undefined') {
 					newRecordObject[fieldName] = mappedData;
 				} else {
-					debugInfo + `${fieldName} has no value. Property omitted from output`;
+				//	debugInfo + `${fieldName} has no value. Property omitted from output`;
 				}
 			}
 

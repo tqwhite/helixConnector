@@ -17,7 +17,7 @@ const showInfo=({helixParms, newConfig, getSchema, suppressLogEndpointsAtStartup
 		for (var schemaName in helixParms.schemaMap) {
 			var element = getSchema(helixParms, schemaName);
 			if (!element) {
-				qtools.logWarn(`MISSING SCHEMA FILE: No ${schemaMap} found`);
+				qtools.logWarn(`MISSING SCHEMA FILE: No ${schemaName} found`);
 				continue;
 			}
 

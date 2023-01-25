@@ -44,8 +44,8 @@ var moduleFunction = function(args) {
 					const contents = qtools.fs.readFileSync(endpointFilePath).toString();
 					const element = JSON.parse(contents);
 
-					const newPropertyName = Object.keys(element).qtLast(); 
-					 if (outObj[newPropertyName]) {
+					const newPropertyName = Object.keys(element).qtLast();
+					if (outObj[newPropertyName]) {
 						qtools.logWarn(
 							`Duplicate property name, ${newPropertyName}, found in ${endpointFilePath}`
 						);
@@ -141,7 +141,10 @@ var moduleFunction = function(args) {
 						/^\//
 					)
 						? autoIncludeDirectoryPathItem
-						: path.join(schemaMapPath, '../', autoIncludeDirectoryPathItem);
+						: path.join(
+								path.dirname(schemaMapPath),
+								autoIncludeDirectoryPathItem
+							);
 
 					const autoIncludeSchemaItems = getAutoIncludeDirectoryItems(
 						autoIncludeDirectoryPath
@@ -154,7 +157,6 @@ var moduleFunction = function(args) {
 				}
 			);
 		}
-
 		return schemaMap;
 	};
 

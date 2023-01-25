@@ -1,7 +1,6 @@
 'use strict';
 
-const moduleName=__filename.replace(__dirname+'/', '').replace(/.js$/, ''); //this just seems to come in handy a lot
-
+const moduleName = __filename.replace(__dirname + '/', '').replace(/.js$/, ''); //this just seems to come in handy a lot
 
 const fs = require('fs');
 const util = require('util');
@@ -9,34 +8,35 @@ const util = require('util');
 const qt = require('qtools-functional-library');
 
 const commandLineParser = require('qtools-parse-command-line');
-const commandLineParameters = commandLineParser.getParameters();
 
 //START OF moduleFunction() ============================================================
 
 const moduleFunction = function() {
 	//return { demoKeys: Object.keys(mainElements).join(', ') };
+	const commandLineParameters = commandLineParser.getParameters();
 
-const logFilePath = commandLineParameters.fileList[0];
+	const logFilePath = commandLineParameters.fileList[0];
 
-const log = message => {
-	fs.writeFileSync(logFilePath, message+'\n');
-};
-	log(`\n\nStarting ${moduleName} ===========================================`);
-
+	const log = message => {
+		fs.writeFileSync(logFilePath, `LOG MESSAGE [${moduleName}]: ${message}\n`);
+	};
+	log(`Starting ${moduleName} ===========================================`);
 
 	//INPUT ============================================================
 
 	const mainElementsJson = commandLineParameters.fileList[1];
 	let mainElements;
+	
 	try {
 		mainElements = JSON.parse(mainElementsJson);
 	} catch (e) {
 		log(`failed json parsing of mainElementsJson. ${e.toString()}`);
 	}
-
+	
 	const separatorsJson = commandLineParameters.fileList[2]
 		.replace(/\t/g, 'TAB')
-		.replace(/\r/g, 'CR');
+		.replace(/\r/g, 'CR')
+		.replace(/\n/g, 'LF');
 
 	let separators;
 
@@ -45,16 +45,8 @@ const log = message => {
 	} catch (e) {
 		log(`failed json parsing of separatorsJson. ${e.toString()}`);
 	}
-
-
-
-
-
-
-
 	//PROCESS ============================================================
-
-
+	
 	
 	const getMappingElement = meta => {
 		const functionMap = {
@@ -128,11 +120,9 @@ const log = message => {
 		[endpointName]: definitionBlock
 	};
 	
-const finishedEndpointJson=JSON.stringify(endpointDefinition);
-
-
+	const finishedEndpointJson = JSON.stringify(endpointDefinition).replace(/APOSTOKEN/g, "'").replace(/QUOTETOKEN/g, '"');
+	
 	//OUTPUT ============================================================
-
 	process.stdout.write(finishedEndpointJson);
 	log(`\n\nEnding ${moduleName} ===========================================`);
 };
@@ -140,6 +130,4 @@ const finishedEndpointJson=JSON.stringify(endpointDefinition);
 //END OF moduleFunction() ============================================================
 
 module.exports = moduleFunction();
-
-
 

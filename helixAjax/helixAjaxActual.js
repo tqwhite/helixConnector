@@ -337,7 +337,7 @@ var moduleFunction = function(args) {
 		}
 	}; //this was useful back in the day when we didn't know which db had what. Now they all work and this takes tooo long.
 
-	const fabricateConnector = function(req, res, schema) {
+	const fabricateConnector = function(req, res, schema, bootstrap) {
 		const headerAuth = req.headers ? req.headers.authorization : '';
 
 		const tmp = headerAuth ? headerAuth.split(' ') : [];
@@ -357,7 +357,8 @@ var moduleFunction = function(args) {
 				helixAccessParms: helixParms,
 				apiAccessAuthParms,
 				helixUserAuth,
-				req
+				req,
+				bootstrap
 			});
 		} catch (err) {
 			qtools.logError(qtools.dump(err, true));
@@ -580,15 +581,7 @@ var moduleFunction = function(args) {
 
 	//END OF LIFE CODE =======================================================
 
-	process.on('uncaughtException', err => {
-		
-		if (err.toString().match(/Invalid string length/i)) {
-			err = `${err.toString()} (hxConnector/NodeJS only supports 512MB of data per request)`;
-		}
-		qtools.logError(
-			`QUITTING hxC with interrupt type 'uncaughtException' message: ${err}`
-		);
-	});
+
 	return this;
 };
 

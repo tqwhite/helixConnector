@@ -13,17 +13,27 @@ tell application "<!applicationName!>"
 			
 			set allTheNames to ""
 			
-			repeat with i in allMyRelations
+			set totalRecordsAvailable to 0
+			
+			repeat with theRelation in allMyRelations
 				
-				set theRelation to i
+			set totalRecordsAvailable to 0
+			tell theRelation
+				set theName to name
+--				try
+--					set viewSummaryProcessId to utilize {myCollection, myUser, myPassword, theName, "CRUD - All Records"} to create process for retrieve
+----					set viewSummaryProcessId to utilize {myCollection, myUser, myPassword, theName, "_hxM_unconstrained"} to create process for retrieve
+--					set viewSummary to utilize {viewSummaryProcessId} to get view summary --gets us {record count, field delimiter, record delimiter}
+--					set theClose to utilize viewSummaryProcessId to close process
+--					set totalRecordsAvailable to record count of viewSummary
+--				end try
+				set theCustomName to custom name
 				
-				tell theRelation
-					set theName to name
-					set theCustomName to custom name
-					set nameObject to {{"nativeName", theName}, {"customName", theCustomName}}
-					set nameElement to my convertToJsonObject(nameObject)
-					set allTheNames to allTheNames & nameElement & ","
-				end tell
+				set nameObject to {{"nativeName", theName}, {"customName", theCustomName}, {"totalRecordsAvailable", totalRecordsAvailable}}
+				set nameElement to my convertToJsonObject(nameObject)
+				set allTheNames to allTheNames & nameElement & ","
+			end tell
+				
 			end repeat
 			
 			set finishedString to my wrapStringToJsonArray(allTheNames)

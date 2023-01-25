@@ -144,6 +144,8 @@ var moduleFunction = function(args) {
 
 	for (var i = 0, len = self.filePathList.length; i < len; i++) {
 		var fileDirectoryPath = self.filePathList[i];
+		
+		qtools.logMilestone(`staticPage directory path: ${fileDirectoryPath}`);
 
 		fileDirectoryPath = fileDirectoryPath.replace(/.*\/\.js$/, '');
 		var files = fs.readdirSync(fileDirectoryPath);

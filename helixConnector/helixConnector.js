@@ -44,13 +44,17 @@ const moduleFunction = function(args) {
 				{
 					name: 'req',
 					optional: false
+				},
+				{
+					name: 'bootstrap',
+					optional: true
 				}
 			]
 		},
 		true
 	); //this is a server component, don't die on error
 
-	const { hxScriptRunner, helixUserAuth } = args;
+	const { hxScriptRunner, helixUserAuth, bootstrap } = args;
 	
 	if (argsErrorList) {
 		throw new Error(argsErrorList);
@@ -506,8 +510,9 @@ const moduleFunction = function(args) {
 
 	this.generateAuthToken = (() => {
 		const errorMessage = authenticationHandler.validateUserToken(
-			this.apiAccessAuthParms
-		);
+			this.apiAccessAuthParms,
+			{bootstrap}
+		); //bootstrap is set to true by generate-token.js to allow creation of tokens from trusted IP addresses
 		if (typeof errorMessage == 'string') {
 			return (body, callback) => {
 				callback(errorMessage);

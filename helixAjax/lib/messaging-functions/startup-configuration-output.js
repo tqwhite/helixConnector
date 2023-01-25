@@ -24,7 +24,7 @@ const moduleFunction = function(args = {}) {
 		
 //=============   showSchemaSummary  ========================= 
 
-		const showSchemaSummary=true; //false suppresses output
+		const showSchemaSummary=false; //false suppresses output
 		
 //=============   showSchemaSummary  ========================= 
 		

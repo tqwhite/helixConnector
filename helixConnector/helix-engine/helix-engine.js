@@ -197,9 +197,6 @@ var moduleFunction = function(args) {
 					leaseUserName: helixUserAuth.hxUser,
 					leasePassword: helixUserAuth.hxPassword
 				};
-				console.log(
-					`\n=-=============    auth parameters  ========================= [helix-engine.js.moduleFunction]\n`
-				);
 
 				qtools.logMilestone(
 					`received helix user auth parameters (user: '${
@@ -269,17 +266,6 @@ var moduleFunction = function(args) {
 		});
 	};
 
-	const mapSeparationAliases = (separators = {}) => {
-		const outObject = {};
-		Object.keys(separators).forEach(name => {
-			outObject[name] = separators[name]
-				.replace(/TAB/g, '\t')
-				.replace(/CR/g, '\r');
-		});
-
-		return outObject;
-	};
-
 	const hxScriptRunnerActual = args => (processName, parameters) => {
 		const {
 			executeOsaScript,
@@ -305,8 +291,6 @@ var moduleFunction = function(args) {
 			!parameters.callback || parameters.callback(scriptElement.err);
 			return;
 		}
-
-		helixSchema.separators = mapSeparationAliases(helixSchema.separators); //replace aliases TAB and CR (applescript endpointGenerator has a very bad time with backslashes, esp, \t
 
 		//compileScript() is actually helixConnector.compileScriptActual which calla helixData.makeApplescriptDataString()
 		const finalScript = compileScript({
@@ -379,8 +363,10 @@ var moduleFunction = function(args) {
 						stringData
 					);
 				}
+				
+				const eligableForMetaData=!(workingSchema.internalSchema || workingSchema.schemaType=='remoteControl');
 
-				if (hxcReturnMetaDataOnly) {
+				if ( eligableForMetaData && hxcReturnMetaDataOnly) {
 					outData = [
 						{
 							totalRecordsAvailable: stringData,

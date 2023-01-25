@@ -30,9 +30,9 @@ const moduleFunction = function(args = {}) {
 		callback('', token);
 	};
 	
-	const validateUserTokenActual = ({ authKey, instanceId }) => apiAccessAuthParms => {
+	const validateUserTokenActual = ({ authKey, instanceId }) => (apiAccessAuthParms, options={}) => {
 		const { userId, authToken } = apiAccessAuthParms;
-
+		const {bootstrap=false}=options; //bootstrap is set true by generate-token.js and passed to helixAjax/fabricateConnector to helixConnector to here
 
 		let decoded;
 		try {
@@ -41,10 +41,17 @@ const moduleFunction = function(args = {}) {
 			return e.toString();
 		}
 		
+		const secretString=`${decoded.userId.substr(0,3)}...${decoded.userId.substr(decoded.userId.length-1, decoded.userId.length)}`; //for log
+		
 
 		if (!suppressTokenSecurityFeatures && !decoded.allowedRequestIpAddress && !decoded.accessExpirationDate) {
 			qtools.logMilestone(`invalid token missing both allowedRequestIpAddress  and accessExpirationDate for ${userId} (Q52620214137441374680)`);
 			return 'authentication error Q52620214137441374680';
+		}
+		
+		if (bootstrap){
+			qtools.logMilestone(`bootstrap auth for: ${secretString}, ${decoded.allowedRequestIpAddress}, ${decoded.accessExpirationDate}, ${decoded.instanceId}`);
+			return decoded;
 		}
 
 		
@@ -70,7 +77,6 @@ const moduleFunction = function(args = {}) {
 			return 'authentication error Q52620214291542915814';
 		}
 		
-		const secretString=`${decoded.userId.substr(0,3)}...${decoded.userId.substr(decoded.userId.length-1, decoded.userId.length)}`;
 		qtools.logMilestone(`succesful auth for: ${secretString}, ${decoded.allowedRequestIpAddress}, ${decoded.accessExpirationDate}, ${decoded.instanceId}`);
 		return decoded;
 	};

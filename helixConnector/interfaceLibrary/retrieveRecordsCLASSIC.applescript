@@ -14,6 +14,16 @@ tell application "<!applicationName!>"
 --<!processName!> - <!callingProcess!>
 -- <!schemaName!>
 
+	
+		set driverHxAccessRecordCount to "<!driverHxAccessRecordCount!>" as integer
+		set driverLogFilePath to "<!driverLogFilePath!>"
+		do shell script "echo \"\nLogging to: " & driverLogFilePath & "   [$(date)]\" >> " & driverLogFilePath
+		do shell script "echo \" driver version: -- CLASSIC DRIVER  [$(date)]\" >> " & driverLogFilePath
+		do shell script "echo \" accessing: " & myRelation & "/" & myView & "   [$(date)]\" >> " & driverLogFilePath
+		if criterionView is not equal to "" then
+			do shell script "echo \" CRITERION- " & criterionRelation & "/" & criterionView  & "?[" & criterionData & "] (optional)   [$(date)]\" >> " & driverLogFilePath
+		end if
+	
 	tell collection 1
 		with timeout of 3600 seconds
 			
@@ -29,3 +39,5 @@ tell application "<!applicationName!>"
 	return theResult
 end tell
 
+
+-- deployPrograms hx_db2_schAqua --actions=code,restart

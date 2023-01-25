@@ -22,14 +22,13 @@ set myPassword to "<!password!>"
 
 set driverLogFilePath to "<!driverLogFilePath!>"
 
+set defaultMirrorViewName  to "_hxM_vConstrained"
+
 
 		do shell script "echo \"\nGetViewSummary to: " & driverLogFilePath & "   [$(date)]\" >> " & driverLogFilePath
 
 -- 		do shell script "echo \" driver version:   [$(date)]\" >> " & driverLogFilePath
 -- 		do shell script "echo \" accessing: " & myRelation & "/" & myView & "   [$(date)]\" >> " & driverLogFilePath
--- 		do shell script "echo \" systemParameters.driverHxAccessRecordCount " & driverHxAccessRecordCount & "   [$(date)]\" >> " & driverLogFilePath
--- 		do shell script "echo \" queryParameters.hxcPagedRecordOffset " & hxcPagedRecordOffset & "   [$(date)]\" >> " & driverLogFilePath
--- 		do shell script "echo \" queryParameters.hxcPagedRecordCount " & hxcPagedRecordCount & "   [$(date)]\" >> " & driverLogFilePath
 		
 
 --swap out as necessary
@@ -60,8 +59,9 @@ tell application "<!applicationName!>"
 		if (myView is not "") then
 			set viewName to myView
 		else
-			set viewName to (theRelationCustomName & "_sync_mySQL")
+			set viewName to (defaultMirrorViewName)
 		end if
+		do shell script "echo \" ACCESSING: " & myRelation & "/" & viewName & "   [$(date)]\" >> " & driverLogFilePath
 		
 		set allViews to every view of relation myRelation
 		
@@ -442,7 +442,7 @@ end q
 
 on retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
 	
-	set referenceCollection to "Seachem"
+	set referenceCollection to "<!collection!>"
 	set myRelation to "363" --this is the InertProceess relation
 	set myView to "sqlMirrorCriterionForm02"
 	set myData to theRelationCustomName
@@ -453,7 +453,7 @@ on retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
 		
 		
 		set myRelation to "085" --this is the !-Custom Names Relation
-		set myView to "retrievePrimaryKeyName"
+		set myView to "exportRelationMetadata"
 		--local theResult
 		set processID to utilize {referenceCollection, myUser, myPassword, myRelation, myView} to create process for retrieve
 		set theResult to utilize {referenceCollection, myUser, myPassword, myRelation, myView} to retrieve records as list

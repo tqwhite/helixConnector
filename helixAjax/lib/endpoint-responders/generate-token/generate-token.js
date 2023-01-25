@@ -29,7 +29,7 @@ const moduleFunction = function(args = {}) {
 		);
 				if (!privilegedHosts.includes(req.ip)) {
 					qtools.logWarn(`generateTokenRequest made from unauthorized '${req.ip}'`);
-					res.status('401').send('request made from unauthorized host');
+					res.status('401').send(`request made from unauthorized host '${req.ip}'`);
 					return;
 				}
 
@@ -42,9 +42,11 @@ const moduleFunction = function(args = {}) {
 			res,
 			{
 				emptyRecordsAllowed: true,
-				note:"this is a placeholder; token generator ignores this but the process on the way needs to no that an empty payload (emptyRecordsAllowed) is valid"
-			}
+				note:"this is a placeholder; token generator ignores this but the process on the way needs to know that an empty payload (emptyRecordsAllowed) is valid"
+			},
+			true //bootstrap parameter relaxes security to 1) decodable token (perhaps expired) and 2) from a truted (by systemParameters.ini/privilegedHosts)
 		);  
+
 		 helixConnector.generateAuthToken(req.body, function(
 			err,
 			result

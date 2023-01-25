@@ -11,6 +11,21 @@ const qt = require('qtools-functional-library');
 const moduleFunction = function({ getSchema, helixParms, send500 }) {
 	
 	const resolve = ({path, req, res}) => {
+	
+
+		const mapSeparationAliases = (separators = {}) => {
+			const outObject = {};
+			Object.keys(separators).forEach(name => {
+				outObject[name] = separators[name]
+					.replace(/TAB/g, '\t')
+					.replace(/CR/g, '\r')
+					.replace(/LF/g, '\n')
+					.replace(/TICK/g, '`');
+			});
+
+			return outObject;
+		};
+	
 		
 		const pathParts = path.match(/\/([\w-.]+)/g);
 		
@@ -106,6 +121,8 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 			qtools.logWarn(`WRITING get request query: ${filePath} (debugData=true)`);
 			qtools.writeSureFile(filePath, JSON.stringify({...req.query, tqNote:'remember, leading ? is removed by get-responder-catchall.js before actual processing'}));
 		}
+		
+		schema.separators=mapSeparationAliases(schema.separators);
 
 		return schema;
 	};

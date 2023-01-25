@@ -1,6 +1,9 @@
+-- ----------------------------------------------------------------------
+-- <!schemaName!>
+-- ----------------------------------------------------------------------
 use AppleScript version "2.4" -- Yosemite (10.10) or later
 use scripting additions
-
+		
 --http://192.168.0.50:9000/getViewSummary?nativeRelationName=General%20Ledger%20Accounts&viewName=008_sync_mySQL-debug
 
 --this presupposes that there is only an abacus or a field in the rectangle
@@ -45,9 +48,9 @@ set responseRelation to "<!responseRelation!>"
 	-- ----------------------------------------------------------------------
 
 
-		do shell script "echo \"\nSTARTING: <!schemaName!> to: " & driverLogFilePath & "   [$(date)]\" >> " & driverLogFilePath
- 		do shell script "echo \" creating endpoint for: " & myRelation & "/" & myView & "   [$(date)]\" >> " & driverLogFilePath
-		do shell script "echo \"driverLibraryDirPath " & driverLibraryDirPath & "\" >> " & driverLogFilePath
+		do shell script "echo \"\nAPPLESCRIPT: <!myRelation!>.<!myView!>/getBasicEndpointJson.applescript   [$(date)]\" >> " & driverLogFilePath
+-- 		do shell script "echo \" creating endpoint for: " & myRelation & "/" & myView & "   [$(date)]\" >> " & driverLogFilePath
+-- 		do shell script "echo \"driverLibraryDirPath " & driverLibraryDirPath & "\" >> " & driverLogFilePath
 
 -- 		do shell script "echo \" driver version:   [$(date)]\" >> " & driverLogFilePath
 -- 		do shell script "echo \" systemParameters.driverHxAccessRecordCount " & driverHxAccessRecordCount & "   [$(date)]\" >> " & driverLogFilePath
@@ -83,7 +86,7 @@ tell application "<!applicationName!>"
 		if (myView is not "") then
 			set viewName to myView
 		else
-			set viewName to (theRelationCustomName & "_sync_mySQL")
+			set viewName to (theRelationCustomName & "_DEPRECATED_NOW_CREATED_IN_msOpGen")
 		end if
 		
 		set allViews to every view of relation myRelation
@@ -214,7 +217,6 @@ tell application "<!applicationName!>"
 		set mainElementJson to mainElementJson & "[" & appendedText2 & "]"
 		set mainElementJson to mainElementJson & "}"
 		
-				
 
 --		getViewSummary into separator.json ----------------------------------------------------------------------------------------
 
@@ -228,26 +230,25 @@ tell application "<!applicationName!>"
 		
 --		generatorHelper(mainElementJson, separatorJson) ----------------------------------------------------------------------------------------
 
- 		do shell script "echo \"getMainElementStuff.applescript------------------------ [$(date)]\" >> " & driverLogFilePath
+ 		do shell script "echo \"ALOG MESSAGE [getBasicEndpointJson]: getBasicEndpointJson.applescript spawns getBasicEndpointSepAssembler.js------------------------ [$(date)]\" >> " & driverLogFilePath
 		set scriptLibDirName to "<!schemaName!>_lib"
 		set generatorHelperFileName to "getBasicEndpointSepAssembler.js"
 		set helperFilePath to driverLibraryDirPath & "/" & scriptLibDirName & "/" & generatorHelperFileName & " -combineElementAndSeparatorsToFinalJson " 
+
+		
 		set generatorShellCmdString to "/usr/local/bin/node " & helperFilePath &  " '" & driverLogFilePath & "' " & " '" & mainElementJson &"'" & " '" & separatorJson & "'"
 		set elementJson to do shell script generatorShellCmdString
 
 		
 		
-
- 		do shell script "echo \"---------------------------------------- [$(date)]\" >> " & driverLogFilePath
---		do shell script "echo 'mainElementJson " & mainElementJson & "' >> " & driverLogFilePath
---		do shell script "echo 'separatorJson " & separatorJson & "' >> " & driverLogFilePath
---		do shell script "echo 'elementJson " & elementJson & "' >> " & driverLogFilePath
+--		do shell script "echo 'ALOG MESSAGE [getBasicEndpointJson]: separatorJson " & separatorJson & "' >> " & driverLogFilePath
+--		do shell script "echo 'ALOG MESSAGE [getBasicEndpointJson]: elementJson " & elementJson & "' >> " & driverLogFilePath
 -- 		do shell script "echo \"endpointString ---------------------------------------- \" >> " & driverLogFilePath
 -- 		do shell script "echo \"" & endpointString & "\" >> " & driverLogFilePath
 -- 		do shell script "echo \"---------------------------------------- [$(date)]\" >> " & driverLogFilePath
 
 
-		do shell script "echo \"finished <!schemaName!>/getMainElementStuff.applescript  [$(date)]\" >> " & driverLogFilePath
+		do shell script "echo \"finished <!schemaName!>/getBasicEndpointJson.applescript  [$(date)]\" >> " & driverLogFilePath
 		
 		return elementJson
 		-- return mainElementJson
@@ -495,9 +496,11 @@ end stringReplace
 
 on q(inString)
 	set dq to character id 34
+	set apos to character id 39
 	set backslash to character id 92
 	--set inString to my stringReplace(inString, dq, backslash & dq)
-	set inString to my stringReplace(inString, dq, "QUOTE")
+	set inString to my stringReplace(inString, dq, "QUOTETOKEN")
+	set inString to my stringReplace(inString, apos, "APOSTOKEN")
 	return dq & inString & dq
 	
 end q

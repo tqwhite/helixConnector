@@ -67,12 +67,13 @@ const moduleFunction = function(args = {}) {
 
 	const responder = (req, res, next) => {
 		const schema = schemaResolver.resolve({ path: req.path, req, res });
-
 		if (!schema) {
 			qtools.logError(`getResolvedSchema returns no schema for ${req.path}`);
 			return; //the rule is that getResolvedSchema() sent an error response
 		}
-
+		
+		req.connection.setTimeout(1000000); //this didn't seem to help but seems like something to loook int later, tqii
+		
 		//----------------------------------------------------------------------------------
 
 		const testHxServerAliveSchema = schemaResolver.resolve({
