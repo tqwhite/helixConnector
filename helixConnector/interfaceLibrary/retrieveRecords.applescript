@@ -1,4 +1,4 @@
---LAST VERSION BEFORE SEACHEM MEETING
+-- FULLY DEVELOPED MULTI-PAGE, ERROR RESISTANT, CLEANS UP ON ERROR 02/01/23
 
 tell application "<!applicationName!>"
 
@@ -22,7 +22,7 @@ tell application "<!applicationName!>"
 
 	-- ----------------------------------------------------------------------
 	
-	set noProcessThreshold to 3000
+	set noProcessThreshold to 90000
 	set extraDelayRecordThreshold to 50000
 	
 	-- ----------------------------------------------------------------------
@@ -45,7 +45,7 @@ tell application "<!applicationName!>"
 	tell collection 1
 
 		my addToLog("\nLogging to: " & driverLogFilePath)
-		my addToLog(" driver version: LAST VERSION BEFORE SEACHEM MEETING PLUS - v01")
+		my addToLog(" driver version: FULLY DEVELOPED MULTI-PAGE, ERROR RESISTANT, CLEANS UP ON ERROR 02/01/23 - v01")
 		my addToLog(" accessing: " & myRelation & "/" & myView)
 		my addToLog(" criterion: " & criterionRelation & "/" & criterionView  & "?[" & criterionData & "] (optional) ")
 		my addToLog(" systemParameters.driverHxAccessRecordCount " & driverHxAccessRecordCount)
@@ -86,7 +86,9 @@ tell application "<!applicationName!>"
 			-- NO PROCESS MODE GETS ALL DATA IN ONE CALL. HELIX CRAPS OUT IF TOO MANY RECORDS. DEFAULT FOR LEGACY.		
 			
 			my addToLog(" starting NO PROCESS retrieval")
-			set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as string
+			with timeout of 3600 seconds
+				set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as string
+			end timeout
 			my addToLog(" FINISHED: no process retrieval")
 			
 		else
@@ -125,6 +127,8 @@ tell application "<!applicationName!>"
 			my addToLog(" Use main loop if (remainingRecords:" & remainingRecords & " >= driverHxAccessRecordCount:" & driverHxAccessRecordCount & ")  ")
 			repeat until (remainingRecords < driverHxAccessRecordCount)
 				my addToLog(" START MAIN RETRIEVAL LOOP:  recordOffset " & recordOffset & " batchCount "  & driverHxAccessRecordCount)
+
+				try
 				with timeout of 3600 seconds
 					set retrievalProcessId to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve	
 						my waitAwhile(1, totalRecordsAvailable, 1) --seems to make the world a better place if I let helix take a beat for every relation
@@ -133,6 +137,14 @@ tell application "<!applicationName!>"
 						my waitAwhile(1, totalRecordsAvailable, 1) --seems to make the world a better place if I let helix take a beat for every relation
 					set theClose to utilize retrievalProcessId to close process	
 				end timeout
+				
+				on error the errorMessage number the errorNumber
+					set theClose to utilize retrievalProcessId to close process	
+					my addToLog("HELIX APPLESCRIPT ERROR (main loop): " & errorNumber & " : " & errorMessage)
+					error "HELIX APPLESCRIPT ERROR (main loop): " & errorNumber & " : " & errorMessage
+				end try
+				
+				
 				set theResult to theResult & tempResult
 				
 				set currRetrievedCount to length of tempResult
@@ -151,6 +163,7 @@ tell application "<!applicationName!>"
 			if (remainingRecords > 0) then
 				set finalBatchCount to remainingRecords
 				my addToLog(" FINAL RETRIEVAL:  recordOffset " & recordOffset & " finalBatchCount "  & finalBatchCount)
+				try
 				with timeout of 3600 seconds
 					set remainderProcessId to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve	
 						my waitAwhile(1, totalRecordsAvailable, 1) --seems to make the world a better place if I let helix take a beat for every relation
@@ -159,6 +172,13 @@ tell application "<!applicationName!>"
 						my waitAwhile(1, totalRecordsAvailable, 1) --seems to make the world a better place if I let helix take a beat for every relation
 					set theClose to utilize remainderProcessId to close process	
 				end timeout
+				on error the errorMessage number the errorNumber
+					set theClose to utilize retrievalProcessId to close process	
+					my addToLog("HELIX APPLESCRIPT ERROR (final retrieve): " & errorNumber & " : " & errorMessage)
+					error "HELIX APPLESCRIPT ERROR (final retrieve): " & errorNumber & " : " & errorMessage
+				end try
+				
+				
 				set theResult to theResult & tempResult
 				
 				-- the following values are not strictly necessary but it's nice to be able to confirm the math all worked.
@@ -192,7 +212,7 @@ end waitAwhile
 
 on addToLog(message)
 	set driverLogFilePath to "<!driverLogFilePath!>"
-	do shell script "echo \"" & message & " $(date)\" >> " & driverLogFilePath
+	do shell script "echo \"" & message & " [<!relation!>/<!view!>] $(date)\" >> " & driverLogFilePath
 end addToLog
 
 -- ----------------------------------------------------------------------

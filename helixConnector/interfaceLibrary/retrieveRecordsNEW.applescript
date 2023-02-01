@@ -1,4 +1,4 @@
---ADVANCED PAGING, SEPARATE PROCESS IDs, RELEASES APPLESCRIPT CORRECTLY
+-- FULLY DEVELOPED MULTI-PAGE, ERROR RESISTANT, CLEANS UP ON ERROR 02/01/23
 
 tell application "<!applicationName!>"
 
@@ -19,10 +19,11 @@ tell application "<!applicationName!>"
 	set driverHxAccessRecordCount to "<!driverHxAccessRecordCount!>" as integer
 	set driverLogFilePath to "<!driverLogFilePath!>"
 	
-	set noProcessThreshold to 25000
+
+	-- ----------------------------------------------------------------------
 	
-	set noProcessThreshold to 3000
-	--set driverHxAccessRecordCount to "1000" as integer
+	set noProcessThreshold to 90000
+	set extraDelayRecordThreshold to 50000
 	
 	-- ----------------------------------------------------------------------
 	
@@ -43,64 +44,65 @@ tell application "<!applicationName!>"
 			
 	tell collection 1
 
-		do shell script "echo \"\nLogging to: " & driverLogFilePath & " $(date)\" >> " & driverLogFilePath
-		do shell script "echo \" driver version: -- Paged Driver 011823  [$(date)]\" >> " & driverLogFilePath
-		do shell script "echo \" accessing: " & myRelation & "/" & myView & " $(date)\" >> " & driverLogFilePath
-		do shell script "echo \" criterion: " & criterionRelation & "/" & criterionView  & "?[" & criterionData & "] (optional) $(date)\" >> " & driverLogFilePath
-		do shell script "echo \" systemParameters.driverHxAccessRecordCount " & driverHxAccessRecordCount & " $(date)\" >> " & driverLogFilePath
-		do shell script "echo \" queryParameters.hxcPagedRecordOffset " & hxcPagedRecordOffset & " $(date)\" >> " & driverLogFilePath
-		do shell script "echo \" queryParameters.hxcPagedRecordCount " & hxcPagedRecordCount & " $(date)\" >> " & driverLogFilePath
+		my addToLog("\nLogging to: " & driverLogFilePath)
+		my addToLog(" driver version: FULLY DEVELOPED MULTI-PAGE, ERROR RESISTANT, CLEANS UP ON ERROR 02/01/23 - v01")
+		my addToLog(" accessing: " & myRelation & "/" & myView)
+		my addToLog(" criterion: " & criterionRelation & "/" & criterionView  & "?[" & criterionData & "] (optional) ")
+		my addToLog(" systemParameters.driverHxAccessRecordCount " & driverHxAccessRecordCount)
+		my addToLog(" queryParameters.hxcPagedRecordOffset " & hxcPagedRecordOffset)
+		my addToLog(" queryParameters.hxcPagedRecordCount " & hxcPagedRecordCount)
 		
 		-- ----------------------------------------------------------------------	
 		if criterionView is not equal to "" then
 			set criterionResult to utilize {myCollection, myUser, myPassword, criterionRelation, criterionView, criterionData} to store one record
 		end if
 		-- ----------------------------------------------------------------------	
+		-- GET VIEW SUMMARY FOR TOTAL RECORDS AVAILABLE
+		
 		set viewSummaryProcessId to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve
-		do shell script "echo \" ----viewSummaryProcessId= " & viewSummaryProcessId & " OPENED $(date)\" >> " & driverLogFilePath
+		my addToLog(" ----viewSummaryProcessId= " & viewSummaryProcessId & " OPENED (viewSummary)")
+		
 		set viewSummary to utilize {viewSummaryProcessId} to get view summary --gets us {record count, field delimiter, record delimiter}
+		
 		set theClose to utilize viewSummaryProcessId to close process
-		do shell script "echo \" ----viewSummaryProcessId= " & viewSummaryProcessId & " CLOSED $(date)\" >> " & driverLogFilePath
+		my addToLog(" ----viewSummaryProcessId= " & viewSummaryProcessId & " CLOSED (viewSummary)")
 		
 		set totalRecordsAvailable to record count of viewSummary
-		do shell script "echo \" View Summary says TOTALRECORDSAVAILABLE = " & totalRecordsAvailable & " records available $(date)\" >> " & driverLogFilePath
+		my addToLog(" View Summary says TOTALRECORDSAVAILABLE = " & totalRecordsAvailable & " records available")
 		-- ----------------------------------------------------------------------	
 		if (hxcReturnMetaDataOnly ≠ "") then
-			do shell script "echo \"DONE: Returning totalRecordsAvailable " & totalRecordsAvailable & " (hxcReturnMetaDataOnly set) $(date)\" >> " & driverLogFilePath
+			my addToLog("DONE: Returning totalRecordsAvailable " & totalRecordsAvailable & " (hxcReturnMetaDataOnly set)")
 			return totalRecordsAvailable
 		end if
 		-- ----------------------------------------------------------------------
 		if (totalRecordsAvailable = 0) then
-			do shell script "echo \"DONE: No records found $(date)\" >> " & driverLogFilePath
+			my addToLog("DONE: No records found")
 			return ""
 		end if
 		-- ----------------------------------------------------------------------
 		
-		do shell script "echo \" Decision values (use process) " & totalRecordsAvailable & " < " & noProcessThreshold & " retrieval $(date)\" >> " & driverLogFilePath
-		if (6 = 5) then
+		my addToLog(" Use Process if totalRecordsAvailable:" & totalRecordsAvailable & " < noProcessThreshold:" & noProcessThreshold & " retrieval")
+		if (driverHxAccessRecordCount = "" or totalRecordsAvailable < noProcessThreshold) then
 			-- NO PROCESS MODE GETS ALL DATA IN ONE CALL. HELIX CRAPS OUT IF TOO MANY RECORDS. DEFAULT FOR LEGACY.		
 			
-			do shell script "echo \" starting NO PROCESS retrieval $(date)\" >> " & driverLogFilePath
-			set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as string
-			do shell script "echo \" FINISHED: no process retrieval $(date)\" >> " & driverLogFilePath
+			my addToLog(" starting NO PROCESS retrieval")
+			with timeout of 3600 seconds
+				set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as string
+			end timeout
+			my addToLog(" FINISHED: no process retrieval")
 			
 		else
 			-- PROCESS MODE GETS DATA IN PAGES. WILL RETRIEVE ALL DATA.
 			-- ALWAYS SPECIFY driverHxAccessRecordCount TO USE THIS. (5000 is a good value)
 			-- Terminal: defaults write com.qsatoolworks.helixserver HxAppleEventMaxGet 5000
 			
-			do shell script "echo \" starting retrieval WITH PROCESS $(date)\" >> " & driverLogFilePath
+			my addToLog(" starting retrieval WITH PROCESS")
 			
 			-- ----------------------------------------------------------------------	
-			set retrievalProcessId to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve	
-			do shell script "echo \" ----retrievalProcessId= " & retrievalProcessId & " OPENED $(date)\" >> " & driverLogFilePath
-			
-				do shell script "echo \" Waiting one second for ALL $(date)\" >> " & driverLogFilePath
-				delay 1			
-			if (totalRecordsAvailable > 100000) then
-				do shell script "echo \" Waiting one second for large datasetl $(date)\" >> " & driverLogFilePath
-				delay 1
-			end if
+
+			-- ----------------------------------------------------------------------	
+			my waitAwhile(1, totalRecordsAvailable, 1) --seems to make the world a better place if I let helix take a beat for every relation
+			my waitAwhile(10, totalRecordsAvailable, extraDelayRecordThreshold) -- big relations need extra time
 			-- ----------------------------------------------------------------------
 			if (hxcPagedRecordOffset = "") then
 				set recordOffset to "0"
@@ -120,15 +122,29 @@ tell application "<!applicationName!>"
 			set recordsSoFar to 0
 			set theResult to {}
 			
-			do shell script "echo \" recordOffset " & recordOffset & " $(date)\" >> " & driverLogFilePath
 			-- ----------------------------------------------------------------------
 			
-			do shell script "echo \" Decision values (main loop) not(" & remainingRecords & " < " & driverHxAccessRecordCount & ") $(date)\" >> " & driverLogFilePath
+			my addToLog(" Use main loop if (remainingRecords:" & remainingRecords & " >= driverHxAccessRecordCount:" & driverHxAccessRecordCount & ")  ")
 			repeat until (remainingRecords < driverHxAccessRecordCount)
-				do shell script "echo \" main retrieval loop:  recordOffset " & recordOffset & " batchCount "  & driverHxAccessRecordCount & " $(date)\" >> " & driverLogFilePath
+				my addToLog(" START MAIN RETRIEVAL LOOP:  recordOffset " & recordOffset & " batchCount "  & driverHxAccessRecordCount)
+
+				try
 				with timeout of 3600 seconds
+					set retrievalProcessId to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve	
+						my waitAwhile(1, totalRecordsAvailable, 1) --seems to make the world a better place if I let helix take a beat for every relation
+						my waitAwhile(10, totalRecordsAvailable, extraDelayRecordThreshold) -- big relations need extra time
 					set tempResult to utilize {retrievalProcessId, 2, recordOffset, driverHxAccessRecordCount, true} to get view data as string
+						my waitAwhile(1, totalRecordsAvailable, 1) --seems to make the world a better place if I let helix take a beat for every relation
+					set theClose to utilize retrievalProcessId to close process	
 				end timeout
+				
+				on error the errorMessage number the errorNumber
+					set theClose to utilize retrievalProcessId to close process	
+					my addToLog("HELIX APPLESCRIPT ERROR (main loop): " & errorNumber & " : " & errorMessage)
+					error "HELIX APPLESCRIPT ERROR (main loop): " & errorNumber & " : " & errorMessage
+				end try
+				
+				
 				set theResult to theResult & tempResult
 				
 				set currRetrievedCount to length of tempResult
@@ -136,33 +152,45 @@ tell application "<!applicationName!>"
 				set remainingRecords to remainingRecords - currRetrievedCount
 				set recordOffset to recordOffset + driverHxAccessRecordCount
 				
-				do shell script "echo \" recordsSoFar " & recordsSoFar & " $(date)\" >> " & driverLogFilePath
-				do shell script "echo \" remainingRecords " & remainingRecords & " $(date)\" >> " & driverLogFilePath
+				my addToLog(" recordsSoFar " & recordsSoFar)
+				my addToLog(" remainingRecords " & remainingRecords)
 			end repeat
 			
 			-- ----------------------------------------------------------------------
 			
+			my addToLog(" Use final retrieval if (remainingRecords:" & remainingRecords & " > 0" & ")")
+
 			if (remainingRecords > 0) then
 				set finalBatchCount to remainingRecords
-				do shell script "echo \" final retrieval:  recordOffset " & recordOffset & " finalBatchCount "  & finalBatchCount & " $(date)\" >> " & driverLogFilePath
+				my addToLog(" FINAL RETRIEVAL:  recordOffset " & recordOffset & " finalBatchCount "  & finalBatchCount)
+				try
 				with timeout of 3600 seconds
-					set tempResult to utilize {retrievalProcessId, 2, recordOffset, finalBatchCount, true} to get view data as string
+					set remainderProcessId to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve	
+						my waitAwhile(1, totalRecordsAvailable, 1) --seems to make the world a better place if I let helix take a beat for every relation
+						my waitAwhile(10, totalRecordsAvailable, extraDelayRecordThreshold) -- big relations need extra time
+					set tempResult to utilize {remainderProcessId, 2, recordOffset, finalBatchCount, true} to get view data as string
+						my waitAwhile(1, totalRecordsAvailable, 1) --seems to make the world a better place if I let helix take a beat for every relation
+					set theClose to utilize remainderProcessId to close process	
 				end timeout
+				on error the errorMessage number the errorNumber
+					set theClose to utilize retrievalProcessId to close process	
+					my addToLog("HELIX APPLESCRIPT ERROR (final retrieve): " & errorNumber & " : " & errorMessage)
+					error "HELIX APPLESCRIPT ERROR (final retrieve): " & errorNumber & " : " & errorMessage
+				end try
+				
+				
 				set theResult to theResult & tempResult
 				
 				-- the following values are not strictly necessary but it's nice to be able to confirm the math all worked.
-				
-				set currRetrievedCount to length of tempResult
-				set recordsSoFar to recordsSoFar + (length of tempResult)
-				set remainingRecords to remainingRecords - currRetrievedCount
-				set recordOffset to recordOffset + currRetrievedCount
+				-- set currRetrievedCount to length of tempResult
+				-- set recordsSoFar to recordsSoFar + (length of tempResult)
+				-- set remainingRecords to remainingRecords - currRetrievedCount
+				-- set recordOffset to recordOffset + currRetrievedCount
 			end if
 			
-			do shell script "echo \"DONE: " & recordsSoFar & " records sent $(date)\" >> " & driverLogFilePath
+			my addToLog("DONE: " & recordsSoFar & " records sent")
 			
 			-- ----------------------------------------------------------------------
-			set theClose to utilize retrievalProcessId to close process	
-		do shell script "echo \" ----retrievalProcessId= " & retrievalProcessId & " CLOSED $(date)\" >> " & driverLogFilePath
 			
 		end if
 			
@@ -171,9 +199,28 @@ tell application "<!applicationName!>"
 	return theResult
 end tell
 
+
+-- ----------------------------------------------------------------------
+
+on waitAwhile(delaySeconds, totalRecordsAvailable, extraDelayRecordThreshold)
+	if (totalRecordsAvailable > extraDelayRecordThreshold) then
+		delay delaySeconds
+	end if
+end waitAwhile
+
+-- ----------------------------------------------------------------------
+
+on addToLog(message)
+	set driverLogFilePath to "<!driverLogFilePath!>"
+	do shell script "echo \"" & message & " [<!relation!>/<!view!>] $(date)\" >> " & driverLogFilePath
+end addToLog
+
+-- ----------------------------------------------------------------------
+	
+-- ======================================================================
 -- note: these are read dynamically and do not require program restart
--- defaults write com.qsatoolworks.helixrade HxAppleEventMaxGet 65000
--- defaults write com.qsatoolworks.helixserver HxAppleEventMaxGet 65000
+-- defaults write com.qsatoolworks.helixrade HxAppleEventMaxGet 5000
+-- defaults write com.qsatoolworks.helixserver HxAppleEventMaxGet 5000
 -- defaults read com.qsatoolworks.helixrade HxAppleEventMaxGet
 -- defaults read com.qsatoolworks.helixserver HxAppleEventMaxGet # -> 65000
 -- deployPrograms hx_db2_schAqua --actions=code,restart

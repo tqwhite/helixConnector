@@ -42,6 +42,11 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 
 		const schema = getSchema(helixParms, schemaName);
 		
+		if (!schema){
+				send500(res, req, `No such schema '${schemaName}'`);
+				return;
+		}
+		
 		if (schema.schemaType == 'remoteControl') {
 		} else if (schema.views) {
 			if (Object.keys(schema.views).includes(viewType)) {
