@@ -258,13 +258,13 @@ var moduleFunction = function(args) {
 		if (typeof +value != 'number') {
 			return value;
 		}
-
+		const cleanValue=value.replace(/[^0-9\.\-]/g, '');
 		switch (destination) {
 			case 'toHelix':
-				return value;
+				return cleanValue;
 				break;
 			case 'toJson':
-				return +value;
+				return +cleanValue;
 				break;
 		}
 	};
