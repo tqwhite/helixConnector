@@ -15,6 +15,9 @@ const qt = require('qtools-functional-library');
 
 const authenticationHandlerGen = require('./lib/authentication-handler');
 
+
+let importableFileSequenceNumber = 0;
+
 //START OF moduleFunction() ============================================================
 
 const moduleFunction = function(args) {
@@ -108,18 +111,13 @@ const moduleFunction = function(args) {
 					language: 'Javascript'
 				}
 			};
-
-
-
 			let scriptElement = scriptNameMap[functionName];
 
 			if (scriptElement) {
-
-				return {...scriptElement, scriptFilePath:scriptElement.path};
+				return { ...scriptElement, scriptFilePath: scriptElement.path };
 			}
 
 			const internalLibPath = path.join(__dirname, 'interfaceLibrary');
-
 
 			if (remoteControlDirectoryPath) {
 				scriptElement = {
@@ -128,11 +126,11 @@ const moduleFunction = function(args) {
 						`${functionName}.applescript`
 					),
 					language: 'AppleScript',
-				tqiiHacks:'he is the worst! (remove this)'
+					tqiiHacks: 'he is the worst! (remove this)'
 				};
 
 				if (qtools.realPath(scriptElement.path)) {
-					return {...scriptElement, scriptFilePath:scriptElement.path};
+					return { ...scriptElement, scriptFilePath: scriptElement.path };
 				}
 
 				scriptElement = {
@@ -141,7 +139,7 @@ const moduleFunction = function(args) {
 				};
 
 				if (qtools.realPath(scriptElement.path)) {
-					return {...scriptElement, scriptFilePath:scriptElement.path};
+					return { ...scriptElement, scriptFilePath: scriptElement.path };
 				}
 
 				scriptElement = {
@@ -150,20 +148,23 @@ const moduleFunction = function(args) {
 				};
 
 				if (qtools.realPath(scriptElement.path)) {
-					return {...scriptElement, scriptFilePath:scriptElement.path};
+					return { ...scriptElement, scriptFilePath: scriptElement.path };
 				}
 			}
-			
-			const internalScriptFilePath=path.join(internalLibPath, `${functionName}.applescript`);
-			
+
+			const internalScriptFilePath = path.join(
+				internalLibPath,
+				`${functionName}.applescript`
+			);
+
 			scriptElement = {
 				path: internalScriptFilePath,
 				language: 'AppleScript',
-				tqiiHacks:'sure as hell does! (remove this)'
+				tqiiHacks: 'sure as hell does! (remove this)'
 			};
 
 			if (qtools.realPath(scriptElement.path)) {
-				return {...scriptElement, scriptFilePath:scriptElement.path};
+				return { ...scriptElement, scriptFilePath: scriptElement.path };
 			}
 
 			scriptElement = {
@@ -172,7 +173,7 @@ const moduleFunction = function(args) {
 			};
 
 			if (qtools.realPath(scriptElement.path)) {
-				return {...scriptElement, scriptFilePath:scriptElement.path};
+				return { ...scriptElement, scriptFilePath: scriptElement.path };
 			}
 
 			scriptElement = {
@@ -181,9 +182,7 @@ const moduleFunction = function(args) {
 			};
 
 			if (qtools.realPath(scriptElement.path)) {
-
-
-				return {...scriptElement, scriptFilePath:scriptElement.path};
+				return { ...scriptElement, scriptFilePath: scriptElement.path };
 			}
 		};
 		const scriptElement = getScriptPathParameters(functionName);
@@ -197,7 +196,6 @@ const moduleFunction = function(args) {
 			scriptElement.script = qtools.fs
 				.readFileSync(scriptElement.path)
 				.toString();
-			
 		} else {
 			scriptElement.err = `Error: File not found ${scriptElement.path}`;
 		}
@@ -225,7 +223,7 @@ const moduleFunction = function(args) {
 		const { scriptElement, processName, parameters, helixSchema } = args;
 
 		const inData = qtools.clone(parameters.inData) || {};
-		const otherParms = {...(parameters.otherParms || {}), ...scriptElement};
+		const otherParms = { ...(parameters.otherParms || {}), ...scriptElement };
 
 		const workingHelixAccessParms = qtools.clone(helixAccessParms);
 
@@ -262,7 +260,6 @@ const moduleFunction = function(args) {
 			),
 			script = scriptElement.script;
 
-		
 		replaceObject.dataString = makeApplescriptDataString({
 			schema: helixSchema,
 			otherParms,
@@ -274,7 +271,7 @@ const moduleFunction = function(args) {
 		if (qtools.isTrue(helixSchema.debugData) && !helixSchema.internalSchema) {
 			const filePath = `/tmp/hxc_HelixReplaceObject_${new Date().getTime()}_${
 				helixSchema.schemaName
-			}.txt`;
+			}.json`;
 			qtools.logWarn(
 				`WRITING helix replaceObject with helix db output data to file: ${filePath} (debugData=true)`
 			);
@@ -292,12 +289,24 @@ const moduleFunction = function(args) {
 					'\t'
 				)
 			);
+
+			const importableDirName = `/tmp/importable/${helixSchema.schemaName}_${(new Date().getTime()/1000000).toFixed(0)}`;
+			require('fs').mkdirSync(importableDirName, { recursive: true });
+			const importableFilePath = `${importableDirName}/${
+				helixSchema.schemaName
+			}_Helix_IMPORTABLE__${importableFileSequenceNumber++}.txt`;
+			qtools.logWarn(
+				`WRITING helix IMPORTABLE File with helix db output data to file: ${importableFilePath} (debugData=true)`
+			);
+			qtools.writeSureFile(
+				importableFilePath,
+				replaceObject.dataString.replace(/^"/, '').replace(/"$/, '')
+			);
 		}
 
 		//otherParms gets the query in get/post-responder-catchall.js including meta query elements, if any
 		//eg, hxcPagedRecordCount, hxcPagedRecordOffset, hxcReturnMetaDataOnly
 
-		
 		if (
 			helixSchema.criterion &&
 			parameters.criterion &&
@@ -433,7 +442,6 @@ const moduleFunction = function(args) {
 	//MAIN ENTRY ROUTINE =======================================================================
 
 	const processActual = executeProcess => (control, parameters) => {
-		
 		const { callback } = parameters;
 
 		const publicEndpoint = qtools.getSurePath(
@@ -511,7 +519,7 @@ const moduleFunction = function(args) {
 	this.generateAuthToken = (() => {
 		const errorMessage = authenticationHandler.validateUserToken(
 			this.apiAccessAuthParms,
-			{bootstrap}
+			{ bootstrap }
 		); //bootstrap is set to true by generate-token.js to allow creation of tokens from trusted IP addresses
 		if (typeof errorMessage == 'string') {
 			return (body, callback) => {
