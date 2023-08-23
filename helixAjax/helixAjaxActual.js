@@ -30,8 +30,10 @@ const externalAuthorization = require('./lib/external-authorization');
 
 const hxcVersion = require('./lib/version');
 
-qtools.logMilestone('\nStarting hxAjax *************************');
-console.error(`helixAjax startup beginning: ${new Date().toLocaleString()}`); //it's very helpful to have this annotation in the error log
+qtools.logMilestone(`\nStarting hxAjax *************************`);
+qtools.logMilestone(`Code directory: ${__dirname}`);
+
+console.error(`helixAjax startup beginning: ${new Date().toLocaleString()} ${__dirname}`); //it's very helpful to have this annotation in the error log
 qtools.logWarn('Freezing Object.prototype');
 
 Object.freeze(Object.prototype); //must come after qtFunctionalLibrary which updates prototypes
@@ -457,6 +459,10 @@ var moduleFunction = function(args) {
 	router.get(
 		/hxDetails/,
 		utilityEnpoints.hxDetails({ summarizeConfig, newConfig })
+	);
+	router.get(
+		/hxSchema/,
+		utilityEnpoints.hxSchema({getSchema, helixParms, send500})
 	);
 	router.post(
 		/generateToken/,
