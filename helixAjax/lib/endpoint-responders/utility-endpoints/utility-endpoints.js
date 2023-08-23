@@ -11,8 +11,7 @@ const os = require('os');
 //START OF moduleFunction() ============================================================
 
 const moduleFunction = function() {
-	
-	
+
 	const ping = ({ staticPageDispatchConfig, hxcVersion, bootTime }) => (
 		req,
 		res,
@@ -39,21 +38,37 @@ const moduleFunction = function() {
 			)} using ${identifier}`
 		);
 	};
-	
+
 	//---------------------------------------------------------------------------------
-	
+
 	const hxDetails = ({ summarizeConfig, newConfig }) => (req, res, next) => {
 		res.send(
 			summarizeConfig({ newConfig })
 				.relationsAndViews({
-					resultFormat: 'jsObj' //not jsObj
+					resultFormat: 'string' //not jsObj
 				})
-				.map(item => item.endpointName)
+				//.map(item => item.endpointName)
 		); //this is labeled as Relations and Views on the management page
 	};
-	
+
 	//---------------------------------------------------------------------------------
-	
+
+	const hxSchema = ({ getSchema, helixParms, send500 }) => (req, res, next) => {
+
+		const schemaName = req.query.qtGetSurePath('name', 'neverMatch');
+
+		const schema = getSchema(helixParms, schemaName);
+		
+		if (!schema){
+			send500(res, req, `no schema named ${schema} found`);
+			return;
+		}
+
+		res.send(JSON.stringify(schema, '', "    ")); //this is labeled as Relations and Views on the management page
+	};
+
+	//---------------------------------------------------------------------------------
+
 	const hxConnectorCheck = ({ staticPageDispatchConfig }) => (
 		req,
 		res,
@@ -103,12 +118,10 @@ return "{" & quote & "hxAppName" & quote & ":false}"
 			</div>`
 		);
 	};
-	
+
 	//---------------------------------------------------------------------------------
-	
-	
-	
-	return { ping, hxDetails, hxConnectorCheck };
+
+	return { ping, hxDetails, hxSchema, hxConnectorCheck };
 };
 
 //END OF moduleFunction() ============================================================
