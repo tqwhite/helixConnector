@@ -10,7 +10,7 @@ hxGeneratedEndpoints is built into the hxConnector system. It requires the usual
 
 ### How It Works
 
-The main action of hxConnector is to receive data from a network and to formulate an Applescript program that will, using the APple Open Scripting Architecture, communicate with Helix to send or receive data. That is, the fundamental active mechanism of hxConnector is the generation and execution of Applescript programs.
+The main action of hxConnector is to receive data from a network and to formulate an Applescript program that will, using the Apple Open Scripting Architecture, communicate with Helix to send or receive data. That is, the fundamental active mechanism of hxConnector is the generation and execution of Applescript programs.
 
 This function, hxGeneratedEndpoint, is constrained by that fact. Instead of the hxConnector program directly opening the Javascript function, `hxGeneratedEndpoint_lib/generatorHelper.js`, it has to create an Applescript program to invoke the generatorHelper which then does the real work.
 
