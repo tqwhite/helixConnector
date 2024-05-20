@@ -6,23 +6,29 @@ const qtools = new qtoolsGen(module, { updatePrototypes: true });
 const qt = require('qtools-functional-library');
 //START OF moduleFunction() ============================================================
 
-const moduleFunction = function(args = {}) {
-	const {
-		schemaResolver,
-		fabricateConnector,
-		sendResult,
-		send500
-	} = args;
+const moduleFunction = function (args = {}) {
+	const { schemaResolver, fabricateConnector, sendResult, send500 } = args;
 	
 
-	var sendRcData = function(helixConnector, schema, testRecordData, callback) {
+	var sendRcData = function (helixConnector, schema, testRecordData, callback) {
 		callback('POST/sendRcData() is not implemented for helixAjax.js');
 	};
 	
 
-	var saveRecords = function(helixConnector, schema, testRecordData, callback, req, res) {
+	var saveRecords = function (
+		helixConnector,
+		schema,
+		testRecordData,
+		callback,
+		req,
+		res,
+	) {
 		if (schema.responseSchemaName) {
-			var responseSchema = schemaResolver.resolve({ path: `/${schema.responseSchemaName}`, req, res });
+			var responseSchema = schemaResolver.resolve({
+				path: `/${schema.responseSchemaName}`,
+				req,
+				res,
+			});
 			schema.response = responseSchema;
 		}
 
@@ -32,38 +38,39 @@ const moduleFunction = function(args = {}) {
 		
 		
 		*/
-		
+
 		helixConnector.process('saveOneWithProcess', {
 			authToken: 'hello',
 			helixSchema: schema,
 			otherParms: {},
 			debug: false,
 			inData: testRecordData,
-			callback: callback
+			callback: callback,
 		});
 	};
 	
+
 	const responder = (req, res, next) => {
 		const tmp = req.path.match(/\/([\w-.]+)/g);
-		
+
 		const schema = schemaResolver.resolve({ path: req.path, req, res });
 
 		if (req.body === null) {
-			res
-				.status(400)
-				.send('Validation error: post body is null');
+			res.status(400).send('Validation error: post body is null');
 			return;
 		}
 
 		let outData = qtools.toType(req.body) == 'array' ? req.body : [req.body];
-		
+
 		if (qtools.isTrue(schema.debugData) && schema.schemaName) {
 			qtools.logWarn(
-				`debugData=true on schema ${schema.schemaName}, writing files to /tmp`
+				`debugData=true on schema ${schema.schemaName}, writing files to /tmp`,
 			);
-			const filePath = `/tmp/hxc_Post_RequestBody_${new Date().getTime()}_${
+			
+			const filePath = `/tmp/postData_${
 				schema.schemaName
-			}.txt`;
+			}/hxc_Post_RequestBody_${new Date().getTime()}_${schema.schemaName}.txt`;
+			
 			qtools.logWarn(`WRITING post request body: ${filePath} (debugData=true)`);
 			qtools.writeSureFile(filePath, JSON.stringify(req.body));
 		}
@@ -77,7 +84,7 @@ const moduleFunction = function(args = {}) {
 						helixConnector,
 						schema,
 						req.query,
-						sendResult(res, req, next, helixConnector)
+						sendResult(res, req, next, helixConnector),
 					);
 					break;
 
@@ -87,7 +94,9 @@ const moduleFunction = function(args = {}) {
 						helixConnector,
 						schema,
 						outData,
-						sendResult(res, req, next, helixConnector), req, res
+						sendResult(res, req, next, helixConnector),
+						req,
+						res,
 					);
 			}
 		}

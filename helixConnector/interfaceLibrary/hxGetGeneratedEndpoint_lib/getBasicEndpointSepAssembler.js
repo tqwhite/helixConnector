@@ -76,7 +76,7 @@ const moduleFunction = function() {
 			remoteControl: false,
 			emptyRecordsAllowed: true,
 			private: false,
-			skipPoolUser: false,
+			skipPoolUser: context.customRelationName,
 			relation: context.customRelationName
 				? viewSummary.context.customRelationName
 				: viewSummary.context.nativeRelationName,

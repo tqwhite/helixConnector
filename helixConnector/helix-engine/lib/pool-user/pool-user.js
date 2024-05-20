@@ -205,7 +205,7 @@ var moduleFunction = function(args) {
 			const helixSchema = {
 				internalSchema: true,
 				schemaName: 'poolUserRelease',
-				debug: false,
+				debug: true,
 				returnsJson: true,
 				relation: '',
 				view: '',

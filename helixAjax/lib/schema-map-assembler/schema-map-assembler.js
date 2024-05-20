@@ -52,7 +52,7 @@ var moduleFunction = function(args) {
 						duplicateCount++;
 					}
 
-					outObj = { ...outObj, ...element, endpointFilePath };
+					outObj = { ...outObj, ...element };
 
 					count++;
 				} catch (e) {

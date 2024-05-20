@@ -14,40 +14,40 @@ const poolUserGen = require('./lib/pool-user');
 
 //START OF moduleFunction() ============================================================
 
-var moduleFunction = function(args) {
+var moduleFunction = function (args) {
 	qtools.validateProperties({
 		subject: args || {},
 		targetScope: this, //will add listed items to targetScope
 		propList: [
 			{
 				name: 'getScript',
-				optional: false
+				optional: false,
 			},
 			{
 				name: 'compileScript',
-				optional: false
+				optional: false,
 			},
 			{
 				name: 'helixAccessParms',
-				optional: false
+				optional: false,
 			},
 			{
 				name: 'initCallback',
-				optional: true
+				optional: true,
 			},
 			{
 				name: 'otherParms',
-				optional: true
-			}
-		]
+				optional: true,
+			},
+		],
 	});
 
 	const { getScript, compileScript, otherParms = {} } = args;
 
 	//LOCAL FUNCTIONS ====================================
 
-	const validateSchema = parameters => {
-		const inDataIsOk = function(parameters) {
+	const validateSchema = (parameters) => {
+		const inDataIsOk = function (parameters) {
 			const helixSchema = parameters.schema;
 			let inData = parameters.inData;
 			const fieldSequenceList = helixSchema.fieldSequenceList;
@@ -106,7 +106,7 @@ var moduleFunction = function(args) {
 		}
 	};
 
-	const executeHelixOperation = function(processName, parameters) {};
+	const executeHelixOperation = function (processName, parameters) {};
 
 	const executeOsaScript = (script, parms, callback) => {
 		const localCallback = (err, result) => {
@@ -121,6 +121,14 @@ var moduleFunction = function(args) {
 
 		switch (workingParms.type) {
 			case 'applescript':
+console.log(`\n=-=============   script  ========================= [helix-engine.js.moduleFunction]\n`);
+
+
+console.log(`script=${script}`);
+
+console.log(`\n=-=============   script  ========================= [helix-engine.js.moduleFunction]\n`);
+
+
 				osaScript(script, parms, localCallback);
 				break;
 			case 'bash':
@@ -137,143 +145,138 @@ var moduleFunction = function(args) {
 
 	//WORKING FUNCTIONS ====================================
 
-	const executeActual = (
-		hxScriptRunner,
-		hxPoolUserAccessor,
-		helixAccessParms
-	) => (processName, parameters) => {
-		//
-		// processName is libraryScriptName from helixConnector
-		// parameters is retrievalParms from helixConnector
-		//
+	const executeActual =
+		(hxScriptRunner, hxPoolUserAccessor, helixAccessParms) =>
+		(processName, parameters) => {
+			//
+			// processName is libraryScriptName from helixConnector
+			// parameters is retrievalParms from helixConnector
+			//
 
-		const retrievalParms = parameters;
+			const retrievalParms = parameters;
 
-		const callback = parameters.callback;
-		const taskList = new taskListPlus();
-		const { helixUserAuth } = helixAccessParms;
+			const callback = parameters.callback;
+			const taskList = new taskListPlus();
+			const { helixUserAuth } = helixAccessParms;
 
-		const receivedUserAuth = helixUserAuth.hxUser || helixUserAuth.hxPassword;
-		const needPoolUser = !(
-			parameters.schema.skipPoolUser == true || receivedUserAuth
-		);
+			const receivedUserAuth = helixUserAuth.hxUser || helixUserAuth.hxPassword;
+			const needPoolUser = !(
+				parameters.schema.skipPoolUser == true || receivedUserAuth
+			);
 
-		console.dir(
-			{ ['helixUserAuth']: helixUserAuth },
-			{ showHidden: false, depth: 2, colors: true }
-		);
+			console.dir(
+				{ ['helixUserAuth']: helixUserAuth },
+				{ showHidden: false, depth: 2, colors: true },
+			);
 
-		console.log(`needPoolUser=${needPoolUser}`);
+			console.log(`needPoolUser=${needPoolUser}`);
 
-		if (needPoolUser) {
-			taskList.push((args, next) => {
-				const localCallback = (err, poolUserObject) => {
-					if (err) {
-						next(new Error(err));
-						return;
-					}
+			if (needPoolUser) {
+				taskList.push((args, next) => {
+					const localCallback = (err, poolUserObject) => {
+						if (err) {
+							next(new Error(err));
+							return;
+						}
 
-					args.poolUserObject = poolUserObject;
-					next('', args);
-				};
+						args.poolUserObject = poolUserObject;
+						next('', args);
+					};
 
-				hxPoolUserAccessor.getPoolUserObject(
-					{ processName, helixAccessParms },
-					localCallback
-				);
-			});
-		}
-
-		taskList.push((args, next) => {
-			const localCallback = (err, queryData) => {
-				args.queryData = queryData;
-				next(err, args);
-			};
-			if (args.poolUserObject) {
-				//here is where I think external user auth goes, maybe
-				parameters.poolUserObject = args.poolUserObject;
-			} else if (receivedUserAuth) {
-				parameters.poolUserObject = {
-					leaseUserName: helixUserAuth.hxUser,
-					leasePassword: helixUserAuth.hxPassword
-				};
-
-				qtools.logMilestone(
-					`received helix user auth parameters (user: '${
-						helixUserAuth.hxUser
-					}')`
-				);
+					hxPoolUserAccessor.getPoolUserObject(
+						{ processName, helixAccessParms },
+						localCallback,
+					);
+				});
 			}
 
-			const workingParameters = qtools.clone(parameters);
-			parameters.callback = localCallback;
-			hxScriptRunner(processName, parameters); //hxScriptRunnerActual
-		});
-
-		if (needPoolUser) {
 			taskList.push((args, next) => {
-				const { poolUserObject } = args;
-				let retryCount = 0;
-				const localCallback = (err, releaseStatus) => {
-					if (retryCount < 1 && err.toString().match(/-1712/)) {
-						//-1712 is AppleEvent timed out
-						retryCount++;
-						executeRelease();
-						return;
-					}
-
-					if (err) {
-						err = new Error(
-							`${err.toString()} (tried ${retryCount +
-								1} times) [helix-engine.js]`
-						);
-					}
-					args.releaseStatus = releaseStatus;
+				const localCallback = (err, queryData) => {
+					args.queryData = queryData;
 					next(err, args);
 				};
-
 				if (args.poolUserObject) {
-					parameters.poolUserObject = poolUserObject;
+					//here is where I think external user auth goes, maybe
+					parameters.poolUserObject = args.poolUserObject;
+				} else if (receivedUserAuth) {
+					parameters.poolUserObject = {
+						leaseUserName: helixUserAuth.hxUser,
+						leasePassword: helixUserAuth.hxPassword,
+					};
+
+					qtools.logMilestone(
+						`received helix user auth parameters (user: '${helixUserAuth.hxUser}')`,
+					);
 				}
 
-				const executeRelease = ((
-					processName,
-					helixAccessParms,
-					poolUserObject,
-					localCallback
-				) => () => {
-					hxPoolUserAccessor.releasePoolUserObject(
-						{
-							processName,
-							helixAccessParms,
-							poolUserObject
-						},
-						localCallback
-					);
-				})(processName, helixAccessParms, poolUserObject, localCallback);
-
-				executeRelease();
+				const workingParameters = qtools.clone(parameters);
+				parameters.callback = localCallback;
+				hxScriptRunner(processName, parameters); //hxScriptRunnerActual
 			});
-		}
 
-		const initialData = typeof inData != 'undefined' ? inData : {};
-		asynchronousPipe(taskList.getList(), initialData, (err, finalResult) => {
-			if (err) {
-				callback(new Error(err));
-				return;
+			if (needPoolUser) {
+				taskList.push((args, next) => {
+					const { poolUserObject } = args;
+					let retryCount = 0;
+					const localCallback = (err, releaseStatus) => {
+						if (retryCount < 1 && err.toString().match(/-1712/)) {
+							//-1712 is AppleEvent timed out
+							retryCount++;
+							executeRelease();
+							return;
+						}
+
+						if (err) {
+							err = new Error(
+								`${err.toString()} (tried ${
+									retryCount + 1
+								} times) [helix-engine.js]`,
+							);
+						}
+						args.releaseStatus = releaseStatus;
+						next(err, args);
+					};
+
+					if (args.poolUserObject) {
+						parameters.poolUserObject = poolUserObject;
+					}
+
+					const executeRelease = (
+						(processName, helixAccessParms, poolUserObject, localCallback) =>
+						() => {
+							hxPoolUserAccessor.releasePoolUserObject(
+								{
+									processName,
+									helixAccessParms,
+									poolUserObject,
+								},
+								localCallback,
+							);
+						}
+					)(processName, helixAccessParms, poolUserObject, localCallback);
+
+					executeRelease();
+				});
 			}
-			callback(err, finalResult.queryData);
-		});
-	};
 
-	const hxScriptRunnerActual = args => (processName, parameters) => {
+			const initialData = typeof inData != 'undefined' ? inData : {};
+			asynchronousPipe(taskList.getList(), initialData, (err, finalResult) => {
+				if (err) {
+					callback(new Error(err));
+					return;
+				}
+				callback(err, finalResult.queryData);
+			});
+		};
+
+	const hxScriptRunnerActual = (args) => (processName, parameters) => {
 		const {
 			executeOsaScript,
 			getScript,
 			compileScript,
 			helixData,
 			helixAccessParms,
-			otherParms
+			otherParms,
 		} = args;
 
 		const helixSchema = qtools.clone(parameters.schema) || {};
@@ -297,15 +300,15 @@ var moduleFunction = function(args) {
 				scriptElement,
 				processName,
 				parameters,
-				helixSchema
+				helixSchema,
 			}),
-			callback = parameters.callback || function() {};
+			callback = parameters.callback || function () {};
 
 		if (helixSchema.debug === 'true' || helixSchema.debug === true) {
 			console.log(
 				'finalScript=\n\n' +
 					finalScript +
-					'\n\n=================(helixEngine.js)\n'
+					'\n\n=================(helixEngine.js)\n',
 			);
 		}
 
@@ -313,7 +316,7 @@ var moduleFunction = function(args) {
 			type:
 				scriptElement.language.toLowerCase() == 'javascript'
 					? ''
-					: scriptElement.language //turns out that osascript won't let you specify, JS is the default
+					: scriptElement.language, //turns out that osascript won't let you specify, JS is the default
 		};
 
 		executeOsaScript(
@@ -330,11 +333,11 @@ var moduleFunction = function(args) {
 					qtools.isTrue(parameters.schema.debugData) &&
 					parameters.schema.schemaName
 				) {
-					const filePath = `/tmp/hxc_FromHelix_${new Date().getTime()}_${
+					const filePath = `/tmp/hxc_FromHelix_${
 						parameters.schema.schemaName
-					}.txt`;
+					}/hxc_FromHelix_${new Date().getTime()}_${parameters.schema.schemaName}.txt`;
 					qtools.logWarn(
-						`WRITING raw received from helix data to file (shows separators): ${filePath} (debugData=true)`
+						`WRITING raw received from helix data to file (shows separators): ${filePath} (debugData=true)`,
 					);
 					qtools.writeSureFile(filePath, data);
 				}
@@ -360,13 +363,16 @@ var moduleFunction = function(args) {
 				} else {
 					outData = helixData.helixStringToRecordList(
 						workingSchema,
-						stringData
+						stringData,
 					);
 				}
-				
-				const eligableForMetaData=!(workingSchema.internalSchema || workingSchema.schemaType=='remoteControl');
 
-				if ( eligableForMetaData && hxcReturnMetaDataOnly) {
+				const eligableForMetaData = !(
+					workingSchema.internalSchema ||
+					workingSchema.schemaType == 'remoteControl'
+				);
+
+				if (eligableForMetaData && hxcReturnMetaDataOnly) {
 					outData = [
 						{
 							totalRecordsAvailable: stringData,
@@ -376,13 +382,13 @@ var moduleFunction = function(args) {
 							criterionSchemaName: workingSchema.criterionSchemaName,
 							queryData: args.otherParms,
 							driverHxAccessRecordCount:
-								helixAccessParms.driverHxAccessRecordCount
-						}
+								helixAccessParms.driverHxAccessRecordCount,
+						},
 					];
 				}
 
 				callback('', outData);
-			}
+			},
 		);
 	};
 
@@ -394,23 +400,23 @@ var moduleFunction = function(args) {
 		compileScript,
 		helixData,
 		helixAccessParms: this.helixAccessParms,
-		otherParms
+		otherParms,
 	});
 
 	const hxPoolUserAccessor = new poolUserGen({
 		helixAccessParms: this.helixAccessParms,
-		hxScriptRunner
+		hxScriptRunner,
 	});
 
 	this.execute = executeActual(
 		hxScriptRunner,
 		hxPoolUserAccessor,
-		this.helixAccessParms
+		this.helixAccessParms,
 	);
 
 	this.validateSchema = validateSchema;
 
-	this.checkUserPool = callback => {
+	this.checkUserPool = (callback) => {
 		hxPoolUserAccessor.checkUserPool(callback);
 	};
 

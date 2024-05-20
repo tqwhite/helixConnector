@@ -59,11 +59,11 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 			schema.staticTestRequestFlag = false;
 			switch (viewType.toLowerCase()) { //backward compatability
 				case 'dynamictest':
-					viewName = schema.testViewName;
+					viewName = schema.internalSchema?schema.view:schema.testViewName;
 					break;
 
 				case 'nopost':
-					viewName = schema.noPostViewName;
+					viewName = schema.internalSchema?schema.view:schema.noPostViewName;
 					break;
 				case 'statictest':
 				case 'fromfile': 

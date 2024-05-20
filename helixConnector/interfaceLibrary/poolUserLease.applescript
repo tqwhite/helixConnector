@@ -12,16 +12,21 @@ set driverLogFilePath to "<!driverLogFilePath!>"
 	
 tell application "<!applicationName!>"
 	
-	do shell script "echo \"\nRequesting new pool user   [$(date)]\" >> " & driverLogFilePath
+	--do shell script "echo \"\nRequesting new pool user   [$(date)]\" >> " & driverLogFilePath
 	
-	do shell script "echo \" myRelation " & myRelation & "   [$(date)]\" >> " & driverLogFilePath
-	do shell script "echo \" myView " & myView & "   [$(date)]\" >> " & driverLogFilePath
-	do shell script "echo \" myUser " & myUser & "   [$(date)]\" >> " & driverLogFilePath
-	do shell script "echo \" myPassword " & myPassword & "   [$(date)]\" >> " & driverLogFilePath
+	--do shell script "echo \" myRelation " & myRelation & "   [$(date)]\" >> " & driverLogFilePath
+	--do shell script "echo \" myView " & myView & "   [$(date)]\" >> " & driverLogFilePath
+	--do shell script "echo \" myUser " & myUser & "   [$(date)]\" >> " & driverLogFilePath
+	--do shell script "echo \" myPassword " & myPassword & "   [$(date)]\" >> " & driverLogFilePath
 		
 	set theRetrievedData to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as list
 	
-	set poolCount to length of theRetrievedData
+	try
+		set poolCount to length of theRetrievedData
+	on error
+		set poolCount to 0
+	end try
+	
 	if (poolCount = 0) then
 		set one to my jProp("error", "No pool users found in Helix")
 		set json to my jObj({one})

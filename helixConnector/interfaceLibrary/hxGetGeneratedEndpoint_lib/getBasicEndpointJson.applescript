@@ -86,7 +86,7 @@ tell application "<!applicationName!>"
 		if (myView is not "") then
 			set viewName to myView
 		else
-			set viewName to (theRelationCustomName & "_DEPRECATED_NOW_CREATED_IN_msOpGen")
+			set viewName to (theRelationCustomName & "_DISCARD_DEPRECATED_NOW_CREATED_IN_msOpGen")
 		end if
 		
 		set allViews to every view of relation myRelation
@@ -202,8 +202,9 @@ tell application "<!applicationName!>"
 			return mainElementJson
 		end if
 		
+ 		do shell script "echo \"ALOG MESSAGE [getBasicEndpointJson]: primaryKeyName is UNKNOWNVALUEIN_GETBASICENDPOINT because retrievePrimaryKey() is Seachem specific ------------------------ [$(date)]\" >> " & driverLogFilePath
 	--	set primaryKeyName to my retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
-		set primaryKeyName to "HELLO"
+		set primaryKeyName to "UNKNOWNVALUEIN_GETBASICENDPOINT"
 		
 		set appendedText2 to text 1 thru -2 of appendedText2
 		set contextList to {{"primaryKeyName", primaryKeyName}, {"requestedRelation", myRelation}, {"requestedView", myView}, {"viewNameUsed", viewName}, {"nativeRelationName", theRelationName}, {"customRelationName", theRelationCustomName}}
@@ -223,8 +224,45 @@ tell application "<!applicationName!>"
 		set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, viewName} to create process for retrieve
 		set viewSummary to utilize {theProcessID} to get view summary --gets us {record count, field delimiter, record delimiter}
 		set theClose to utilize theProcessID to close process
-		set fieldSeparator to field delimiters of viewSummary
-		set recordSeparator to record delimiters of viewSummary
+
+	
+----------------------------------------------------------------------------------------------------
+-- SUPER DUPER HIDEOUS HACK --------------------------------------------------------------------
+
+-- For some reason, in Server v6.2, this code does not work:
+
+--		set fieldSeparator to field delimiters of viewSummary
+--		set recordSeparator to record delimiters of viewSummary
+
+-- After a huge amount of flogging, this does the job:
+
+		set recordCount to "PLACEHOLDER_RECORDCOUNT"
+		set fieldSeparator to "PLACEHOLDER_FIELDSEPARATOR"
+		set recordSeparator to "PLACEHOLDER_RECORDSEPARATOR"
+				
+		set inx to 0
+		
+		repeat with value in viewSummary as list
+			if (inx is 0) then
+				set recordCount to value
+			end if
+			
+			if (inx is 1) then
+				set fieldSeparator to value
+			end if
+			
+		   if (inx is 2) then
+				set recordSeparator to value
+			end if
+			set inx to inx + 1
+		end repeat
+		
+-- It is, of course, stupidly fragile. If the order of the input values ever changes, 
+-- it is busto but I cannot figure out an alternative.
+
+-- SUPER DUPER HIDEOUS HACK END --------------------------------------------------------------------	
+----------------------------------------------------------------------------------------------------
+
 		set separatorJson to "{" & "\"recordSeparator\":\"" & recordSeparator & "\",\"fieldSeparator\":\"" & fieldSeparator & "\"}"
 				
 		
@@ -511,7 +549,7 @@ end q
 
 on retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
 	
-	set referenceCollection to "Seachem"
+	set referenceCollection to "<!myCollection!>"
 	set myRelation to "363" --this is the InertProceess relation
 	set myView to "sqlMirrorCriterionForm02"
 	set myData to theRelationCustomName

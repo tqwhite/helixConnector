@@ -36,7 +36,7 @@
 			}
 		},
 		"hxListViewsForRelation": {
-			"debug": "false",
+			"debug": "true",
 			"schemaType": "remoteControl",
 			"scriptName": "hxListViewsForRelation",
 			"arguments": {},

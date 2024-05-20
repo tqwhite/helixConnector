@@ -86,7 +86,7 @@ tell application "<!applicationName!>"
 			-- NO PROCESS MODE GETS ALL DATA IN ONE CALL. HELIX CRAPS OUT IF TOO MANY RECORDS. DEFAULT FOR LEGACY.		
 			
 			my addToLog(" starting NO PROCESS retrieval")
-			with timeout of 100000 seconds
+			with timeout of 3600 seconds
 				set theResult to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as string
 			end timeout
 			my addToLog(" FINISHED: no process retrieval")
@@ -129,7 +129,7 @@ tell application "<!applicationName!>"
 				my addToLog(" START MAIN RETRIEVAL LOOP:  recordOffset " & recordOffset & " batchCount "  & driverHxAccessRecordCount)
 
 				try
-				with timeout of 100000 seconds
+				with timeout of 3600 seconds
 					set retrievalProcessId to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve	
 						my waitAwhile(1, totalRecordsAvailable, 1) --seems to make the world a better place if I let helix take a beat for every relation
 						my waitAwhile(10, totalRecordsAvailable, extraDelayRecordThreshold) -- big relations need extra time

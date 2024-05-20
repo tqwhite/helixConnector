@@ -37,6 +37,8 @@ set generatorShellCmdString to generatorShellCmdString & " --criterionRelation=\
 set generatorShellCmdString to generatorShellCmdString & " --responseView=\"[[<!responseView!>]]\""
 set generatorShellCmdString to generatorShellCmdString & " --responseRelation=\"[[<!responseRelation!>]]\""
 set generatorShellCmdString to generatorShellCmdString & " --optionalEndpointName=\"[[<!optionalEndpointName!>]]\""
+set generatorShellCmdString to generatorShellCmdString & " --skipPoolUser=\"[[skipPoolUser]]\""
+set generatorShellCmdString to generatorShellCmdString & " --primaryKey=\"[[primaryKey]]\""
 
 -- LOGGING---------------------------------------------------------------
 

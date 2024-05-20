@@ -44,7 +44,7 @@ Object.keys(commandLineParameters.values).forEach(
 			.qtPop()
 			.replace(/^\[\[/, '')
 			.replace(/\]\]$/, ''))
-); //problems occur with empty parameters. calling program adds prefix and suffix, removed here
+); //problems occur with empty parameters. calling program adds prefix, [[, and suffix, ]], removed here
 
 //CALCULATE APPLESCRIPT ============================================================
 
@@ -109,6 +109,8 @@ SCRIPT`, (error='', stdout, stderr) => {
 //log(util.inspect(driverParameterReplaceObject));
 //log(`getElementsScript=${getElementsScript}`);
 
+//driverParameterReplaceObject  has inbound skipPoolUser and primaryKey
+
 const taskList = new taskListPlus();
 
 taskList.push((args, next) => {
@@ -136,7 +138,7 @@ taskList.push((args, next) => {
 	const getEndpointApplescript = getElementsTemplate.qtTemplateReplace(
 		driverParameterReplaceObject
 	);
-	getEndpointData(getEndpointApplescript, localCallback);
+	getEndpointData(getEndpointApplescript, localCallback); //get all the Helix stuff into JSON
 });
 
 if (

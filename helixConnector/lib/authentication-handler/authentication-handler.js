@@ -72,7 +72,7 @@ const moduleFunction = function(args = {}) {
 		
 		const today=new Date();
 		const expirationDate=decoded.accessExpirationDate?(new Date(decoded.accessExpirationDate)):new Date();
-		if (decoded.accessExpirationDate && expirationDate < today) {
+		if (!suppressTokenSecurityFeatures && (decoded.accessExpirationDate && expirationDate < today)) {
 			qtools.logMilestone(`failed authentication requesting accessExpirationDate ${decoded.accessExpirationDate} is expired, before ${today.toLocaleDateString()} for ${userId} (Q52620214291542915814)`);
 			return 'authentication error Q52620214291542915814';
 		}

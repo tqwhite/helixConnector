@@ -9,10 +9,8 @@ const qt = require('qtools-functional-library');
 
 //START OF moduleFunction() ============================================================
 
-const moduleFunction = function(args={}) {
-
-const showInfo=({helixParms, newConfig, getSchema, suppressLogEndpointsAtStartup})=>{
-	const generateEndpointDisplayList = helixParms => {
+const moduleFunction = function (args = {}) {
+	const generateEndpointDisplayList = (helixParms, getSchema, fullEndpoint) => {
 		const endpointList = [];
 		for (var schemaName in helixParms.schemaMap) {
 			var element = getSchema(helixParms, schemaName);
@@ -24,25 +22,59 @@ const showInfo=({helixParms, newConfig, getSchema, suppressLogEndpointsAtStartup
 			const dyn = element.testViewName ? `, dynamicTest/${schemaName}, ` : '';
 			const stat = element.staticTestData ? `, staticTest/${schemaName}` : '';
 			const noPost = element.noPostViewName ? `, noPost/${schemaName}` : '';
-			endpointList.push(`${schemaName}${dyn}${stat}${noPost}`);
+			if (fullEndpoint) {
+				endpointList.push({ [`${schemaName}${dyn}${stat}${noPost}`]: element });
+			} else {
+				endpointList.push(`${schemaName}${dyn}${stat}${noPost}`);
+			}
 		}
 		return endpointList;
 	};
+
+	const showInfo = ({
+		helixParms,
+		newConfig,
+		getSchema,
+		suppressLogEndpointsAtStartup = false,
+	}) => {
+		if (
+			!qtools.getSurePath(newConfig, 'system.suppressLogEndpointsAtStartup')
+		) {
+			const endpointDisplayList = generateEndpointDisplayList(
+				helixParms,
+				getSchema,
+			);
+			qtools.logMilestone(
+				`Endpoints:\n\t${endpointDisplayList.join(
+					'\n\t',
+				)}\n[endpoint listing from: hexlixAjax.js]`,
+			);
+		} else {
+			qtools.logMilestone(
+				'TURN ON endpoint listing from helixAjax.js by setting system.suppressLogEndpointsAtStartup=false in config',
+			);
+		}
+	};
 	
-	if (!qtools.getSurePath(newConfig, 'system.suppressLogEndpointsAtStartup')) {
-		const endpointDisplayList = generateEndpointDisplayList(helixParms);
-		qtools.logMilestone(
-			`Endpoints:\n\t${endpointDisplayList.join(
-				'\n\t'
-			)}\n[endpoint listing from: hexlixAjax.js]`
-		);
-	} else {
-		qtools.logMilestone(
-			'TURN ON endpoint listing from helixAjax.js by setting system.suppressLogEndpointsAtStartup=false in config'
-		);
-	}
-	}
-	return ({showInfo});
+
+	const getEndpointSummary =
+		({ helixParms, newConfig: UNUSED, getSchema }) =>
+		(req) => {
+			const fullEndpoint = req.query.fullEndpoint;
+			console.dir(
+				{ ['req.query']: req.query },
+				{ showHidden: false, depth: 4, colors: true },
+			);
+			const outStuff=generateEndpointDisplayList(helixParms, getSchema, fullEndpoint);
+			return outStuff
+		};
+	
+
+	
+
+	
+
+	return { showInfo, getEndpointSummary };
 };
 
 //END OF moduleFunction() ============================================================

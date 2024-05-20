@@ -305,17 +305,16 @@ var moduleFunction = function(args) {
 		adminPagesAccessData
 	});
 
-	const generateEndpointList = require('./lib/messaging-functions/show-endpoint-info').showInfo(
+	const generateEndpointList = require('./lib/messaging-functions/show-endpoint-info')
+	
+	const endpointsSummary=generateEndpointList.getEndpointSummary(
 		{
 			helixParms,
 			newConfig,
-			getSchema,
-			suppressLogEndpointsAtStartup: qtools.getSurePath(
-				newConfig,
-				'system.suppressLogEndpointsAtStartup'
-			)
+			getSchema
 		}
 	);
+
 
 	//START CONNECTOR ============================================================
 
@@ -449,23 +448,27 @@ var moduleFunction = function(args) {
 	}).install(); //must precede app.use('/', router);
 	
 	router.get(
-		/ping/,
+		/(ping|dynamicTest\/ping)/,
 		utilityEnpoints.ping({ staticPageDispatchConfig, hxcVersion, bootTime })
 	);
 	router.get(
-		/hxConnectorCheck/,
+		/(hxConnectorCheck|dynamicTest\/hxConnectorCheck)/,
 		utilityEnpoints.hxConnectorCheck({ staticPageDispatchConfig })
 	);
 	router.get(
-		/hxDetails/,
+		/(hxDetails|dynamicTest\/hxDetails)/,
 		utilityEnpoints.hxDetails({ summarizeConfig, newConfig })
 	);
 	router.get(
-		/hxSchema/,
+		/(hxSchema|dynamicTest\/hxSchema)/,
 		utilityEnpoints.hxSchema({getSchema, helixParms, send500})
 	);
+	router.get(
+		/(endpoints|dynamicTest\/endpoints)/,
+		(req,res,next)=>res.send(endpointsSummary(req))
+	);
 	router.post(
-		/generateToken/,
+		/(generateToken|dynamicTest\/generateToken)/,
 		new generateTokenResponder({
 			getSchema,
 			helixParms,
