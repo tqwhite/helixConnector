@@ -4,6 +4,8 @@ This is a collection of tools that allow chained operations on various Javascrip
 
 In each case, the primary operand is `this`. In most cases, the function takes an argument with parameters to guide the operation. 
 
+Everything else remains compatible.
+
 **EG,**
 
 ```
@@ -18,6 +20,19 @@ const one=demo
     .qtDump();//produces 'Hi from b [thisFilename.js]'
 
 console.log(one); //produces '[object Object]'
+```
+
+### **Version 2:**
+
+qtPassThrough <u>no longer</u> *always* returns the inbound 'this'. If the supplied function
+returns a value, that is passed on. This way, any ad hoc function can affect the result chain.
+
+EG,
+
+```
+'xxx'
+    .qtPassThrough(item=>item.toUpperCase())
+    .qtDump(); // -> 'XXX'
 ```
 
 ### **Non-chain utilities:**
@@ -45,7 +60,7 @@ console.log(one); //produces '[object Object]'
 
 - **qtSetSurePath** Sets the value of a property based on a dotted string path. Creates intermediate elements if they are missing.
 
-- **qtSelectProperties**: Given an Object and an Array of Strings, filters the properties into a new Object with defaults for missing elements. Does the same for an Array of Objects.
+- **qtSelectProperties**: Given an Object and an Array of Strings, filters the properties into a new Object with defaults "[{}].qtSelectProperties(outFileDefinition, {moreDefaultValues:{Value:"xxx"}}))" for missing elements. Does the same for an Array of Objects.
 
 - **qtMapProperties**: Given an Object and a one level Object whose properties are functions, applies each function to the corresponding element. Does the same for an array of Objects.
 
@@ -71,7 +86,7 @@ console.log(one); //produces '[object Object]'
 
 ### **Misc:**
 
-- **qtPassThrough**: Sits in a declarative chain and executes an arbitrary function. It returns 'this' regardless of what the function does. 'this' is available to the function.
+- **qtPassThrough**: Sits in a declarative chain and executes an arbitrary function. Returns function result if not undefined, 'this' otherwise. 'this' is available to the function.
 
 - **qtIterate**: Operates on a number. EG, (5).qtStart(7).qtIncrement(3).qtIterate(item=>item*100)
 

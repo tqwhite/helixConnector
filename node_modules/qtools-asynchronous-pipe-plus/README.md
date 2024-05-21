@@ -1,3 +1,5 @@
+qtools-asynchronous-pipe
+
 asynchronousPipe() takes an array of asynchronous functions and executes
 them in sequence. As each completes, the next is called with the return
 result of the previous function.

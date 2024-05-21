@@ -1,0 +1,11 @@
+{
+  "name": "qtools-select-properties",
+  "version": "1.0.0",
+  "description": "Create new objects (or list of objects) containing only the enumerated properties. Allows defaults to be supplied for missing properties. If an enumerated property name does not exist at all, a property with the default value is created.",
+  "main": "qtools-select-properties.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

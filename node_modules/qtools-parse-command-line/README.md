@@ -1,5 +1,25 @@
 # qtools Parse Command Line
 
+======================================================
+UPDATED: Now parses injected string instead of argv
+
+New parameters: injectedCommandString, injectFirstTwoElements
+
+Added input parameter, injectedCommandString, that substitutes
+an artificially created command string for process.argv. It is parsed by injectedCommandString.split(/ +/) and
+as far as I can tell, acts exactly like it should, ie, if
+	injectedCommandString.replace(/ +/g, ' ')==process.argv.join(' ')
+then it produces the same result.
+
+NOTE: Normal process.argv has node and the program name in the first
+two positions in the argv array. If you your artificial command
+string is values only, ie, does not have the first two values,
+you can add the parameter, injectFirstTwoElements:true. This will
+inject a pair of dummy values at the front of the fake argv array
+and all will work correctly.
+
+tqii 5/13/24
+======================================================
 
 processCommandLine() analyzes argv and returns the results for use by
 the calling program.
