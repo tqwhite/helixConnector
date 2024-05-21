@@ -76,7 +76,7 @@ const moduleFunction = function() {
 			remoteControl: false,
 			emptyRecordsAllowed: true,
 			private: false,
-			skipPoolUser: context.customRelationName,
+			skipPoolUser: false, //this is overridden by anything put on the command line
 			relation: context.customRelationName
 				? viewSummary.context.customRelationName
 				: viewSummary.context.nativeRelationName,

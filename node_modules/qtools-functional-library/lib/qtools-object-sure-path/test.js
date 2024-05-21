@@ -16,7 +16,7 @@ const moduleFunction = function(args) {
 			console.log(`FAIL TEST: ${thisStepMessage} in ...${moduleName}`);
 		}
 		if (verbose) {
-			console.log(`Result for: ${methodName} (${thisStepPass?'PASS':'FAIL'}):`);
+			console.log(`Result for: ${methodName} ${thisStepMessage} (${thisStepPass?'PASS':'FAIL'}):`);
 			console.dir(thisStepResult);
 			console.log('\n\n');
 		}
@@ -310,6 +310,20 @@ const moduleFunction = function(args) {
 	thisStepMessage = 'not yet implemented';
 	thisStepResult = testArray[methodName]('data.studentReport.rows[0].student.id', 9999);
 	thisStepEvalFunction = item => item.qtGetSurePath('data.studentReport.rows[0].student.id')==9999;
+	passingTests =
+		completeStep(
+			methodName,
+			thisStepMessage,
+			thisStepResult,
+			thisStepEvalFunction
+		) && passingTests;
+	
+	
+	
+	methodName = 'qtPutSurePath';
+	thisStepMessage = 'avoid prototype polution';
+	thisStepResult = testArray[methodName]('__proto__', 9999);
+	thisStepEvalFunction = item => item.qtGetSurePath('__proto__')!=9999;
 	passingTests =
 		completeStep(
 			methodName,

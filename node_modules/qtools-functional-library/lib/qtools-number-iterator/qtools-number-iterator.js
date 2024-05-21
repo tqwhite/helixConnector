@@ -98,7 +98,7 @@ var moduleFunction = function(args = {}) {
 	const firstMethodFunction = commonFunctions => {
 		const functionObject = new Map(); // prettier-ignore
 		functionObject.set('qtIterate', {
-			description: `count.qtIterate((currentValue, count, startValue, incrementValue)=>{}`,
+			description: `eg, (5).qtStart(7).qtIncrement(3).qtIterate(item=>item*100)`,
 			supportedTypeList: [Number],
 			method: () => iterator
 		});

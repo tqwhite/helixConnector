@@ -1,0 +1,11 @@
+{
+  "name": "qtools-map-properties",
+  "version": "1.0.0",
+  "description": " Transform and add properties to a javascript object or array of objects",
+  "main": "qtools-map-properties.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "TQ White II",
+  "license": "ISC"
+}

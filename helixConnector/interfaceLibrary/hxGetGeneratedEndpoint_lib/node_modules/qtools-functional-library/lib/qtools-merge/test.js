@@ -123,10 +123,6 @@ const moduleFunction = function(args) {
 	methodName='qtMerge'
 	thisStepMessage = "Failed to replace base type with complex one or vice versa";
 	thisStepResult = arrayTestA[methodName](arrayTestE, {mergeNonExistent:true});
-thisStepResult.qtDump({label:"thisStepResult"});
-
-
-
 	thisStepEvalFunction = item => 
 		item.qtGetSurePath('c.arrayOfBasicTypes[0]')=='replacesFirst' &&
 		item.qtGetSurePath('c.arrayOfBasicTypes[1]')=='second';

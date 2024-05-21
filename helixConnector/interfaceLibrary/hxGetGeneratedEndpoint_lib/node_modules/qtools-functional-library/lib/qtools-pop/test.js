@@ -96,6 +96,15 @@ const moduleFunction = function(args) {
 		completeStep(methodName, thisStepMessage, thisStepResult, thisStepEvalFunction) &&
 		passingTests;
 	
+	//TEST ITEM ------------------------------------------------------
+	methodName='qtFirst'
+	thisStepMessage = "element was not added";
+	thisStepResult = testArray[methodName]();
+	thisStepEvalFunction = item => (item=='allocute' && item.length==2);
+	passingTests =
+		completeStep(methodName, thisStepMessage, thisStepResult, thisStepEvalFunction) &&
+		passingTests;
+	
 	
 	
 

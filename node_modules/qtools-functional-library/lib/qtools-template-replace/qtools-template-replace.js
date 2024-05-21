@@ -8,7 +8,6 @@ var moduleFunction = function(args = {}) {
 
 	const baseReplacementFunction = (replaceObject, template, options) => {
 		const { transformations = {}, leaveUnmatchedTagsIntact = true } = options;
-
 		replaceObject = replaceObject.qtClone().qtMerge(transformations);
 
 		const tmp = template.match(/<!.*?!>/g);
@@ -45,6 +44,8 @@ var moduleFunction = function(args = {}) {
 	// prettier-ignore
 	const stringCallsObject = (item, arg) => arg instanceof Object && typeof item == 'string';
 	// prettier-ignore
+	const stringCallsArrayOfObjects = (item, arg) => arg instanceof Array && typeof item == 'string';
+	// prettier-ignore
 	const arrayOfStringsCallsObject = (item, arg) => arg instanceof Object && item instanceof Array && item.filter(item => typeof item == 'string').qtPop(false) ? true : false;
 
 	//first method definition function ==========================
@@ -69,6 +70,8 @@ var moduleFunction = function(args = {}) {
 					return this.map(item => baseReplacementFunction(item, arg, options));
 				} else if (objectCallsString(this, arg)) {
 					return baseReplacementFunction(this, arg, options);
+				} else if (stringCallsArrayOfObjects(this, arg)) {
+					return arg.map(item => baseReplacementFunction(item, this, options));
 				} else if (stringCallsObject(this, arg)) {
 					return baseReplacementFunction(arg, this, options);
 				}

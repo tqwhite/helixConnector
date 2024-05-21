@@ -37,8 +37,12 @@ set generatorShellCmdString to generatorShellCmdString & " --criterionRelation=\
 set generatorShellCmdString to generatorShellCmdString & " --responseView=\"[[<!responseView!>]]\""
 set generatorShellCmdString to generatorShellCmdString & " --responseRelation=\"[[<!responseRelation!>]]\""
 set generatorShellCmdString to generatorShellCmdString & " --optionalEndpointName=\"[[<!optionalEndpointName!>]]\""
-set generatorShellCmdString to generatorShellCmdString & " --skipPoolUser=\"[[skipPoolUser]]\""
-set generatorShellCmdString to generatorShellCmdString & " --primaryKey=\"[[primaryKey]]\""
+
+set generatorShellCmdString to generatorShellCmdString & " --primaryKey=\"[[<!primaryKey!>]]\""
+
+--NOTE: skipPoolUser defaults to true because the endpoint definition for this endpoint, hxGetGeneratedEndpoint, skips the pool user.
+-- it is successfully overridden by a value on the command line in generatorHelper.js.
+set generatorShellCmdString to generatorShellCmdString & " --skipPoolUser=\"[[<!skipPoolUser!>]]\""
 
 -- LOGGING---------------------------------------------------------------
 

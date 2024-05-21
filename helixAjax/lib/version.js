@@ -1,4 +1,4 @@
-module.exports=`hxc011524`
+module.exports=`hxc052124.1`
 
 //hxc102011 has hxGeneneratedEndpoint and several small fixes here and there
 //hxc083022 is the paged version

@@ -19,7 +19,7 @@ const commonFunctions = {
 			methods.push(methodName);
 			documentation.push({
 				name: methodName,
-				description: `${methodName}: ${functionItem.description}`,
+				description: `${functionItem.description}`,
 				supportedTypeList
 			});
 
@@ -226,21 +226,32 @@ const addMorePrototypes = () => {
 
 addMorePrototypes();
 
-const helpActual = docList => (queryString = '') => {
-	//someday turn this into a report instead of a JSON dump, add support for item.suppressHelpListing for qtLog_AddCallableMethods
-	let outList;
+const helpActual = docList => (options={}) => {
+
+	const {printOutput=true, sendJson=false, queryString='.*'}=options;
+
+	let rawList;
 	if (!queryString) {
-		outList = docList;
+		rawList = docList;
 	} else {
-		outList = docList.filter(item => {
+		rawList = docList.filter(item => {
 			const regex = new RegExp(queryString, 'i');
 			const result = JSON.stringify(item).match(regex);
 			return result;
 		});
 	}
-	// 	const util=require('util');
-	// 	util.inspect(docList, { depth: null, maxArrayLength: null }).qtDump('qtFuncionalLib Documentation');
-	return outList;
+
+	let outArray=[];
+	rawList.forEach(item=>{
+		outArray=outArray.concat(item);
+	});
+	
+	const outString='<!name!>: <!description!> (<!supportedTypeList!>) '.qtTemplateReplace(outArray).join('\n');
+
+	if (printOutput){
+		console.log(outString);	
+	}
+	return outString;
 };
 
 const testActual = testList => (args={}) => {

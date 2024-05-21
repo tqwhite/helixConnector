@@ -102,6 +102,41 @@ var moduleFunction = function(args = {}) {
 			test
 		};
 	};
+	//fourth method definition function ==========================
+	const fourthMethodFunction = commonFunctions => {
+		const methodName = 'qtFirst';
+		const description = `operand.qtFirst(value) gets element zero or default`;
+		const supportedTypeList = [Array];
+
+		const method = () =>
+			function(value) {
+				const inData = this;
+				if (typeof inData.length == 'undefined') {
+					throw 'array.qtFirst(defaultValue=undefined) works for Arrays only';
+				}
+				const arrayValue = inData[0]?inData[0]:void('');
+				const result =
+					typeof arrayValue != 'undefined' ? arrayValue : defaultValue;
+				return result;
+			};
+
+		const test = args => {
+			return require('./test.js')({
+				...args,
+				...{
+					moduleName: module.id.replace(module.path, '')
+				}
+			});
+		};
+
+		return {
+			methodName,
+			description,
+			supportedTypeList,
+			method,
+			test
+		};
+	};
 	
 	const functionObject = new Map(); // prettier-ignore
 	const addFunction = definition => {
@@ -130,6 +165,7 @@ var moduleFunction = function(args = {}) {
 	addFunction(firstMethodFunction());
 	addFunction(secondMethodFunction());
 	addFunction(thirdMethodFunction());
+	addFunction(fourthMethodFunction());
 
 	this.addToPrototype = addToPrototypeActual(functionObject);
 	

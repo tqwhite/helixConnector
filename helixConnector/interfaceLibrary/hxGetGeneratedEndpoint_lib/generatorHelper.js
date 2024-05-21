@@ -22,29 +22,100 @@ let logString = '';
 
 fs.writeFileSync(
 	logFilePath,
-	'All logging for generatorHelper.js is written at the end. If a crash occurs, no log will be shown/n'
+	'All logging for generatorHelper.js is written at the end. If a crash occurs, no log will be shown/n',
 );
 
-const log = message => {
+const log = (message) => {
 	logString += `LOG MESSAGE [${moduleName}]: ${message}\n`;
 };
 
 //GET PARAMETERS ============================================================
 
-const combineElementAndSeparatorsToFinalJson = commandLineParameters.qtGetSurePath(
-	'switches.combineElementAndSeparatorsToFinalJson',
-	false
-);
+const combineElementAndSeparatorsToFinalJson =
+	commandLineParameters.qtGetSurePath(
+		'switches.combineElementAndSeparatorsToFinalJson',
+		false,
+	);
+
+const convertToDataType = function (value) {
+	
+
+	if (value == /^''$/) {
+		return value;
+	}
+
+	if (value.match(/^''/)) {
+		return value.replace(/^''/, '');
+	}
+
+	if (typeof value == 'string') {
+		switch (value.toLowerCase()) {
+			case 'true':
+				return true;
+			case 'false':
+				return false;
+			case 'null':
+				return null;
+		}
+	}
+
+	if (!isNaN(+value)) {
+		return +value;
+	}
+	
+
+	return value;
+};
 
 const driverParameterReplaceObject = {};
 Object.keys(commandLineParameters.values).forEach(
-	name =>
+	(name) =>
 		(driverParameterReplaceObject[name] = commandLineParameters
 			.qtGetSurePath(`values.${name}`, [])
 			.qtPop()
 			.replace(/^\[\[/, '')
-			.replace(/\]\]$/, ''))
+			.replace(/\]\]$/, '')
+			.qtPassThrough(convertToDataType)),
 ); //problems occur with empty parameters. calling program adds prefix, [[, and suffix, ]], removed here
+
+
+//CALCULATE APPLESCRIPT ============================================================
+
+const editFinalEndpoint = ({ endpointBody, driverParameterReplaceObject }) => {
+	log(
+		`\n=-=============   endpointBody  ========================= [generatorHelper.js.]\n`,
+	);
+	
+
+	log(util.inspect(endpointBody));
+	log(
+		`\n=-=============   driverParameterReplaceObject  ========================= [generatorHelper.js.]\n`,
+	);
+	
+
+	log(util.inspect(driverParameterReplaceObject));
+	log(
+		`\n=-=============   ========  ========================= [generatorHelper.js.]\n`,
+	);
+	
+
+	
+
+	const passthroughFromCommandLine = ['primaryKey', 'skipPoolUser'];
+	log(
+		`Passthrough from command line: ${passthroughFromCommandLine.join(', ')}`,
+	);
+
+	const finishedEndpointBody = Object.assign(
+		{},
+		endpointBody,
+		driverParameterReplaceObject.qtSelectProperties(passthroughFromCommandLine),
+		{ createdAt: new Date().toLocaleString() },
+	);
+
+	return finishedEndpointBody;
+};
+
 
 //CALCULATE APPLESCRIPT ============================================================
 
@@ -53,31 +124,33 @@ const getElementsTemplate = fs
 		path.join(
 			driverParameterReplaceObject.driverLibraryDirPath,
 			`${driverParameterReplaceObject.schemaName}_lib`,
-			'getBasicEndpointJson.applescript'
-		)
+			'getBasicEndpointJson.applescript',
+		),
 	)
 	.toString();
 
 //EXECUTE AND RETURN (console.log) RESULT ============================================================
 
 const getEndpointData = (template, callback) => {
-
-
-	const showGeneratedApplescriptInLog = true;
 	
+
+	const showGeneratedApplescriptInLog = false;
+	
+
 	if (showGeneratedApplescriptInLog) {
 		log(`\n\n\ngetBasicEndpointJson ----------------------------------------`);
 		log(`\n\n${template}\n\n`);
 		log(`-------------------------------------------------------------`);
 		log(
-			`Suppress generated Applescript listing. Edit 'showGeneratedApplescriptInLog' and set to false in this module`
+			`Suppress generated Applescript listing. Edit 'showGeneratedApplescriptInLog' and set to false in this module`,
 		);
 	} else {
 		log(
-			`Show generated Applescript string in this log. Edit 'showGeneratedApplescriptInLog' and set to true in this module`
+			`To show generated Applescript programs in this log. Edit 'showGeneratedApplescriptInLog' and set to true in this module`,
 		);
 	}
 	
+
 	// prettier-ignore
 	exec(`osascript <<SCRIPT
 ${template}
@@ -128,7 +201,7 @@ taskList.push((args, next) => {
 		let mainEndpoint = defaultMainEndpoint;
 		if (optionalEndpointName) {
 			mainEndpoint = {
-				[optionalEndpointName]: defaultMainEndpoint[defaultMainEndpointName]
+				[optionalEndpointName]: defaultMainEndpoint[defaultMainEndpointName],
 			};
 		}
 
@@ -136,7 +209,7 @@ taskList.push((args, next) => {
 		next(err, { ...args, mainEndpoint, mainEndpointName });
 	};
 	const getEndpointApplescript = getElementsTemplate.qtTemplateReplace(
-		driverParameterReplaceObject
+		driverParameterReplaceObject,
 	);
 	getEndpointData(getEndpointApplescript, localCallback); //get all the Helix stuff into JSON
 });
@@ -153,7 +226,7 @@ if (
 			const newCriterionName = `${mainEndpointName}_criterion`;
 
 			const criterionEndpoint = {
-				[newCriterionName]: defaultCriterionEndpoint[origCriterionName]
+				[newCriterionName]: defaultCriterionEndpoint[origCriterionName],
 			};
 			next(err, { ...args, criterionEndpoint });
 		};
@@ -162,9 +235,8 @@ if (
 		replaceObject.myRelation = driverParameterReplaceObject.criterionRelation;
 		replaceObject.myView = driverParameterReplaceObject.criterionView;
 
-		const getEndpointApplescript = getElementsTemplate.qtTemplateReplace(
-			replaceObject
-		);
+		const getEndpointApplescript =
+			getElementsTemplate.qtTemplateReplace(replaceObject);
 
 		getEndpointData(getEndpointApplescript, localCallback);
 	});
@@ -183,7 +255,7 @@ if (
 			const newResponseName = `${mainEndpointName}_response`;
 
 			const responseEndpoint = {
-				[newResponseName]: defaultResponseEndpoint[origResponseName]
+				[newResponseName]: defaultResponseEndpoint[origResponseName],
 			};
 			next(err, { ...args, responseEndpoint });
 		};
@@ -192,14 +264,14 @@ if (
 		replaceObject.myRelation = driverParameterReplaceObject.responseRelation;
 		replaceObject.myView = driverParameterReplaceObject.responseView;
 
-		const getEndpointApplescript = getElementsTemplate.qtTemplateReplace(
-			replaceObject
-		);
+		const getEndpointApplescript =
+			getElementsTemplate.qtTemplateReplace(replaceObject);
 
 		getEndpointData(getEndpointApplescript, localCallback);
 	});
 	
 }
+
 
 const initialData =
 	typeof inData != 'undefined' ? inData : { driverParameterReplaceObject };
@@ -209,25 +281,41 @@ pipeRunner(taskList.getList(), initialData, (err, args) => {
 		console.error(`\nPROCESS COMPLETED WITH ERRORS`);
 		console.error(`${err}`);
 	} else {
-		const { mainEndpoint, criterionEndpoint, responseEndpoint } = args;
+		const {
+			mainEndpoint,
+			criterionEndpoint,
+			responseEndpoint,
+			driverParameterReplaceObject,
+		} = args;
 
 		const mainEndpointName = Object.keys(mainEndpoint).qtPop();
-		
+
 		if (criterionEndpoint) {
 			const criterionName = Object.keys(criterionEndpoint).qtPop();
 			mainEndpoint[mainEndpointName].criterionSchemaName = criterionName;
 			mainEndpoint[criterionName] = criterionEndpoint[criterionName];
 		}
-		
+
 		if (responseEndpoint) {
 			const responseName = Object.keys(responseEndpoint).qtPop();
 			mainEndpoint[mainEndpointName].responseSchemaName = responseName;
 			mainEndpoint[responseName] = responseEndpoint[responseName];
 		}
 
-		console.log(JSON.stringify(mainEndpoint));
+		const endpointBody = mainEndpoint[mainEndpointName]; //shut up. I'm not rewriting it for this!!
+
+		const finalEndpointBody = editFinalEndpoint({
+			endpointBody,
+			driverParameterReplaceObject,
+			mainEndpointName,
+		});
+
+		const finalEndpoint = { [mainEndpointName]: finalEndpointBody };
+
+		console.log(JSON.stringify(finalEndpoint));
 	}
 	
+
 	fs.writeFileSync(logFilePath, logString);
 	return;
 	//callback(err, {localResult1Value, localResult2});

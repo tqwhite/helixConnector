@@ -57,7 +57,7 @@ var moduleFunction = function(args = {}) {
 				for (var i = 0, len = elements.length; i < len; i++) {
 					if (elements[i]) {
 						//mainly eliminates trailing periods but would also eliminates double periods and other regex anomalies
-						target = target[elements[i]];
+						target = target?target[elements[i]]:undefined;
 
 						getDottedPathLastProgressiveString += elements[i] + '.';
 						if (typeof target == 'undefined' || target === '') {

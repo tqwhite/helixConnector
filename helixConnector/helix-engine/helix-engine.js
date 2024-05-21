@@ -121,13 +121,17 @@ var moduleFunction = function (args) {
 
 		switch (workingParms.type) {
 			case 'applescript':
-console.log(`\n=-=============   script  ========================= [helix-engine.js.moduleFunction]\n`);
+				console.log(
+					`\n=-=============   script  ========================= [helix-engine.js.moduleFunction]\n`,
+				);
+				
 
+				console.log(`script=${script}`);
 
-console.log(`script=${script}`);
-
-console.log(`\n=-=============   script  ========================= [helix-engine.js.moduleFunction]\n`);
-
+				console.log(
+					`\n=-=============   script  ========================= [helix-engine.js.moduleFunction]\n`,
+				);
+				
 
 				osaScript(script, parms, localCallback);
 				break;
@@ -357,6 +361,7 @@ console.log(`\n=-=============   script  ========================= [helix-engine
 					try {
 						outData = JSON.parse(stringData);
 					} catch (e) {
+						const err = `${e.toString()} for ${workingSchema.schemaName} using ${workingSchema.relation}/${workingSchema.view} [helix-engine]`;
 						callback(new Error(e));
 						return;
 					}
