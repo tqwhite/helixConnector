@@ -82,23 +82,6 @@ Object.keys(commandLineParameters.values).forEach(
 //CALCULATE APPLESCRIPT ============================================================
 
 const editFinalEndpoint = ({ endpointBody, driverParameterReplaceObject }) => {
-	log(
-		`\n=-=============   endpointBody  ========================= [generatorHelper.js.]\n`,
-	);
-	
-
-	log(util.inspect(endpointBody));
-	log(
-		`\n=-=============   driverParameterReplaceObject  ========================= [generatorHelper.js.]\n`,
-	);
-	
-
-	log(util.inspect(driverParameterReplaceObject));
-	log(
-		`\n=-=============   ========  ========================= [generatorHelper.js.]\n`,
-	);
-	
-
 	
 
 	const passthroughFromCommandLine = ['primaryKey', 'skipPoolUser'];

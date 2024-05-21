@@ -9,7 +9,7 @@ var express = require('express'); //powered by header removed below for snyk
 var app = express();
 const https = require('https');
 
-const fs=require('fs');
+const fs = require('fs');
 const path = require('path');
 
 const schemaMapAssemblerGen = require('./lib/schema-map-assembler');
@@ -33,27 +33,29 @@ const hxcVersion = require('./lib/version');
 qtools.logMilestone(`\nStarting hxAjax *************************`);
 qtools.logMilestone(`Code directory: ${__dirname}`);
 
-console.error(`helixAjax startup beginning: ${new Date().toLocaleString()} ${__dirname}`); //it's very helpful to have this annotation in the error log
+console.error(
+	`helixAjax startup beginning: ${new Date().toLocaleString()} ${__dirname}`,
+); //it's very helpful to have this annotation in the error log
 qtools.logWarn('Freezing Object.prototype');
 
 Object.freeze(Object.prototype); //must come after qtFunctionalLibrary which updates prototypes
 
 //START OF moduleFunction() ============================================================
 
-var moduleFunction = function(args) {
+var moduleFunction = function (args) {
 	events.EventEmitter.call(this);
 	this.forceEvent = forceEvent;
 	this.args = args;
 	this.metaData = {};
-	this.addMeta = function(name, data) {
+	this.addMeta = function (name, data) {
 		this.metaData[name] = data;
 	};
 
 	var self = this,
-		forceEvent = function(eventName, outData) {
+		forceEvent = function (eventName, outData) {
 			this.emit(eventName, {
 				eventName: eventName,
-				data: outData
+				data: outData,
 			});
 		};
 
@@ -88,9 +90,7 @@ var moduleFunction = function(args) {
 				sound: false, // Case Sensitive string for location of sound file, or use one of macOS' native sounds (see below)
 				icon: 'Terminal Icon', // Absolute Path to Triggering Icon
 				contentImage: void 0, // Absolute Path to Attached Image (Content Image)
-				open: `http://localhost:${
-					staticPageDispatchConfig.port
-				}/manageConnector`, // URL to open on Click
+				open: `http://localhost:${staticPageDispatchConfig.port}/manageConnector`, // URL to open on Click
 				wait: false, // Wait for User Action against Notification or times out. Same as timeout = 5 seconds
 
 				// New in latest version. See `example/macInput.js` for usage
@@ -98,21 +98,24 @@ var moduleFunction = function(args) {
 				closeLabel: void 0, // String. Label for cancel button
 				actions: void 0, // String | Array<String>. Action label or list of labels in case of dropdown
 				dropdownLabel: void 0, // String. Label to be used if multiple actions
-				reply: false // Boolean. If notification should take input. Value passed as third argument in callback and event emitter.
+				reply: false, // Boolean. If notification should take input. Value passed as third argument in callback and event emitter.
 			},
-			(err, result) => {}
+			(err, result) => {},
 		);
 	};
 
-	const addInternalEndpoints = clientSchema => {
+	const addInternalEndpoints = (clientSchema) => {
 		//someday maybe implement the whole include function, for now, just get fileOne.json
-		const fileOneSubPath='./internalEndpoints/fileOne.json';
-		const fileOnePath=path.join(path.dirname(module.filename), fileOneSubPath);
+		const fileOneSubPath = './internalEndpoints/fileOne.json';
+		const fileOnePath = path.join(
+			path.dirname(module.filename),
+			fileOneSubPath,
+		);
 		const internalSchema = require(fileOnePath);
 		return Object.assign({}, internalSchema.schemaMap, clientSchema);
 	};
 
-	const getSchema = (helixParms, schemaName) => {
+	const getSchemaActual = (newConfig) => (helixParms, schemaName) => {
 		let schema = helixParms.schemaMap[schemaName];
 		if (typeof schema == 'string') {
 			const libPath = path.join(helixParms.configDirPath, schema);
@@ -124,8 +127,24 @@ var moduleFunction = function(args) {
 				qtools.logError(`ERROR: no such file: ${libPath}`);
 				return;
 			}
+
 			schema = JSON.parse(json);
 		}
+
+		if (!schema){
+			return; //error is thrown by receiving program
+		}
+
+		if (newConfig.system.skipUserPoolEntirely) {
+			schema.skipPoolUser = true;
+		}
+		if (newConfig.system.debugAlways) {
+			schema.debug = true;
+		}
+		if (newConfig.system.debugDataAlways) {
+			schema.debugData = true;
+		}
+
 		return schema;
 	};
 
@@ -136,14 +155,14 @@ var moduleFunction = function(args) {
 	const configDirPath = (configPath = path.join(
 		process.env.helixProjectPath,
 		'configs/',
-		hxConnectorUser
+		hxConnectorUser,
 	));
 
 	var configPath = path.join(configDirPath, '/systemParameters.ini');
 
 	const configOverridePath = path.join(
 		configDirPath,
-		'/systemParametersOverride.ini'
+		'/systemParametersOverride.ini',
 	);
 
 	if (!qtools.realPath(configPath)) {
@@ -167,16 +186,18 @@ var moduleFunction = function(args) {
 	qtools.putSurePath(newConfig, 'system.hxConnectorUser', hxConnectorUser);
 
 	if (qtools.realPath(configOverridePath)) {
-		const overrideConfig = qtools.configFileProcessor.getConfig(
-			configOverridePath
-		);
+		const overrideConfig =
+			qtools.configFileProcessor.getConfig(configOverridePath);
 		qtools.logMilestone(
-			`ALERT: OVERRIDE config file found: ${configOverridePath}`
+			`ALERT: OVERRIDE config file found: ${configOverridePath}`,
 		);
 		newConfig = mergeDeep(newConfig, overrideConfig);
 	}
+	
 
 	const bootTime = new Date().toLocaleString();
+
+	const getSchema = getSchemaActual(newConfig);
 
 	//ORGANIZE SCHEMA MAP ============================================================
 
@@ -187,13 +208,13 @@ var moduleFunction = function(args) {
 	const staticPageDispatchConfig = qtools.getSurePath(
 		newConfig,
 		'staticPageDispatch',
-		{}
+		{},
 	);
 
 	let schemaMapPath;
 	const schemaMapDirectoryPath = qtools.getSurePath(
 		newConfig,
-		'system.schemaMapDirectoryPath'
+		'system.schemaMapDirectoryPath',
 	);
 	if (schemaMapDirectoryPath) {
 		schemaMapPath = path.join(schemaMapDirectoryPath, `${schemaMapName}.json`);
@@ -202,19 +223,20 @@ var moduleFunction = function(args) {
 			process.env.helixProjectPath,
 			'configs',
 			hxConnectorUser,
-			`${schemaMapName}.json`
+			`${schemaMapName}.json`,
 		);
 	}
 
 	const schemaMapAssembler = new schemaMapAssemblerGen();
 	const schemaMap = schemaMapAssembler.getSchemaMap(schemaMapPath);
 
+
 	//ORGANIZE HELIXPARMS ============================================================
 
 	const helixParms = qtools.getSurePath(newConfig, 'system');
 	const adminPagesAccessData = qtools.getSurePath(
 		newConfig,
-		'adminPagesAccessData'
+		'adminPagesAccessData',
 	);
 
 	global.applicationLoggingIdString = helixParms.instanceId;
@@ -222,6 +244,22 @@ var moduleFunction = function(args) {
 	helixParms.schemaMap = addInternalEndpoints(schemaMap.schemaMap);
 
 	helixParms.configDirPath = configDirPath;
+	
+		
+	//SHOW SCHEMA LOG INFO =======================================================
+
+		const showSchemaSummary=newConfig.system.showSchemaSummary?newConfig.system.showSchemaSummary:false; //false suppresses output
+		if (showSchemaSummary){;
+
+		qtools.log(`\nSCHEMA DETAILS ==================================================`)
+		qtools.log(`Turn this display off by setting showSchemaSummary=false in systemParameters.ini`)
+		qtools.log(util.inspect(helixParms.schemaMap, {colors:true, depth:4}));
+		qtools.log(`SCHEMA DETAILS END ==============================================\n`)
+
+		}
+		else if (!newConfig.system.suppressEndpointNameList){
+			qtools.log(`Endpoints:\n\t${Object.keys(helixParms.schemaMap).sort().join('\n\t')}\n`)
+		}
 
 	//SET UP SERVER =======================================================
 
@@ -229,8 +267,7 @@ var moduleFunction = function(args) {
 	var bodyParser = require('body-parser');
 
 	app.use(express.json({ limit: '4gb' }));
-	app.use(function(req, res, next) {
-		
+	app.use(function (req, res, next) {
 		// console.log(`\n=-=============   req.path  ========================= [helixAjaxActual.js.[ anonymous ]]\n`);
 		//
 		//
@@ -248,12 +285,12 @@ var moduleFunction = function(args) {
 		console.log(
 			`hxC REQUEST URL: ${req.protocol}://${req.hostname}/${req.url} (${
 				req.method
-			}) ${new Date().toLocaleString()}`
+			}) ${new Date().toLocaleString()}`,
 		);
 		next();
 	});
 
-	app.use(function(req, res, next) {
+	app.use(function (req, res, next) {
 		res.removeHeader('X-Powered-By'); //snyk hates this header.
 		next();
 	});
@@ -269,11 +306,11 @@ var moduleFunction = function(args) {
 
 	app.use(
 		bodyParser.json({
-			extended: true
-		})
+			extended: true,
+		}),
 	);
 
-	app.use(function(err, req, res, next) {
+	app.use(function (err, req, res, next) {
 		//bodyParser.json produces a syntax error when it gets badly formed json
 		//this catches the error
 
@@ -287,8 +324,8 @@ var moduleFunction = function(args) {
 
 	app.use(
 		bodyParser.urlencoded({
-			extended: true
-		})
+			extended: true,
+		}),
 	);
 
 	//STATIC PAGE DISPATCH =======================================================
@@ -299,28 +336,27 @@ var moduleFunction = function(args) {
 		filePathList: [process.env.helixAjaxPagesPath],
 		suppressLogEndpointsAtStartup: qtools.getSurePath(
 			newConfig,
-			'system.suppressLogEndpointsAtStartup'
+			'system.suppressLogEndpointsAtStartup',
 		),
 		helixParms,
-		adminPagesAccessData
+		adminPagesAccessData,
 	});
 
-	const generateEndpointList = require('./lib/messaging-functions/show-endpoint-info')
+	const generateEndpointList = require('./lib/messaging-functions/show-endpoint-info');
 	
-	const endpointsSummary=generateEndpointList.getEndpointSummary(
-		{
-			helixParms,
-			newConfig,
-			getSchema
-		}
-	);
 
+	const endpointsSummary = generateEndpointList.getEndpointSummary({
+		helixParms,
+		newConfig,
+		getSchema,
+	});
+	
 
 	//START CONNECTOR ============================================================
 
 	const helixConnectorGenerator = require(helixConnectorPath);
 
-	const verifyRelationHasPoolUsersInstalled = helixParms => (args, next) => {
+	const verifyRelationHasPoolUsersInstalled = (helixParms) => (args, next) => {
 		const localCallback = (err, result) => {
 			if (!args.processResult) {
 				args.processResult = [];
@@ -331,7 +367,7 @@ var moduleFunction = function(args) {
 		if (false) {
 			qtools.logMilestone('Initiating startup check for: Pool User Tables');
 			var localSpecialHxConnector = new helixConnectorGenerator({
-				helixAccessParms: helixParms
+				helixAccessParms: helixParms,
 			});
 			localSpecialHxConnector.checkUserPool(localCallback);
 		} else {
@@ -340,19 +376,19 @@ var moduleFunction = function(args) {
 		}
 	}; //this was useful back in the day when we didn't know which db had what. Now they all work and this takes tooo long.
 
-	const fabricateConnector = function(req, res, schema, bootstrap) {
+	const fabricateConnector = function (req, res, schema, bootstrap) {
 		const headerAuth = req.headers ? req.headers.authorization : '';
 
 		const tmp = headerAuth ? headerAuth.split(' ') : [];
 
 		const apiAccessAuthParms = {
 			authToken: tmp[1] ? tmp[1] : '',
-			userId: tmp[0] ? tmp[0] : ''
+			userId: tmp[0] ? tmp[0] : '',
 		};
 
 		const helixUserAuth = {
 			hxUser: req.headers ? req.headers.hxuser : '',
-			hxPassword: req.headers ? req.headers.hxpassword : ''
+			hxPassword: req.headers ? req.headers.hxpassword : '',
 		};
 
 		try {
@@ -361,7 +397,7 @@ var moduleFunction = function(args) {
 				apiAccessAuthParms,
 				helixUserAuth,
 				req,
-				bootstrap
+				bootstrap,
 			});
 		} catch (err) {
 			qtools.logError(qtools.dump(err, true));
@@ -403,14 +439,14 @@ var moduleFunction = function(args) {
 			messageid: qtools.newGuid(),
 			messagetype: 'RESPONSE',
 			responsesource: 'helixConnector',
-			connection: 'Close'
+			connection: 'Close',
 		});
 
 		res.json(result);
 	};
 
-	const sendResult = function(res, req, next, helixConnector) {
-		return function(err, result) {
+	const sendResult = function (res, req, next, helixConnector) {
+		return function (err, result) {
 			if (err) {
 				send500(res, req, err.toString());
 				helixConnector.close();
@@ -431,9 +467,10 @@ var moduleFunction = function(args) {
 	const schemaResolver = require('./lib/get-resolved-schema')({
 		getSchema,
 		helixParms,
-		send500
+		send500,
 	});
 	
+
 	const hxClientSpecialAuthPath = 'hxClientAuth';
 	externalAuthorization({
 		app,
@@ -443,29 +480,29 @@ var moduleFunction = function(args) {
 		helixConnectorPackage: {
 			fabricateConnector,
 			sendResult,
-			send500
-		}
+			send500,
+		},
 	}).install(); //must precede app.use('/', router);
 	
+
 	router.get(
 		/(ping|dynamicTest\/ping)/,
-		utilityEnpoints.ping({ staticPageDispatchConfig, hxcVersion, bootTime })
+		utilityEnpoints.ping({ staticPageDispatchConfig, hxcVersion, bootTime }),
 	);
 	router.get(
 		/(hxConnectorCheck|dynamicTest\/hxConnectorCheck)/,
-		utilityEnpoints.hxConnectorCheck({ staticPageDispatchConfig })
+		utilityEnpoints.hxConnectorCheck({ staticPageDispatchConfig }),
 	);
 	router.get(
 		/(hxDetails|dynamicTest\/hxDetails)/,
-		utilityEnpoints.hxDetails({ summarizeConfig, newConfig })
+		utilityEnpoints.hxDetails({ summarizeConfig, newConfig }),
 	);
 	router.get(
 		/(hxSchema|dynamicTest\/hxSchema)/,
-		utilityEnpoints.hxSchema({getSchema, helixParms, send500})
+		utilityEnpoints.hxSchema({ getSchema, helixParms, send500 }),
 	);
-	router.get(
-		/(endpoints|dynamicTest\/endpoints)/,
-		(req,res,next)=>res.send(endpointsSummary(req))
+	router.get(/(endpoints|dynamicTest\/endpoints)/, (req, res, next) =>
+		res.send(endpointsSummary(req)),
 	);
 	router.post(
 		/(generateToken|dynamicTest\/generateToken)/,
@@ -475,8 +512,8 @@ var moduleFunction = function(args) {
 			fabricateConnector,
 			sendResult,
 			send500,
-			newConfig
-		}).responder
+			newConfig,
+		}).responder,
 	);
 
 	//these need to appear after all the other endpoints
@@ -495,8 +532,8 @@ var moduleFunction = function(args) {
 			helixParms,
 			fabricateConnector,
 			sendResult,
-			send500
-		}).responder
+			send500,
+		}).responder,
 	);
 	router.post(
 		/.*/,
@@ -504,12 +541,13 @@ var moduleFunction = function(args) {
 			schemaResolver,
 			fabricateConnector,
 			sendResult,
-			send500
-		}).responder
+			send500,
+		}).responder,
 	);
 
 	//STARTUP FUNCTIONR =======================================================
 	
+
 	app.use('/', router);
 
 	staticPageDispatchConfig.port = staticPageDispatchConfig.port
@@ -530,11 +568,11 @@ var moduleFunction = function(args) {
 				typeof result.processResult.join == 'function'
 			) {
 				qtools.logMilestone(
-					`listener startup complete: ${result.processResult.join('\n')}`
+					`listener startup complete: ${result.processResult.join('\n')}`,
 				);
 			} else if (result && result.processResult) {
 				qtools.logMilestone(
-					`listener startup finished: ${result.processResult.toString()}`
+					`listener startup finished: ${result.processResult.toString()}`,
 				);
 			}
 
@@ -551,16 +589,16 @@ var moduleFunction = function(args) {
 								.toString(),
 							cert: qtools.fs
 								.readFileSync(
-									`${staticPageDispatchConfig.certDirPath}/cert.pem`
+									`${staticPageDispatchConfig.certDirPath}/cert.pem`,
 								)
 								.toString(),
 							passphrase: qtools.fs
 								.readFileSync(
-									`${staticPageDispatchConfig.certDirPath}/passphrase.txt`
+									`${staticPageDispatchConfig.certDirPath}/passphrase.txt`,
 								)
-								.toString()
+								.toString(),
 						},
-						app
+						app,
 					)
 					.listen(staticPageDispatchConfig.sslPort);
 				sslAnnotation = ` and ssl on port ${staticPageDispatchConfig.sslPort}`;
@@ -568,18 +606,19 @@ var moduleFunction = function(args) {
 
 			app.listen(staticPageDispatchConfig.port);
 
-			const startupConfigurationOutput = require('./lib/messaging-functions/startup-configuration-output').sendOutput(
-				{
-					newConfig,
-					reminder,
-					schemaMapPath,
-					hxcVersion,
-					staticPageDispatchConfig,
-					sslAnnotation,
-					helixParms,
-					summarizeConfig
-				}
-			);
+			const startupConfigurationOutput =
+				require('./lib/messaging-functions/startup-configuration-output').sendOutput(
+					{
+						newConfig,
+						reminder,
+						schemaMapPath,
+						hxcVersion,
+						staticPageDispatchConfig,
+						sslAnnotation,
+						helixParms,
+						summarizeConfig,
+					},
+				);
 		}
 	};
 
@@ -587,11 +626,11 @@ var moduleFunction = function(args) {
 
 	verifySystemForStartup(
 		[verifyRelationHasPoolUsersInstalled(helixParms)],
-		startServer
+		startServer,
 	);
 
 	//END OF LIFE CODE =======================================================
-
+	
 
 	return this;
 };
