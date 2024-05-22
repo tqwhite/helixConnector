@@ -9,7 +9,7 @@
   "author": "TQ White II",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-rate-limit": "^5.2.6",
     "merge-deep": "^3.0.3",
     "node-notifier": "^9.0.1",
