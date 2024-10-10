@@ -22,7 +22,7 @@ tell application "<!applicationName!>"
 
 	-- ----------------------------------------------------------------------
 	
-	set noProcessThreshold to 90000
+	set noProcessThreshold to driverHxAccessRecordCount
 	set extraDelayRecordThreshold to 50000
 	
 	-- ----------------------------------------------------------------------
@@ -224,3 +224,5 @@ end addToLog
 -- defaults read com.qsatoolworks.helixrade HxAppleEventMaxGet
 -- defaults read com.qsatoolworks.helixserver HxAppleEventMaxGet # -> 65000
 -- deployPrograms hx_db2_schAqua --actions=code,restart
+-- defaults write com.qsatoolworks.helixclient HxAutoConnectUsername tqwhite
+-- defaults write com.qsatoolworks.helixclient HxAutoOpenURI ht.enviromatic.com

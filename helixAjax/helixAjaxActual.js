@@ -131,7 +131,7 @@ var moduleFunction = function (args) {
 			schema = JSON.parse(json);
 		}
 
-		if (!schema){
+		if (!schema) {
 			return; //error is thrown by receiving program
 		}
 
@@ -229,7 +229,7 @@ var moduleFunction = function (args) {
 
 	const schemaMapAssembler = new schemaMapAssemblerGen();
 	const schemaMap = schemaMapAssembler.getSchemaMap(schemaMapPath);
-
+	
 
 	//ORGANIZE HELIXPARMS ============================================================
 
@@ -245,43 +245,38 @@ var moduleFunction = function (args) {
 
 	helixParms.configDirPath = configDirPath;
 	
-		
+
 	//SHOW SCHEMA LOG INFO =======================================================
 
-		const showSchemaSummary=newConfig.system.showSchemaSummary?newConfig.system.showSchemaSummary:false; //false suppresses output
-		if (showSchemaSummary){;
-
-		qtools.log(`\nSCHEMA DETAILS ==================================================`)
-		qtools.log(`Turn this display off by setting showSchemaSummary=false in systemParameters.ini`)
-		qtools.log(util.inspect(helixParms.schemaMap, {colors:true, depth:4}));
-		qtools.log(`SCHEMA DETAILS END ==============================================\n`)
-
-		}
-		else if (!newConfig.system.suppressEndpointNameList){
-			qtools.log(`Endpoints:\n\t${Object.keys(helixParms.schemaMap).sort().join('\n\t')}\n`)
-		}
+	const showSchemaSummary = newConfig.system.showSchemaSummary
+		? newConfig.system.showSchemaSummary
+		: false; //false suppresses output
+	if (false) {
+		qtools.log(
+			`\nSCHEMA DETAILS ==================================================`,
+		);
+		qtools.log(
+			`Turn this display off by setting showSchemaSummary=false in systemParameters.ini`,
+		);
+		qtools.log(util.inspect(helixParms.schemaMap, { colors: true, depth: 4 }));
+		qtools.log(
+			`SCHEMA DETAILS END ==============================================\n`,
+		);
+	} else if (!newConfig.system.suppressEndpointNameList) {
+		qtools.log(
+			`Endpoints:\n\t${Object.keys(helixParms.schemaMap).sort().join('\n\t')}\n`,
+		);
+	}
 
 	//SET UP SERVER =======================================================
 
 	var router = express.Router();
 	var bodyParser = require('body-parser');
+	const compression = require('compression');
 
+	app.use(compression());
 	app.use(express.json({ limit: '4gb' }));
 	app.use(function (req, res, next) {
-		// console.log(`\n=-=============   req.path  ========================= [helixAjaxActual.js.[ anonymous ]]\n`);
-		//
-		//
-		// console.log(`req.path=${req.path}`);
-		//
-		// console.log(`\n=-=============   req.path  ========================= [helixAjaxActual.js.[ anonymous ]]\n`);
-		//
-		//
-		//
-		// 		if (req.path.match(/.*hxc___000__000_200_01___noDbTable.*/)){
-		// 			qtools.logError(`hxc___000__000_200_01___noDbTable AppleEvent timed out`);
-		// 			res.status(500).send('AppleEvent timed out');
-		// 			return;
-		// 		}
 		console.log(
 			`hxC REQUEST URL: ${req.protocol}://${req.hostname}/${req.url} (${
 				req.method
@@ -378,7 +373,6 @@ var moduleFunction = function (args) {
 
 	const fabricateConnector = function (req, res, schema, bootstrap) {
 		const headerAuth = req.headers ? req.headers.authorization : '';
-
 		const tmp = headerAuth ? headerAuth.split(' ') : [];
 
 		const apiAccessAuthParms = {
@@ -441,7 +435,7 @@ var moduleFunction = function (args) {
 			responsesource: 'helixConnector',
 			connection: 'Close',
 		});
-
+		qtools.logMilestone(`Sending ${JSON.stringify(result).length / 1000000} Megabytes`);
 		res.json(result);
 	};
 

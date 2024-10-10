@@ -1,3 +1,4 @@
+-- NEW for 8.5. No Tell Blocks. 8/3/24
 
 on run
 
@@ -5,11 +6,10 @@ on run
 	set myUser to "<!user!>"
 	set myPassword to "<!password!>"
 	
-tell application "<!applicationName!>"
-		tell collection 1
-			login myUser password myPassword
+
+			tell application "<!applicationName!>" to tell collection 1 to login myUser password myPassword
 			
-			set allMyRelations to every relation
+			tell application "<!applicationName!>" to tell collection 1 to set allMyRelations to every relation
 			
 			set allTheNames to ""
 			
@@ -20,14 +20,8 @@ tell application "<!applicationName!>"
 			set totalRecordsAvailable to 0
 			tell theRelation
 				set theName to name
---				try
---					set viewSummaryProcessId to utilize {myCollection, myUser, myPassword, theName, "CRUD - All Records"} to create process for retrieve
-----					set viewSummaryProcessId to utilize {myCollection, myUser, myPassword, theName, "_hxM_unconstrained"} to create process for retrieve
---					set viewSummary to utilize {viewSummaryProcessId} to get view summary --gets us {record count, field delimiter, record delimiter}
---					set theClose to utilize viewSummaryProcessId to close process
---					set totalRecordsAvailable to record count of viewSummary
---				end try
-				set theCustomName to custom name
+
+				tell application "<!applicationName!>" to tell collection 1 to set theCustomName to custom name
 				
 				set nameObject to {{"nativeName", theName}, {"customName", theCustomName}, {"totalRecordsAvailable", totalRecordsAvailable}}
 				set nameElement to my convertToJsonObject(nameObject)
@@ -38,9 +32,9 @@ tell application "<!applicationName!>"
 			
 			set finishedString to my wrapStringToJsonArray(allTheNames)
 			
-		end tell
+
 		return finishedString
-	end tell
+
 end run
 
 

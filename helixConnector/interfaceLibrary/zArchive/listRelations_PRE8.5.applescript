@@ -1,5 +1,6 @@
--- listRelations.applescript CONVERTED FOR 8.5 BUT NOT TESTED
--- referenced in pool-user.js
+-- listRelations_PRE8.5.applescript
+
+tell application "<!applicationName!>"
 	
 	set myCollection to "<!collection!>"
 	set myRelation to "<!relation!>"
@@ -11,14 +12,14 @@
 -- REFERENCED in .../code/helixConnector/helix-engine/lib/pool-user/pool-user.js
 -- pool-user.js.getRelationList() is unused. not mentioned anywhere I can find today. 10/14/22 tqii
 	
-
+	tell collection myCollection
 		set appendedText to ""
 		
-		tell application "<!applicationName!>" to tell collection 1 to login myUser password myPassword -- without modifying allowed (this last part not needed)
-		tell application "<!applicationName!>" to tell collection 1 to set allMyRelations to every relation
+		login myUser password myPassword -- without modifying allowed (this last part not needed)
+		set allMyRelations to every relation
 		repeat with i from 1 to (count allMyRelations)
-			tell application "<!applicationName!>" to tell collection 1 to set myRelation to relation i
-			tell application "<!applicationName!>" to tell collection 1 to tell myRelation
+			set myRelation to relation i
+			tell myRelation
 				set theName to the name
 				set theCustomName to the custom name
 				
@@ -29,11 +30,11 @@
 			end tell
 			
 		end repeat
-
+	end tell
 	
 	set appendedText to text 1 thru -2 of appendedText
 	return "[" & appendedText & "]"
-
+end tell
 
 on jObj(propertyList)
 	set result to ""

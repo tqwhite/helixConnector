@@ -121,18 +121,6 @@ var moduleFunction = function (args) {
 
 		switch (workingParms.type) {
 			case 'applescript':
-				console.log(
-					`\n=-=============   script  ========================= [helix-engine.js.moduleFunction]\n`,
-				);
-				
-
-				console.log(`script=${script}`);
-
-				console.log(
-					`\n=-=============   script  ========================= [helix-engine.js.moduleFunction]\n`,
-				);
-				
-
 				osaScript(script, parms, localCallback);
 				break;
 			case 'bash':
@@ -167,13 +155,6 @@ var moduleFunction = function (args) {
 			const needPoolUser = !(
 				parameters.schema.skipPoolUser == true || receivedUserAuth
 			);
-
-			console.dir(
-				{ ['helixUserAuth']: helixUserAuth },
-				{ showHidden: false, depth: 2, colors: true },
-			);
-
-			console.log(`needPoolUser=${needPoolUser}`);
 
 			if (needPoolUser) {
 				taskList.push((args, next) => {

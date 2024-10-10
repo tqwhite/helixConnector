@@ -89,7 +89,7 @@ const moduleFunction = function(args = {}) {
 		} catch (err) {
 			if (!send500) {
 				const send500 = (res, req, message) => {
-					qtools.logWarn(`500 error: ${req.path}=>${message}`);
+					qtools.logWarn(`500 Error: ${req.path}=>${message}`);
 					res.status(500).send(escape(message));
 				};
 				send500(
@@ -112,7 +112,12 @@ const moduleFunction = function(args = {}) {
 		//----------------------------------------------------------------------------------
 
 		const runRealSchema = (err, result = '') => {
-			const helixRunning = result.databaseAlive; //a defined by interfaceLibrary/testHxServerAlive.applescript
+			const helixRunning = true; //result.databaseAlive; //a defined by interfaceLibrary/testHxServerAlive.applescript
+			
+			
+			qtools.logWarn(`DBDEV2 HACK: HELIX RUNNING FORCED TRUE`);
+			
+			
 			if (schema.schemaType == 'helixAccess' && (!helixRunning || err)) {
 				sendResult(res, req, next, helixConnector)(
 					err

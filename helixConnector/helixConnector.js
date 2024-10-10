@@ -108,10 +108,6 @@ const moduleFunction = function (args) {
 					path: libDir + 'testQuitHelixNoSave.applescript',
 					language: 'AppleScript',
 				},
-				startDb: {
-					path: libDir + 'testOpenTestDb.jax',
-					language: 'Javascript',
-				},
 			};
 			let scriptElement = scriptNameMap[functionName];
 

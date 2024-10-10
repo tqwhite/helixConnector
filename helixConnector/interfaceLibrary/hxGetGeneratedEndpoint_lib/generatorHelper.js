@@ -82,9 +82,16 @@ Object.keys(commandLineParameters.values).forEach(
 //CALCULATE APPLESCRIPT ============================================================
 
 const editFinalEndpoint = ({ endpointBody, driverParameterReplaceObject }) => {
-	
-
-	const passthroughFromCommandLine = ['primaryKey', 'skipPoolUser'];
+	const passthroughFromCommandLine = [
+		'primaryKey',
+		'skipPoolUser',
+		'noPostViewName',
+		'testViewName',
+		'unConstrainedViewName',
+		'annotation',
+		'addCriterionEndpointDefinition',
+		'addResponseEndpointDefinition',
+	];
 	log(
 		`Passthrough from command line: ${passthroughFromCommandLine.join(', ')}`,
 	);
@@ -102,11 +109,23 @@ const editFinalEndpoint = ({ endpointBody, driverParameterReplaceObject }) => {
 
 //CALCULATE APPLESCRIPT ============================================================
 
+// //wtf was this:
+// const getElementsTemplate = fs
+// 	.readFileSync(
+// 		path.join(
+// 			driverParameterReplaceObject.driverLibraryDirPath,
+// 			`${driverParameterReplaceObject.schemaName}_lib`,
+// 			'getBasicEndpointJson.applescript',
+// 		),
+// 	)
+// 	.toString();
+
+
 const getElementsTemplate = fs
 	.readFileSync(
 		path.join(
 			driverParameterReplaceObject.driverLibraryDirPath,
-			`${driverParameterReplaceObject.schemaName}_lib`,
+			`hxGetGeneratedEndpoint_lib`,
 			'getBasicEndpointJson.applescript',
 		),
 	)
@@ -117,19 +136,22 @@ const getElementsTemplate = fs
 const getEndpointData = (template, callback) => {
 	
 
-	const showGeneratedApplescriptInLog = false;
+	const showGeneratedApplescriptInLog =
+		commandLineParameters.switches.showEntireScript;
 	
 
 	if (showGeneratedApplescriptInLog) {
 		log(`\n\n\ngetBasicEndpointJson ----------------------------------------`);
 		log(`\n\n${template}\n\n`);
-		log(`-------------------------------------------------------------`);
 		log(
-			`Suppress generated Applescript listing. Edit 'showGeneratedApplescriptInLog' and set to false in this module`,
+			`getBasicEndpointJson end-------------------------------------------------------------`,
+		);
+		log(
+			`Showing all scripts and errors. -showEntireScript is set. Remove flag for shorter logs.`,
 		);
 	} else {
 		log(
-			`To show generated Applescript programs in this log. Edit 'showGeneratedApplescriptInLog' and set to true in this module`,
+			`To show all generated scripts and errors, add flag -showEntireScript to command.`,
 		);
 	}
 	
@@ -139,8 +161,14 @@ const getEndpointData = (template, callback) => {
 ${template}
 SCRIPT`, (error='', stdout, stderr) => {
     if (error) {
-        callback(`\nERROR [moduleName]/osascript: ${error.message.substr(0,400)} \n\n(truncated)\n\n ${error.message.substring((error.message.length)-1200, error.message.length+1)}}\n----------------------`)
-        return;
+    
+    if (commandLineParameters.switches.showEntireScript){
+    		callback(`\nERROR [moduleName]/osascript:\n${error.message}\n----------------------`)
+    	}
+    	else{
+			callback(`\nERROR [moduleName]/osascript: ${error.message.substr(0,400)} \n\n(truncated, add -showEntireScript to see it all))\n\n ${error.message.substring((error.message.length)-1200, error.message.length+1)}}\n----------------------`)
+		}
+		return;
     }
     if (stderr) {
         callback(`\nSTDERR [moduleName]/osascript: ${stderr}`)
@@ -153,6 +181,7 @@ SCRIPT`, (error='', stdout, stderr) => {
     }
     catch(e){
     	log(`\nERROR [moduleName]: getEndpointData cannot parse JSON`);
+    	log(`\n\n${stdout}\n\n`);
     	callback(`\nERROR [moduleName]: getEndpointData cannot parse JSON`)
     	return;
     }
@@ -206,7 +235,9 @@ if (
 
 		const localCallback = (err, defaultCriterionEndpoint) => {
 			const origCriterionName = Object.keys(defaultCriterionEndpoint).qtPop();
-			const newCriterionName = `${mainEndpointName}_criterion`;
+			const newCriterionName = driverParameterReplaceObject.criterionName
+				? driverParameterReplaceObject.criterionName
+				: `${mainEndpointName}_criterion`;
 
 			const criterionEndpoint = {
 				[newCriterionName]: defaultCriterionEndpoint[origCriterionName],
@@ -235,7 +266,9 @@ if (
 
 		const localCallback = (err, defaultResponseEndpoint) => {
 			const origResponseName = Object.keys(defaultResponseEndpoint).qtPop();
-			const newResponseName = `${mainEndpointName}_response`;
+			const newResponseName = driverParameterReplaceObject.responseName
+				? driverParameterReplaceObject.responseName
+				: `${mainEndpointName}_response`;
 
 			const responseEndpoint = {
 				[newResponseName]: defaultResponseEndpoint[origResponseName],
@@ -277,12 +310,18 @@ pipeRunner(taskList.getList(), initialData, (err, args) => {
 			const criterionName = Object.keys(criterionEndpoint).qtPop();
 			mainEndpoint[mainEndpointName].criterionSchemaName = criterionName;
 			mainEndpoint[criterionName] = criterionEndpoint[criterionName];
+		} else if (driverParameterReplaceObject.criterionName) {
+			mainEndpoint[mainEndpointName].criterionSchemaName =
+				driverParameterReplaceObject.criterionName;
 		}
 
 		if (responseEndpoint) {
 			const responseName = Object.keys(responseEndpoint).qtPop();
 			mainEndpoint[mainEndpointName].responseSchemaName = responseName;
 			mainEndpoint[responseName] = responseEndpoint[responseName];
+		} else if (driverParameterReplaceObject.responseName) {
+			mainEndpoint[mainEndpointName].responseSchemaName =
+				driverParameterReplaceObject.responseName;
 		}
 
 		const endpointBody = mainEndpoint[mainEndpointName]; //shut up. I'm not rewriting it for this!!

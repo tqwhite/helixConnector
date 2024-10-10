@@ -1,6 +1,7 @@
--- NEW for 8.5. No Tell Blocks. 8/3/24
+-- saveOneWithProcess.applescript pre 8.5
 
 
+tell application "<!applicationName!>"
 	
 	set myCollection to "<!collection!>"
 	set myRelation to "<!relation!>"
@@ -22,7 +23,7 @@
 
 	-- <!endpointFilePath!>
 	
-
+	tell collection 1
 		with timeout of 3600 seconds
 		
 --		set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for retrieve
@@ -33,19 +34,20 @@
 		set r to ASCII character 12
 		
 		
-		tell application "<!applicationName!>" to tell collection 1 to set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for store
-		tell application "<!applicationName!>" to tell collection 1 to set saveStatus to utilize {theProcessID, myData} to store records
+		set theProcessID to utilize {myCollection, myUser, myPassword, myRelation, myView} to create process for store
+		set saveStatus to utilize {theProcessID, myData} to store records
 		
 		if responseRelation is not equal to "" then
-			tell application "<!applicationName!>" to tell collection 1 to set theResult to utilize {myCollection, myUser, myPassword, responseRelation, responseView} to retrieve records as string
+			set theResult to utilize {myCollection, myUser, myPassword, responseRelation, responseView} to retrieve records as string
 		end if
 		
 		
-		tell application "<!applicationName!>" to tell collection 1 to set theClose to utilize theProcessID to close process
+		set theClose to utilize theProcessID to close process
 		
 		end timeout
 
-
+	end tell
 	
 	return theResult
 	
+end tell

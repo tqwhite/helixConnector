@@ -1,3 +1,7 @@
+-- ----------------------------------------------------------------------
+-- Script Start: hxGetViewSummary.applescript
+-- <!schemaName!>
+-- ----------------------------------------------------------------------
 use AppleScript version "2.4" -- Yosemite (10.10) or later
 use scripting additions
 
@@ -468,7 +472,7 @@ on retrievePrimaryKey(theRelationCustomName, myUser, myPassword)
 end retrievePrimaryKey
 
 on getNativeNameFromCustom(customNameIn)
-	
+	--hello
 	
 	set myCollection to "<!collection!>"
 	set myUser to "<!user!>"

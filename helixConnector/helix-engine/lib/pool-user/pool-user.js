@@ -1,339 +1,233 @@
 'use strict';
-const qtoolsGen = require('qtools');
-const qtools = new qtoolsGen(module, { updatePrototypes: true });
+
+const QTools = require('qtools');
+const qtools = new QTools(module, { updatePrototypes: true });
 const async = require('async');
-const asynchronousPipePlus = new require('qtools-asynchronous-pipe-plus')();
+const AsynchronousPipePlus = require('qtools-asynchronous-pipe-plus');
+const asynchronousPipePlus = new AsynchronousPipePlus();
 const asynchronousPipe = asynchronousPipePlus.asynchronousPipe;
 
-//START OF moduleFunction() ============================================================
+function moduleFunction(args) {
+  const { helixAccessParms, hxScriptRunner } = args;
+  this.leaseUserName = null;
 
-var moduleFunction = function(args) {
-	const { helixAccessParms, hxScriptRunner } = args;
-	//LOCAL VARIABLES ====================================
+  const taskListPlus = asynchronousPipePlus.taskListPlus;
 
-	var initializeProperties = function() {
-		self.helixRelationList = [];
-		//self.openDatabaseFunctionNames = ['openTestDb'];
-		//self.systemParms = {};
-		self.leaseUserName = '';
-	};
+  const getPoolUserObjectActual = (localArgs) => (inData = {}, callback) => {
+    const { helixAccessParms, hxScriptRunner } = localArgs;
+    const taskList = new taskListPlus();
 
-	//LOCAL FUNCTIONS ====================================
+    const leasePoolUserFieldName = 'leaseUserName';
+    const leasePoolPasswordFieldName = 'leasePassword';
 
-	var getRelationList = function(control, callback) {
-		var relationFieldName = 'relationName';
-		if (
-			self.helixRelationList.length !== 0 ||
-			qtools.in(control, self.openDatabaseFunctionNames)
-		) {
-			callback('', '');
-			return;
-		}
+    taskList.push((args, next) => {
+      const localCallback = (err, poolUserObject) => {
+        if (err) {
+          const errorMsg = `Cannot get user pool session from Helix (${err}) in pool-user.js`;
+          callback(new Error(errorMsg));
+          return;
+        }
 
-		var helixSchema = {
-			internalSchema: true,
-			schemaName: 'listRelations',
-			relation: '',
-			view: '',
-			fieldSequenceList: [relationFieldName],
-			mapping: {}
-		};
+        args.poolUserObject = poolUserObject;
+        next(null, args);
+      };
 
-		executeHelixOperation('listRelations', {
-			helixSchema: helixSchema,
-			debug: false,
-			inData: {},
-			callback: function(err, result, misc) {
-				if (err) {
-					throw new Error('Helix not available or is broken.');
-				}
+      const helixSchema = {
+        annotation: 'hard coded in pool-user.js',
+        internalSchema: true,
+        schemaName: 'poolUserLease',
+        debug: false,
+        returnsJson: true,
+        relation: '',
+        view: '',
+        fieldSequenceList: [leasePoolUserFieldName, leasePoolPasswordFieldName],
+        mapping: {},
+      }; //this schema does NOT respond to logDriverScript
 
-				if (result.length < 1) {
-					throw new Error(
-						'Helix not available or is broken: No relations were retrieved'
-					);
-				} else {
-					result.map(function(item) {
-						self.helixRelationList.push(item[relationFieldName]);
-					});
-					callback(err, result);
-				}
-			}
-		});
-	};
+      hxScriptRunner('poolUserLease', {
+        schema: helixSchema,
+        callback: localCallback,
+      });
+    });
 
-	var initUserPoolIfNeeded = (args, callback) => {
-		const { helixAccessParms, relationsList } = args;
+    asynchronousPipe(taskList.getList(), inData, (err, finalResult) => {
+      callback(finalResult.poolUserObject.error, finalResult.poolUserObject);
+    });
+  };
 
-		const helixRelationList = relationsList.map(item => item.nativeName);
+  const releasePoolUserObjectActual = (localArgs) => (inData = {}, callback) => {
+    const { helixAccessParms, hxScriptRunner, poolUserObject } = localArgs;
+    const taskList = new taskListPlus();
 
-		const requiredRelations = [
-			helixAccessParms.userPoolLeaseRelation,
-			helixAccessParms.userPoolLeaseView,
-			helixAccessParms.userPoolReleaseRelation,
-			helixAccessParms.userPoolReleaseView
-		];
-		var allPresent =
-			helixAccessParms.userPoolLeaseRelation &&
-			helixAccessParms.userPoolLeaseView &&
-			helixAccessParms.userPoolReleaseRelation &&
-			helixAccessParms.userPoolReleaseView
-				? true
-				: false;
-		var anyPresent =
-			helixAccessParms.userPoolLeaseRelation ||
-			helixAccessParms.userPoolLeaseView ||
-			helixAccessParms.userPoolReleaseRelation ||
-			helixAccessParms.userPoolReleaseView
-				? true
-				: false;
+    taskList.push((args, next) => {
+      const localCallback = (err, releaseStatus) => {
+        if (err) {
+          const errorMsg = `CANNOT RELEASE pool session from Helix (${err}) in pool-user.js/poolUserRelease`;
+          callback(new Error(errorMsg));
+          return;
+        }
+        args.releaseStatus = releaseStatus;
+        next(null, args);
+      };
 
-		var missingTables = '';
-		missingTables += !qtools.in(
-			helixAccessParms.userPoolLeaseRelation,
-			helixRelationList
-		)
-			? helixAccessParms.userPoolLeaseRelation + ' '
-			: '';
-		missingTables += !qtools.in(
-			helixAccessParms.userPoolReleaseRelation,
-			helixRelationList
-		)
-			? helixAccessParms.userPoolReleaseRelation + ' '
-			: '';
+      const helixSchema = {
+        annotation: 'hard coded in pool-user.js',
+        internalSchema: false,
+        schemaName: 'poolUserRelease',
+        debug: false,
+        returnsJson: true,
+        relation: '',
+        view: '',
+        mapping: {},
+      }; //this schema does NOT respond to logDriverScript
 
-		if (allPresent && missingTables) {
-			callback(
-				'One or more of the User Pool Lease relations is missing: ' +
-					missingTables
-			);
-			return;
-		}
+      const delayReleasePoolUser = helixAccessParms.qtGetSurePath(
+        'helixEngine.delayReleasePoolUser'
+      );
 
-		if (anyPresent && !allPresent) {
-			callback(
-				'One of the User Pool Lease parameters is missing (userPoolLeaseRelation, userPoolLeaseView, userPoolReleaseRelation, userPoolReleaseView)'
-			);
-			return;
-		}
+      const runRelease = () => {
+        hxScriptRunner('poolUserRelease', {
+          schema: { ...helixSchema, ...args.poolUserObject },
+          callback: localCallback,
+        });
+      };
 
-		if (allPresent && !this.leaseUserName) {
-			callback('', 'passed initUserPool()');
-			return;
-		} else {
-			callback(missingTables);
-		}
-	};
+      if (delayReleasePoolUser) {
+        setTimeout(runRelease, delayReleasePoolUser);
+      } else {
+        runRelease();
+      }
+    });
 
-	//MAIN ROUTINE ====================================
+    asynchronousPipe(taskList.getList(), inData, (err, finalResult) => {
+      callback(err, finalResult.poolUserObject);
+    });
+  };
 
-	const taskListPlus = asynchronousPipePlus.taskListPlus;
+  this.getPoolUserObject = getPoolUserObjectActual({
+    helixAccessParms,
+    hxScriptRunner,
+  });
 
-	const getPoolUserObjectActual = localArgs => (inData, callback) => {
-		const { helixAccessParms, hxScriptRunner } = localArgs;
-		const { processName } = inData;
-		const taskList = new taskListPlus();
+  this.releasePoolUserObject = releasePoolUserObjectActual({
+    helixAccessParms,
+    hxScriptRunner,
+  });
 
-		const leasePoolUserFieldName = 'leaseUserName';
-		const leasePoolPasswordFieldName = 'leasePassword';
+  this.checkUserPool = (callback) => {
+    const taskList = new taskListPlus();
 
-		taskList.push((args, next) => {
-			const localCallback = (err, poolUserObject) => {
-				if (err) {
-					if (err.toString().match('item')) {
-						callback(
-							new Error(
-								`Cannot get user pool session from Helix (${err.toString()}) in pool-user.js`
-							)
-						);
-					} else {
-						callback(new Error(err));
-					}
-					return;
-				}
+    taskList.push((args, next) => {
+      if (helixAccessParms.skipUserPoolEntirely) {
+        args.processResult = args.processResult || [];
+        args.processResult.push('User Pool Disabled. skipUserPoolEntirely=true');
+        next('skipRestOfPipe', args);
+      } else {
+        next(null, args);
+      }
+    });
 
-				args.poolUserObject = poolUserObject;
-				next(err, args);
-			};
+    taskList.push((args, next) => {
+      const localCallback = (err, relationsList) => {
+        if (err) {
+          next(err, args);
+          return;
+        }
+        args.relationsList = relationsList;
+        next(null, args);
+      };
 
-			const helixSchema = {
-				internalSchema: true,
-				schemaName: 'poolUserLease',
-				debug: false,
-				returnsJson: true,
-				relation: '',
-				view: '',
-				fieldSequenceList: [leasePoolUserFieldName, leasePoolPasswordFieldName],
-				mapping: {}
-			};
+      const helixSchema = {
+        internalSchema: true,
+        schemaName: 'listRelations',
+        debug: false,
+        returnsJson: true,
+        relation: '',
+        view: '',
+        fieldSequenceList: [],
+        mapping: {},
+      };
 
-			hxScriptRunner('poolUserLease', {
-				schema: helixSchema,
-				callback: localCallback
-			});
-		});
+      hxScriptRunner('listRelations', {
+        schema: helixSchema,
+        callback: localCallback,
+      });
+    });
 
-		const initialData = typeof inData != 'undefined' ? inData : {};
-		asynchronousPipe(taskList.getList(), initialData, (err, finalResult) => {
-			//console.dir({ 'finalResult [asyncPipe Boilerplate.]': finalResult });
-			callback(finalResult.poolUserObject.error, finalResult.poolUserObject);
-		});
-	};
+    taskList.push((args, next) => {
+      const localCallback = (err) => {
+        if (err) {
+          next(err, args);
+          return;
+        }
+        args.processResult = args.processResult || [];
+        args.processResult.push('Pool User tables valid in Helix');
+        next(null, args);
+      };
 
-	const releasePoolUserObjectActual = localArgs => (inData, callback) => {
-		const { helixAccessParms, hxScriptRunner, poolUserObject } = localArgs;
-		const { processName } = inData;
-		const taskList = new taskListPlus();
+      initUserPoolIfNeeded.call(this, { helixAccessParms, relationsList: args.relationsList }, localCallback);
+    });
 
-		const leasePoolUserFieldName = 'leaseUserName';
-		const leasePoolPasswordFieldName = 'leasePassword';
+    asynchronousPipe(taskList.getList(), { processResult: [] }, (err, result) => {
+      if (!err || err === 'skipRestOfPipe') {
+        callback(null, result.processResult);
+      } else {
+        callback(err);
+      }
+    });
+  };
 
-		taskList.push((args, next) => {
-			const localCallback = (err, releaseStatus) => {
-				if (err) {
-					callback(
-						new Error(
-							`CANNOT RELEASE pool session from Helix (${err.toString()}) in pool-user.js/poolUserRelease`
-						)
-					);
-					return;
-				}
-				args.releaseStatus = releaseStatus;
-				next(err, args);
-			};
+  function initUserPoolIfNeeded(args, callback) {
+    const { helixAccessParms, relationsList } = args;
+    const helixRelationList = relationsList.map((item) => item.nativeName);
 
-			const helixSchema = {
-				internalSchema: true,
-				schemaName: 'poolUserRelease',
-				debug: true,
-				returnsJson: true,
-				relation: '',
-				view: '',
-				mapping: {}
-			};
-			const delayReleasePoolUser = helixAccessParms.qtGetSurePath(
-				'helixEngine.delayReleasePoolUser'
-			);
+    const requiredRelations = [
+      helixAccessParms.userPoolLeaseRelation,
+      helixAccessParms.userPoolLeaseView,
+      helixAccessParms.userPoolReleaseRelation,
+      helixAccessParms.userPoolReleaseView,
+    ];
 
-			if (delayReleasePoolUser) {
-				setTimeout(
-					() =>
-						hxScriptRunner('poolUserRelease', {
-							schema: Object.assign(helixSchema, args.poolUserObject),
-							callback: localCallback
-						}),
-					delayReleasePoolUser
-				);
-			} else {
-				hxScriptRunner('poolUserRelease', {
-					schema: Object.assign(helixSchema, args.poolUserObject),
-					callback: localCallback
-				});
-			}
-		});
+    const allPresent = requiredRelations.every(Boolean);
+    const anyPresent = requiredRelations.some(Boolean);
 
-		const initialData = typeof inData != 'undefined' ? inData : {};
-		asynchronousPipe(taskList.getList(), initialData, (err, finalResult) => {
-			//console.dir({ 'finalResult [asyncPipe Boilerplate.]': finalResult });
-			callback(err, finalResult.poolUserObject);
-		});
-	};
+    let missingTables = '';
+    if (!helixRelationList.includes(helixAccessParms.userPoolLeaseRelation)) {
+      missingTables += `${helixAccessParms.userPoolLeaseRelation} `;
+    }
+    if (!helixRelationList.includes(helixAccessParms.userPoolReleaseRelation)) {
+      missingTables += `${helixAccessParms.userPoolReleaseRelation} `;
+    }
 
-	//API ENDPOINTS ====================================
+    if (allPresent && missingTables) {
+      callback(`One or more of the User Pool Lease relations is missing: ${missingTables}`);
+      return;
+    }
 
-	this.getPoolUserObject = getPoolUserObjectActual({
-		helixAccessParms,
-		hxScriptRunner
-	});
+    if (anyPresent && !allPresent) {
+      callback(
+        'One of the User Pool Lease parameters is missing (userPoolLeaseRelation, userPoolLeaseView, userPoolReleaseRelation, userPoolReleaseView)'
+      );
+      return;
+    }
 
-	this.releasePoolUserObject = releasePoolUserObjectActual({
-		helixAccessParms,
-		hxScriptRunner
-	});
-	
-	this.checkUserPool = callback => {
-		const taskList = new taskListPlus();
-		taskList.push((args, next) => {
-			if (helixAccessParms.skipUserPoolEntirely) {
-				args.processResult.push(
-					'User Pool Disabled. skipUserPoolEntirely=true'
-				);
-				next('skipRestOfPipe', args);
-			} else {
-				next('', args);
-			}
-		});
-		taskList.push((args, next) => {
-			const localCallback = (err, relationsList) => {
-				args.relationsList = relationsList;
+    if (allPresent && !this.leaseUserName) {
+      callback(null, 'passed initUserPool()');
+    } else {
+      callback(missingTables || null);
+    }
+  }
 
-				next(err, args);
-			};
+  this.ping = (message = 'NO MESSAGE SUPPLIED') => {
+    return `${qtools.ping().employer} got the ${message}`;
+  };
 
-			const helixSchema = {
-				internalSchema: true,
-				schemaName: 'listRelations',
-				debug: false,
-				returnsJson: true,
-				relation: '',
-				view: '',
-				fieldSequenceList: [],
-				mapping: {}
-			};
-			hxScriptRunner('listRelations', {
-				schema: helixSchema,
-				callback: localCallback
-			});
-		});
+  this.shutdown = (message, callback) => {
+    console.log(`\nShutting down ${qtools.ping().employer}`);
+    callback(null, message);
+  };
 
-		taskList.push((args, next) => {
-			const localCallback = (err, relationCheckResult) => {
-				if (err) {
-					callback(new Error(err));
-					return;
-				}
-				args.processResult.push('Pool User tables valid in Helix');
-				next(err, args);
-			};
-			initUserPoolIfNeeded(
-				{ helixAccessParms, relationsList: args.relationsList },
-				localCallback
-			);
-		});
-
-		const initialData = { processResult: [] };
-		asynchronousPipe(taskList.getList(), initialData, (err, result) => {
-			if (!err || err == 'skipRestOfPipe') {
-				callback('', result.processResult);
-			} else {
-				callback(err);
-			}
-		});
-	};
-
-	//INITIALIZATION ====================================
-	
-
-	!this.initCallback || this.initCallback();
-
-	//ECOSYSTEM REQUIREMENTS ====================================
-
-	const ping = (message = 'NO MESSAGE SUPPLIED') => {
-		return `${qtools.ping().employer} got the ${message}`;
-	};
-
-	this.ping = ping;
-
-	this.shutdown = (message, callback) => {
-		console.log(`\nshutting down ${qtools.ping().employer}`);
-		callback('', message);
-	};
-
-	return this;
-};
-
-//END OF moduleFunction() ============================================================
+  return this;
+}
 
 module.exports = moduleFunction;
-//module.exports = new moduleFunction();
-

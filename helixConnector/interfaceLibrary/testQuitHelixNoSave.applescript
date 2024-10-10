@@ -1,11 +1,3 @@
-tell application "<!applicationName!>"
-	
 --<!processName!> - <!callingProcess!>
 	
-	tell collection 1
-		
-		quit saving no
-		
-	end tell
-	
-end tell
+tell application "<!applicationName!>" to tell collection 1 to  quit saving no

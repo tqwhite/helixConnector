@@ -1,6 +1,9 @@
 {
 	"WARNING": "THIS FILE IS OVERWRITTEN BY TQ'S DEVELOPMENT PROCESS.",
 	"WARNING2": "ALL CHANGES MUST BE STORED ON TQ'S DEVELOPMENT SYSTEM.",
+	
+	"OTHER_BUILT_IN_ENDPOINTS": "endpoints, ping, hxDetails, hxSchema, generateToken, hxConnectorCheck",
+	
 	"includes": [],
 	"schemaMap": {
 		"testHxServerAlive": {
@@ -11,10 +14,11 @@
 			"conversion": {
 				"functionName": "receiveJson",
 				"parameters": {}
-			}
+			},
+			"example":"curlhxConnectorServer hmTEMP testHxServerAlive | jq"
 		},
 		"hxListRelationNames": {
-			"debug": "false",
+			"debug": false,
 			"skipPoolUser": true,
 			"schemaType": "remoteControl",
 			"scriptName": "hxListRelationNames",
@@ -22,10 +26,11 @@
 			"conversion": {
 				"functionName": "cleanToJson",
 				"parameters": {}
-			}
+			},
+			"example":"curlhxConnectorServer hmTEMP 'hxListRelationNames' | jq"
 		},
 		"hxGetGeneratedEndpoint": {
-			"debug": "true",
+			"debug": "false",
 			"skipPoolUser": true,
 			"schemaType": "remoteControl",
 			"scriptName": "hxGetGeneratedEndpoint",
@@ -33,23 +38,28 @@
 			"conversion": {
 				"functionName": "cleanToJson",
 				"parameters": {}
-			}
+			},
+			"example":"curlhxConnectorServer hmTEMP 'hxGetGeneratedEndpoint?nativeRelationName=hxConnectorTest&viewName=hxConnectorTester&testViewName=hxConnectorTester' | jq"
 		},
 		"hxListViewsForRelation": {
-			"debug": "true",
+			"debug": "false",
 			"schemaType": "remoteControl",
 			"scriptName": "hxListViewsForRelation",
 			"arguments": {},
 			"conversion": {
 				"functionName": "cleanToJson",
 				"parameters": {}
-			}
+			},
+			"example":"curlhxConnectorServer hmTEMP 'hxListViewsForRelation?relationName=hxConnectorTest' | jq"
 		},
-		"poolUserRelease": {
+		"poolUserReleaseAll": {
 			"debug": "false",
 			"schemaType": "remoteControl",
-			"scriptName": "utilPoolUserRelease",
-			"arguments": {}
+			"scriptName": "poolUserReleaseAll",
+			"note":"releases all pool users",
+			"arguments": {},
+			"example":"curlhxConnectorServer hmTEMP 'poolUserReleaseAll' | jq",
+			"POOL USER NOTE":"poolUserLease and poolUserRelease are both hard coded in pool-user.js and get their view names from config"
 		}
 	}
 }

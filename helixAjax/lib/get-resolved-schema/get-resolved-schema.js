@@ -8,12 +8,13 @@ const qt = require('qtools-functional-library');
 
 //START OF moduleFunction() ============================================================
 
-const moduleFunction = function({ getSchema, helixParms, send500 }) {
+const moduleFunction = function ({ getSchema, helixParms, send500 }) {
 	
+
 	const resolve = ({ path, req, res }) => {
 		const mapSeparationAliases = (separators = {}) => {
 			const outObject = {};
-			Object.keys(separators).forEach(name => {
+			Object.keys(separators).forEach((name) => {
 				outObject[name] = separators[name]
 					.replace(/TAB/g, '\t')
 					.replace(/CR/g, '\r')
@@ -32,21 +33,32 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 		}
 
 		let viewName;
-
+		
 
 		const schemaNameSegmentIndex = pathParts.length > 1 ? 1 : 0;
 		const schemaName = pathParts
 			? pathParts[schemaNameSegmentIndex].replace(/^\//, '')
 			: '';
-		const viewType = pathParts.length > 1 ? pathParts[0].replace(/^\//, '') : 'prod';
+		const viewType =
+			pathParts.length > 1 ? pathParts[0].replace(/^\//, '') : 'prod';
 
 		const schema = getSchema(helixParms, schemaName);
-		
-		if (!schema){
-				send500(res, req, `No such schema '${schemaName}'`);
-				return;
+
+		if (!schema) {
+			send500(res, req, `No such schema '${schemaName}'`);
+			return;
 		}
-		
+
+		if (Object.keys(req.query).includes('logDriverScript')) {
+			qtools.logWarn(`got query.logDriverScript`);
+			schema.debug = true;
+		}
+
+		if (Object.keys(req.query).includes('saveDebugData')) {
+			qtools.logWarn(`got query.saveDebugData`);
+			schema.debugData = true;
+		}
+
 		if (schema.schemaType == 'remoteControl') {
 		} else if (schema.views) {
 			if (Object.keys(schema.views).includes(viewType)) {
@@ -57,16 +69,29 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 			}
 		} else {
 			schema.staticTestRequestFlag = false;
-			switch (viewType.toLowerCase()) { //backward compatability
+			switch (
+				viewType.toLowerCase() //backward compatability
+			) {
 				case 'dynamictest':
-					viewName = schema.internalSchema?schema.view:schema.testViewName;
+					viewName = schema.internalSchema ? schema.view : schema.testViewName;
 					break;
 
-				case 'nopost':
-					viewName = schema.internalSchema?schema.view:schema.noPostViewName;
+				case 'debug':
+					viewName = schema.internalSchema ? schema.view : schema.testViewName;
 					break;
+				case 'nopost':
+					viewName = schema.internalSchema
+						? schema.view
+						: schema.noPostViewName;
+					break;
+				case 'unconstrained':
+					viewName = schema.internalSchema
+						? schema.view
+						: schema.unConstrainedViewName;
+					break;
+
 				case 'statictest':
-				case 'fromfile': 
+				case 'fromfile':
 					//fromFile and staticTest are synonyms since static-data was upgraded to try 'relation_view' for missing filename
 					viewName = 'SPECIAL';
 					schema.staticTestRequestFlag = true;
@@ -81,7 +106,7 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 				send500(
 					res,
 					req,
-					`No view specified for path segment '${viewType}/${schemaName}'`
+					`No view specified for path segment '${viewType}/${schemaName}'`,
 				);
 				return;
 			}
@@ -102,7 +127,7 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 		} else {
 			schema.view = viewName;
 		}
-		
+
 		if (schema.staticTest && typeof schema.staticTestData == 'undefined') {
 			send500(res, req, `Schema ${schemaName}' does not have staticTestData`);
 			return;
@@ -112,7 +137,7 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 
 		if (qtools.isTrue(schema.debugData) && schema.schemaName) {
 			qtools.logWarn(
-				`debugData=true on schema ${schemaName}, writing files to /pathParts`
+				`debugData=true on schema ${schemaName}, writing files to /pathParts`,
 			);
 			const filePath = `/tmp/pathParts/hxc_Get_RequestQuery_${new Date().getTime()}_${
 				schema.schemaName
@@ -123,8 +148,8 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 				JSON.stringify({
 					...req.query,
 					tqNote:
-						'remember, leading ? is removed by get-responder-catchall.js before actual processing'
-				})
+						'remember, leading ? is removed by get-responder-catchall.js before actual processing',
+				}),
 			);
 		}
 
@@ -133,10 +158,11 @@ const moduleFunction = function({ getSchema, helixParms, send500 }) {
 		return schema;
 	};
 	
+
 	return { resolve };
 };
 
 //END OF moduleFunction() ============================================================
 
-module.exports = args => moduleFunction(args);
+module.exports = (args) => moduleFunction(args);
 

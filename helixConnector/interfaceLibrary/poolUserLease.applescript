@@ -1,5 +1,8 @@
+-- NEW for 8.5. No Tell Blocks. 8/3/24
+-- poolUserLease.applescript
+-- <!schemaName!>
+-- <!annotation!>
 
-	
 set myCollection to "<!collection!>"
 set myRelation to "<!userPoolLeaseRelation!>"
 set myView to "<!userPoolLeaseView!>"
@@ -8,18 +11,9 @@ set myPassword to "<!password!>"
 
 set driverLogFilePath to "<!driverLogFilePath!>"
 	
--- <!schemaName!>
 	
-tell application "<!applicationName!>"
-	
-	--do shell script "echo \"\nRequesting new pool user   [$(date)]\" >> " & driverLogFilePath
-	
-	--do shell script "echo \" myRelation " & myRelation & "   [$(date)]\" >> " & driverLogFilePath
-	--do shell script "echo \" myView " & myView & "   [$(date)]\" >> " & driverLogFilePath
-	--do shell script "echo \" myUser " & myUser & "   [$(date)]\" >> " & driverLogFilePath
-	--do shell script "echo \" myPassword " & myPassword & "   [$(date)]\" >> " & driverLogFilePath
 		
-	set theRetrievedData to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as list
+	tell application "<!applicationName!>" to set theRetrievedData to utilize {myCollection, myUser, myPassword, myRelation, myView} to retrieve records as list
 	
 	try
 		set poolCount to length of theRetrievedData
@@ -34,8 +28,8 @@ tell application "<!applicationName!>"
 		return errorMessage
 	end if
 	
-	set myLeasedUser to item 1 of helix record of item 1 of theRetrievedData
-	set leasePassword to item 2 of helix record of item 1 of theRetrievedData
+	tell application "<!applicationName!>" to set myLeasedUser to item 1 of helix record of item 1 of theRetrievedData
+	tell application "<!applicationName!>" to set leasePassword to item 2 of helix record of item 1 of theRetrievedData
 	
 	set one to my jProp("leaseUserName", myLeasedUser)
 	set two to my jProp("leasePassword", leasePassword)
@@ -43,7 +37,7 @@ tell application "<!applicationName!>"
 	set result to text 1 thru -2 of json
 	return result
 	
-end tell
+
 
 
 on jObj(propertyList)

@@ -9,6 +9,7 @@
   "author": "TQ White II",
   "license": "ISC",
   "dependencies": {
+    "compression": "^1.7.4",
     "express": "^4.17.1",
     "express-rate-limit": "^5.2.6",
     "merge-deep": "^3.0.3",

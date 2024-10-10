@@ -116,8 +116,6 @@ Putting your new endpoint file into any directory specified in the schemaMap fil
 
    hxConnector must be restarted for endpoints to be usable
 
-
-
 ### Adding New Parameters
 
 I realized that I needed to be able to specify values for skipPoolUser and primaryKey when creating endpoints. These were not part of the original implementation. Here is how I added those.
@@ -127,18 +125,14 @@ I realized that I needed to be able to specify values for skipPoolUser and prima
 Specifically, I added a pair of commandLineParser value parameters:
 
     set generatorShellCmdString to generatorShellCmdString & " --skipPoolUser=\"[[skipPoolUser]]\""
-
+    
     set generatorShellCmdString to generatorShellCmdString & " --primaryKey=\"[[primaryKey]]\""
-
-
 
 **The Javascript program that receives** the parameters is generatorHelper.js. 
 
 This program executes getBasicEndpointJson.applescript. This script gets all the data available for this endpoint from Helix and returns JSON. *(Note: It returns a primaryKey that is presently bad because it relies on an affordance that was unique to the client I originally used it for. That's why I am adding it now.)* 
 
-
-
-
+Available pass through values are: 'primaryKey', 'skipPoolUser', 'noPostViewName', 'testViewName', 'unConstrainedViewName', 'annotation'
 
 ---
 

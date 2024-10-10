@@ -141,7 +141,7 @@
 		"poolUserRelease": {
 			"debug": "false",
 			"schemaType": "remoteControl",
-			"scriptName": "utilPoolUserRelease",
+			"scriptName": "poolUserReleaseAll",
 			"arguments": {}
 		},
 		"tqTest": {

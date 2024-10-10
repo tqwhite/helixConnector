@@ -2,7 +2,6 @@
 -- ----------------------------------------------------------------------
 -- Script Start: hxGetGeneratedEndpoint.applescript
 -- <!schemaName!>
--- IN PROCESS NEW for 8.5. Never had any tell blocks. 8/6/24
 -- ----------------------------------------------------------------------
 
 set driverLogFilePath to "<!driverLogFilePath!>"

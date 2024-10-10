@@ -38,8 +38,9 @@ endpoints directory: ${schemaMapPath}${helixParms.suppressTokenSecurityFeatures?
 applescript driver log file path: ${newConfig.system.driverLogFilePath}
 ${overrideStringsReport}
 reminder: Force helix-data to log JSON to a file in /tmp/... by setting debugData=true in endpoint or debugDataAlways=true in config 
+NEW: ?logDriverScript and/or ?saveDebugData now exist
 Code Version: ${hxcVersion}
-${new Date().toLocaleTimeString()}: Magic happens on port ${
+${new Date().toLocaleTimeString()}: XMagic happens on port ${
 staticPageDispatchConfig.port
 }${sslAnnotation}. ----------------------------------------------------------
 `

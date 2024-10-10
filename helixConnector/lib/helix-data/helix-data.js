@@ -258,6 +258,9 @@ var moduleFunction = function(args) {
 		if (typeof +value != 'number') {
 			return value;
 		}
+		if (typeof +value == 'number') {
+			return +value;
+		}
 		const cleanValue=value.replace(/[^0-9\.\-]/g, '');
 		switch (destination) {
 			case 'toHelix':
@@ -452,7 +455,13 @@ var moduleFunction = function(args) {
 		const separators = schema.separators ? schema.separators : {};
 		const fieldSeparator = separators.field ? separators.field : '\t';
 		const recordSeparator = separators.record ? separators.record : '\n';
-		const inSchema = [].concat(['helixId'], fieldSequenceList);
+		
+		const inSchema = fieldSequenceList;
+		if (rawHelixData.match('helixId')){
+		inSchema = [].concat(['helixId'], fieldSequenceList);
+		}
+		
+		
 		let debugInfo = '';
 
 		if (!rawHelixData.fieldSeparator && rawHelixData.length === 1) {
@@ -539,7 +548,7 @@ var moduleFunction = function(args) {
 			}
 
 			outArray.push(newRecordObject);
-			debugInfo += '\n';
+			//debugInfo += '\n';
 		}
 		if (qtools.isTrue(schema.debugData) && !schema.internalSchema) {
 			const filePath = `/tmp/hxc_DebugInfo_${new Date().getTime()}_${

@@ -10,8 +10,8 @@ const qt = require('qtools-functional-library');
 //START OF moduleFunction() ============================================================
 
 const moduleFunction = function (args = {}) {
-	const generateEndpointDisplayList = (helixParms, getSchema, fullEndpoint) => {
-		const endpointList = [];
+	const generateEndpointDisplayList = (helixParms, getSchema, fullEndpoint, auxBuiltinEndpoints) => {
+		let endpointList = auxBuiltinEndpoints;
 		for (var schemaName in helixParms.schemaMap) {
 			var element = getSchema(helixParms, schemaName);
 			if (!element) {
@@ -65,7 +65,11 @@ const moduleFunction = function (args = {}) {
 				{ ['req.query']: req.query },
 				{ showHidden: false, depth: 4, colors: true },
 			);
-			const outStuff=generateEndpointDisplayList(helixParms, getSchema, fullEndpoint);
+			
+			const auxBuiltinEndpoints=['endpoints', 'ping', 'hxDetails', 'hxSchema', 'generateToken', 'hxConnectorCheck',];
+			
+			
+			const outStuff=generateEndpointDisplayList(helixParms, getSchema, fullEndpoint, auxBuiltinEndpoints);
 			return outStuff
 		};
 	
